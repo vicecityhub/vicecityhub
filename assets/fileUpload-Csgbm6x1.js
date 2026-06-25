@@ -1,0 +1,1 @@
+function l(e){const t=e.lastIndexOf("."),a=t>0?e.slice(0,t):e,s=t>0?e.slice(t):"",o=a.normalize("NFKD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-zA-Z0-9_-]+/g,"-").replace(/-+/g,"-").replace(/^-|-$/g,"").toLowerCase().slice(0,80),c=s.toLowerCase().replace(/[^a-z0-9.]/g,"");return(o||"file")+c}function r(e,t){return`${e}/${Date.now()}-${l(t)}`}export{r as b};
