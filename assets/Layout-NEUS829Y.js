@@ -1,4 +1,4 @@
-import{r as s,j as e}from"./index-CP0Wm1oe.js";import{s as d}from"./SupabaseClient-B-Db30yz.js";/**
+import{r as s,j as e}from"./index-BGTZ98rI.js";import{s as d}from"./SupabaseClient-DxerSCXw.js";/**
  * @license lucide-react v0.364.0 - ISC
  *
  * This source code is licensed under the ISC license.
