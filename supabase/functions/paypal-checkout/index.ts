@@ -6,9 +6,9 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-// SANDBOX — после тестов меняем на https://api-m.paypal.com
-const PAYPAL_BASE = "https://api-m.sandbox.paypal.com";
+const PAYPAL_BASE  = "https://api-m.paypal.com";
 const PRINTFUL_API = "https://api.printful.com";
+const STORE_ID     = 18377240;
 
 async function getPayPalToken(): Promise<string> {
   const clientId     = Deno.env.get("PAYPAL_CLIENT_ID")!;
@@ -27,11 +27,12 @@ async function getPayPalToken(): Promise<string> {
 }
 
 async function createPrintfulOrder(variantId: number, shipping: any, paypalOrderId: string) {
-  const res = await fetch(`${PRINTFUL_API}/orders`, {
+  const res = await fetch(`${PRINTFUL_API}/orders?store_id=${STORE_ID}`, {
     method: "POST",
     headers: {
       "Authorization": `Bearer ${Deno.env.get("PRINTFUL_API_TOKEN")}`,
       "Content-Type": "application/json",
+      "X-PF-Store-Id": String(STORE_ID),
     },
     body: JSON.stringify({
       external_id: paypalOrderId,
@@ -50,9 +51,9 @@ serve(async (req) => {
 
   try {
     const body = await req.json();
-    const { action, variantId, price, paypalOrderId, shipping } = body;
+    const { action, variantId, price, paypalOrderId } = body;
 
-    // ── CREATE: фронт вызывает при инициализации PayPal кнопки ───────────────
+    // CREATE ORDER
     if (action === "create_order") {
       const token = await getPayPalToken();
       const res = await fetch(`${PAYPAL_BASE}/v2/checkout/orders`, {
@@ -62,7 +63,7 @@ serve(async (req) => {
           intent: "CAPTURE",
           purchase_units: [{
             custom_id: String(variantId),
-            description: `Vice City Hub Merch — Variant #${variantId}`,
+            description: `Vice City Hub Merch - Variant #${variantId}`,
             amount: { currency_code: "USD", value: parseFloat(price).toFixed(2) },
           }],
           application_context: { shipping_preference: "GET_FROM_FILE" },
@@ -75,7 +76,7 @@ serve(async (req) => {
       });
     }
 
-    // ── CAPTURE: вызывается после одобрения покупателем ──────────────────────
+    // CAPTURE + PRINTFUL ORDER
     if (action === "capture_order") {
       const token = await getPayPalToken();
       const captureRes = await fetch(`${PAYPAL_BASE}/v2/checkout/orders/${paypalOrderId}/capture`, {
@@ -85,7 +86,6 @@ serve(async (req) => {
       const captureData = await captureRes.json();
       if (!captureRes.ok) throw new Error(JSON.stringify(captureData));
 
-      // Извлекаем адрес из ответа PayPal
       const payer = captureData.payer;
       const addr  = captureData.purchase_units?.[0]?.shipping?.address || {};
       const shipTo = {
@@ -98,8 +98,7 @@ serve(async (req) => {
         zip:          addr.postal_code     || "",
       };
 
-      // Создаём заказ в Printful
-      const pVariantId = parseInt(captureData.purchase_units?.[0]?.custom_id || variantId);
+      const pVariantId    = parseInt(captureData.purchase_units?.[0]?.custom_id || String(variantId));
       const printfulOrder = await createPrintfulOrder(pVariantId, shipTo, paypalOrderId);
 
       return new Response(JSON.stringify({
