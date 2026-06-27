@@ -219,7 +219,7 @@ function MerchModal({ product, onClose }: { product: PrintfulProduct; onClose: (
               {/* Zoom hint */}
               <button
                 onClick={() => setLightbox(true)}
-                className="absolute bottom-3 right-3 bg-black/60 border border-neonCyan/40 hover:border-neonCyan text-neonCyan w-7 h-7 rounded flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all"
+                className="absolute bottom-3 right-3 bg-black/60 border border-neonCyan/40 hover:border-neonCyan text-neonCyan w-7 h-7 rounded flex items-center justify-center opacity-100 transition-all"
                 title="View full size"
               >
                 <ZoomIn size={13} />
@@ -462,7 +462,7 @@ function MerchandiseStorefront() {
                       loading="lazy"
                       onError={e => { (e.target as HTMLImageElement).src = 'https://placehold.co/200x200/0c0c1c/444?text=MERCH'; }}
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center pb-3">
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-100 transition-opacity duration-300 flex items-end justify-center pb-3">
                       <span className="font-orbitron text-[9px] font-bold uppercase tracking-widest text-neonCyan">View Options ↗</span>
                     </div>
                   </div>
@@ -656,3 +656,4 @@ export default function Market() {
     </div>
   );
 }
+
