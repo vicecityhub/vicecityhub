@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { supa } from '../lib/SupabaseClient';
 import {
   Shield, Zap, TrendingUp, AlertTriangle,
   ExternalLink, Globe, Filter, ShoppingBag, X,
-  Package, Tag, Loader2
+  Package, Tag, Loader2, ChevronLeft, ChevronRight, ZoomIn
 } from 'lucide-react';
 
 interface PrintfulProduct {
@@ -41,6 +41,42 @@ function SkeletonCard() {
   );
 }
 
+// ─── Image Lightbox ───────────────────────────────────────────────────────────
+function ImageLightbox({ src, name, onClose }: { src: string; name: string; onClose: () => void }) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [onClose]);
+
+  return (
+    <div
+      className="fixed inset-0 z-[99999] flex items-center justify-center p-4"
+      style={{ background: 'rgba(0,0,0,0.95)', backdropFilter: 'blur(20px)' }}
+      onClick={e => { if (e.target === e.currentTarget) onClose(); }}
+    >
+      <button
+        onClick={onClose}
+        className="absolute top-4 right-4 border border-white/20 hover:border-neonPink text-white hover:text-neonPink w-10 h-10 rounded-full flex items-center justify-center transition-all z-10"
+      >
+        <X size={18} />
+      </button>
+      <div className="flex flex-col items-center gap-4 max-w-2xl w-full">
+        <img
+          src={src}
+          alt={name}
+          className="max-h-[80dvh] max-w-full object-contain drop-shadow-2xl rounded"
+          style={{ boxShadow: '0 0 60px rgba(0,229,255,0.15)' }}
+          onError={e => { (e.target as HTMLImageElement).src = 'https://placehold.co/600x600/0c0c1c/444?text=MERCH'; }}
+        />
+        <p className="font-orbitron font-bold text-xs text-gray-400 uppercase tracking-widest text-center">{name}</p>
+      </div>
+      <style>{`@keyframes lbIn{from{opacity:0;transform:scale(0.92)}to{opacity:1;transform:scale(1)}}`}</style>
+    </div>
+  );
+}
+
+// ─── Merch Modal ─────────────────────────────────────────────────────────────
 function MerchModal({ product, onClose }: { product: PrintfulProduct; onClose: () => void }) {
   const [variants, setVariants]               = useState<PrintfulVariant[]>([]);
   const [loading, setLoading]                 = useState(true);
@@ -51,6 +87,7 @@ function MerchModal({ product, onClose }: { product: PrintfulProduct; onClose: (
   const [paypalReady, setPaypalReady]         = useState(false);
   const [orderStatus, setOrderStatus]         = useState<'idle'|'processing'|'success'|'error'>('idle');
   const [orderMsg, setOrderMsg]               = useState('');
+  const [lightbox, setLightbox]               = useState(false);
   const paypalContainerRef = useRef<HTMLDivElement>(null);
   const paypalRendered     = useRef(false);
 
@@ -153,122 +190,135 @@ function MerchModal({ product, onClose }: { product: PrintfulProduct; onClose: (
     : minP != null ? (minP === maxP ? fmt(minP) : `${fmt(minP)} – ${fmt(maxP!)}`) : 'Price TBD';
 
   return (
-    <div
-      className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
-      style={{ background: 'rgba(5,5,8,0.92)', backdropFilter: 'blur(14px)' }}
-      onClick={e => { if (e.target === e.currentTarget) onClose(); }}
-    >
+    <>
+      {lightbox && <ImageLightbox src={product.thumbnail_url} name={product.name} onClose={() => setLightbox(false)} />}
+
       <div
-        className="relative w-full max-w-2xl glass-card overflow-hidden flex flex-col"
-        style={{ animation: 'modalIn 0.28s cubic-bezier(0.2,0.8,0.2,1) forwards', borderColor: 'rgba(0,229,255,0.35)', boxShadow: '0 0 60px rgba(0,229,255,0.12)', maxHeight: '90dvh' }}
+        className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
+        style={{ background: 'rgba(5,5,8,0.92)', backdropFilter: 'blur(14px)' }}
+        onClick={e => { if (e.target === e.currentTarget) onClose(); }}
       >
-        <div className="h-0.5 w-full bg-gradient-to-r from-neonPink via-neonCyan to-neonOrange shrink-0" />
-        <button onClick={onClose} className="absolute top-4 right-4 z-10 border border-white/10 hover:border-neonPink text-gray-400 hover:text-neonPink w-8 h-8 rounded flex items-center justify-center transition-all">
-          <X size={14} />
-        </button>
+        <div
+          className="relative w-full max-w-2xl glass-card overflow-hidden flex flex-col"
+          style={{ animation: 'modalIn 0.28s cubic-bezier(0.2,0.8,0.2,1) forwards', borderColor: 'rgba(0,229,255,0.35)', boxShadow: '0 0 60px rgba(0,229,255,0.12)', maxHeight: '90dvh' }}
+        >
+          <div className="h-0.5 w-full bg-gradient-to-r from-neonPink via-neonCyan to-neonOrange shrink-0" />
+          <button onClick={onClose} className="absolute top-4 right-4 z-10 border border-white/10 hover:border-neonPink text-gray-400 hover:text-neonPink w-8 h-8 rounded flex items-center justify-center transition-all">
+            <X size={14} />
+          </button>
 
-        <div className="overflow-y-auto flex flex-col md:flex-row">
-          <div className="md:w-56 shrink-0 bg-[#0a0a14] flex items-center justify-center p-6">
-            <img src={product.thumbnail_url} alt={product.name} className="max-h-48 object-contain drop-shadow-2xl"
-              onError={e => { (e.target as HTMLImageElement).src = 'https://placehold.co/200x200/0c0c1c/444?text=MERCH'; }} />
-          </div>
-
-          <div className="flex-1 p-6 flex flex-col gap-3">
-            <span className="border border-neonCyan/40 bg-neonCyan/5 text-neonCyan text-[9px] font-bold tracking-widest px-2 py-0.5 rounded font-orbitron uppercase w-fit">Official Merch</span>
-            <h3 className="font-orbitron font-extrabold text-lg text-white tracking-wide uppercase leading-snug">{product.name}</h3>
-            <div className="font-orbitron font-bold text-2xl text-neonOrange transition-all">{priceDisplay}</div>
-
-            {loading && <div className="flex items-center gap-3 text-gray-500 text-xs font-bold font-orbitron uppercase tracking-wider py-2"><Loader2 size={16} className="animate-spin text-neonCyan" />Loading variants...</div>}
-            {error   && <div className="border border-neonPink/30 bg-neonPink/5 rounded p-3 text-[10px] text-neonPink font-bold font-orbitron uppercase tracking-wider flex items-start gap-2"><AlertTriangle size={12} className="shrink-0 mt-0.5" />{error}</div>}
-
-            {!loading && !error && (
-              <>
-                {colors.length > 0 && (
-                  <div>
-                    <span className="text-[10px] text-gray-500 font-bold uppercase tracking-widest font-orbitron mb-2 block">Color</span>
-                    <div className="flex flex-wrap gap-2">
-                      {colors.map(c => {
-                        const avail = availableColors.includes(c); const sel = selectedColor === c;
-                        return (
-                          <button key={c} onClick={() => { setSelectedColor(sel ? null : c); setSelectedSize(null); }} disabled={!avail}
-                            className={`text-[10px] font-bold font-orbitron uppercase tracking-wider px-3 py-1.5 rounded border transition-all
-                              ${sel   ? 'border-neonCyan text-neonCyan bg-neonCyan/10 shadow-[0_0_10px_rgba(0,229,255,0.2)]' : ''}
-                              ${!sel && avail ? 'border-white/10 text-gray-400 hover:border-white/20 hover:text-white' : ''}
-                              ${!avail ? 'border-white/5 text-gray-700 cursor-not-allowed opacity-40' : ''}`}
-                          >{c}</button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-                {sizes.length > 0 && (
-                  <div>
-                    <span className="text-[10px] text-gray-500 font-bold uppercase tracking-widest font-orbitron mb-2 block">Size</span>
-                    <div className="flex flex-wrap gap-2">
-                      {sizes.map(s => {
-                        const avail = availableSizes.includes(s); const sel = selectedSize === s;
-                        return (
-                          <button key={s} onClick={() => setSelectedSize(sel ? null : s)} disabled={!avail}
-                            className={`min-w-[3rem] px-2 py-2 text-[9px] font-bold font-orbitron uppercase rounded border transition-all leading-tight text-center
-                              ${sel   ? 'border-neonPink text-neonPink bg-neonPink/10 shadow-[0_0_10px_rgba(255,0,229,0.2)]' : ''}
-                              ${!sel && avail ? 'border-white/10 text-gray-400 hover:border-white/20 hover:text-white' : ''}
-                              ${!avail ? 'border-white/5 text-gray-700 cursor-not-allowed opacity-40' : ''}`}
-                          >{s}</button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-                <div className="flex items-center justify-between mt-1">
-                  <p className="text-[10px] text-gray-600 font-bold font-orbitron uppercase tracking-wider">{variants.length} variant{variants.length !== 1 ? 's' : ''} available</p>
-                  {selectedVariant && <span className="text-[9px] font-bold font-orbitron uppercase tracking-widest text-neonCyan border border-neonCyan/30 bg-neonCyan/5 px-2 py-1 rounded">{selectedVariant.color} / {selectedVariant.size}</span>}
-                </div>
-              </>
-            )}
-
-            <div className="flex flex-col gap-2 mt-1">
-              {orderStatus === 'success' && (
-                <div className="border border-green-500/40 bg-green-500/10 rounded p-4 text-center">
-                  <div className="text-green-400 font-orbitron font-bold text-xs uppercase tracking-wider mb-1">✓ Payment Confirmed</div>
-                  <p className="text-[10px] text-green-300 font-bold font-orbitron tracking-wider">{orderMsg}</p>
-                </div>
-              )}
-              {orderStatus === 'error' && (
-                <div className="border border-neonPink/40 bg-neonPink/5 rounded p-3 text-center">
-                  <p className="text-[10px] text-neonPink font-bold font-orbitron uppercase tracking-wider">{orderMsg}</p>
-                </div>
-              )}
-              {orderStatus === 'processing' && (
-                <div className="flex items-center justify-center gap-2 py-2">
-                  <Loader2 size={14} className="animate-spin text-neonCyan" />
-                  <span className="text-[10px] font-bold font-orbitron uppercase tracking-wider text-neonCyan">{orderMsg}</span>
-                </div>
-              )}
-              {orderStatus !== 'success' && (
-                !selectedVariant
-                  ? <div className="w-full py-3 rounded border border-white/10 text-gray-600 font-orbitron font-bold text-xs uppercase tracking-widest text-center cursor-not-allowed">{(colors.length > 0 || sizes.length > 0) ? 'Select color & size above' : loading ? 'Loading...' : 'No options'}</div>
-                  : !PAYPAL_CLIENT_ID
-                    ? <div className="w-full py-3 rounded border border-neonOrange/30 text-neonOrange font-orbitron font-bold text-[10px] uppercase tracking-widest text-center">Add VITE_PAYPAL_CLIENT_ID to GitHub Secrets</div>
-                    : <div ref={paypalContainerRef} className="w-full min-h-[50px]" />
-              )}
-              <button onClick={onClose} className="w-full flex items-center justify-center gap-2 font-orbitron font-bold text-[10px] uppercase tracking-widest py-2 rounded border border-white/10 text-gray-500 hover:border-white/20 hover:text-gray-300 transition-all">
-                <X size={11} /> Close
+          <div className="overflow-y-auto flex flex-col md:flex-row">
+            {/* Product image with zoom button */}
+            <div className="md:w-56 shrink-0 bg-[#0a0a14] flex items-center justify-center p-6 relative group">
+              <img
+                src={product.thumbnail_url} alt={product.name}
+                className="max-h-48 object-contain drop-shadow-2xl cursor-zoom-in transition-transform duration-300 group-hover:scale-105"
+                onClick={() => setLightbox(true)}
+                onError={e => { (e.target as HTMLImageElement).src = 'https://placehold.co/200x200/0c0c1c/444?text=MERCH'; }}
+              />
+              {/* Zoom hint */}
+              <button
+                onClick={() => setLightbox(true)}
+                className="absolute bottom-3 right-3 bg-black/60 border border-neonCyan/40 hover:border-neonCyan text-neonCyan w-7 h-7 rounded flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all"
+                title="View full size"
+              >
+                <ZoomIn size={13} />
               </button>
+            </div>
+
+            <div className="flex-1 p-6 flex flex-col gap-3">
+              <span className="border border-neonCyan/40 bg-neonCyan/5 text-neonCyan text-[9px] font-bold tracking-widest px-2 py-0.5 rounded font-orbitron uppercase w-fit">Official Merch</span>
+              <h3 className="font-orbitron font-extrabold text-lg text-white tracking-wide uppercase leading-snug">{product.name}</h3>
+              <div className="font-orbitron font-bold text-2xl text-neonOrange transition-all">{priceDisplay}</div>
+
+              {loading && <div className="flex items-center gap-3 text-gray-500 text-xs font-bold font-orbitron uppercase tracking-wider py-2"><Loader2 size={16} className="animate-spin text-neonCyan" />Loading variants...</div>}
+              {error   && <div className="border border-neonPink/30 bg-neonPink/5 rounded p-3 text-[10px] text-neonPink font-bold font-orbitron uppercase tracking-wider flex items-start gap-2"><AlertTriangle size={12} className="shrink-0 mt-0.5" />{error}</div>}
+
+              {!loading && !error && (
+                <>
+                  {colors.length > 0 && (
+                    <div>
+                      <span className="text-[10px] text-gray-500 font-bold uppercase tracking-widest font-orbitron mb-2 block">Color</span>
+                      <div className="flex flex-wrap gap-2">
+                        {colors.map(c => {
+                          const avail = availableColors.includes(c); const sel = selectedColor === c;
+                          return <button key={c} onClick={() => { setSelectedColor(sel ? null : c); setSelectedSize(null); }} disabled={!avail}
+                            className={`text-[10px] font-bold font-orbitron uppercase tracking-wider px-3 py-1.5 rounded border transition-all
+                              ${sel ? 'border-neonCyan text-neonCyan bg-neonCyan/10 shadow-[0_0_10px_rgba(0,229,255,0.2)]' : ''}
+                              ${!sel && avail ? 'border-white/10 text-gray-400 hover:border-white/20 hover:text-white' : ''}
+                              ${!avail ? 'border-white/5 text-gray-700 cursor-not-allowed opacity-40' : ''}`}>{c}</button>;
+                        })}
+                      </div>
+                    </div>
+                  )}
+                  {sizes.length > 0 && (
+                    <div>
+                      <span className="text-[10px] text-gray-500 font-bold uppercase tracking-widest font-orbitron mb-2 block">Size</span>
+                      <div className="flex flex-wrap gap-2">
+                        {sizes.map(s => {
+                          const avail = availableSizes.includes(s); const sel = selectedSize === s;
+                          return <button key={s} onClick={() => setSelectedSize(sel ? null : s)} disabled={!avail}
+                            className={`min-w-[3rem] px-2 py-2 text-[9px] font-bold font-orbitron uppercase rounded border transition-all leading-tight text-center
+                              ${sel ? 'border-neonPink text-neonPink bg-neonPink/10 shadow-[0_0_10px_rgba(255,0,229,0.2)]' : ''}
+                              ${!sel && avail ? 'border-white/10 text-gray-400 hover:border-white/20 hover:text-white' : ''}
+                              ${!avail ? 'border-white/5 text-gray-700 cursor-not-allowed opacity-40' : ''}`}>{s}</button>;
+                        })}
+                      </div>
+                    </div>
+                  )}
+                  <div className="flex items-center justify-between mt-1">
+                    <p className="text-[10px] text-gray-600 font-bold font-orbitron uppercase tracking-wider">{variants.length} variant{variants.length !== 1 ? 's' : ''} available</p>
+                    {selectedVariant && <span className="text-[9px] font-bold font-orbitron uppercase tracking-widest text-neonCyan border border-neonCyan/30 bg-neonCyan/5 px-2 py-1 rounded">{selectedVariant.color} / {selectedVariant.size}</span>}
+                  </div>
+                </>
+              )}
+
+              <div className="flex flex-col gap-2 mt-1">
+                {orderStatus === 'success' && (
+                  <div className="border border-green-500/40 bg-green-500/10 rounded p-4 text-center">
+                    <div className="text-green-400 font-orbitron font-bold text-xs uppercase tracking-wider mb-1">✓ Payment Confirmed</div>
+                    <p className="text-[10px] text-green-300 font-bold font-orbitron tracking-wider">{orderMsg}</p>
+                  </div>
+                )}
+                {orderStatus === 'error' && (
+                  <div className="border border-neonPink/40 bg-neonPink/5 rounded p-3 text-center">
+                    <p className="text-[10px] text-neonPink font-bold font-orbitron uppercase tracking-wider">{orderMsg}</p>
+                  </div>
+                )}
+                {orderStatus === 'processing' && (
+                  <div className="flex items-center justify-center gap-2 py-2">
+                    <Loader2 size={14} className="animate-spin text-neonCyan" />
+                    <span className="text-[10px] font-bold font-orbitron uppercase tracking-wider text-neonCyan">{orderMsg}</span>
+                  </div>
+                )}
+                {orderStatus !== 'success' && (
+                  !selectedVariant
+                    ? <div className="w-full py-3 rounded border border-white/10 text-gray-600 font-orbitron font-bold text-xs uppercase tracking-widest text-center cursor-not-allowed">{(colors.length > 0 || sizes.length > 0) ? 'Select color & size above' : loading ? 'Loading...' : 'No options'}</div>
+                    : !PAYPAL_CLIENT_ID
+                      ? <div className="w-full py-3 rounded border border-neonOrange/30 text-neonOrange font-orbitron font-bold text-[10px] uppercase tracking-widest text-center">Add VITE_PAYPAL_CLIENT_ID to GitHub Secrets</div>
+                      : <div ref={paypalContainerRef} className="w-full min-h-[50px]" />
+                )}
+                <button onClick={onClose} className="w-full flex items-center justify-center gap-2 font-orbitron font-bold text-[10px] uppercase tracking-widest py-2 rounded border border-white/10 text-gray-500 hover:border-white/20 hover:text-gray-300 transition-all">
+                  <X size={11} /> Close
+                </button>
+              </div>
             </div>
           </div>
         </div>
+        <style>{`@keyframes modalIn{from{opacity:0;transform:translateY(24px) scale(0.97)}to{opacity:1;transform:translateY(0) scale(1)}}`}</style>
       </div>
-      <style>{`@keyframes modalIn{from{opacity:0;transform:translateY(24px) scale(0.97)}to{opacity:1;transform:translateY(0) scale(1)}}`}</style>
-    </div>
+    </>
   );
 }
 
+// ─── Merchandise Storefront ───────────────────────────────────────────────────
 function MerchandiseStorefront() {
-  const [products, setProducts]           = useState<PrintfulProduct[]>([]);
-  const [loading, setLoading]             = useState(true);
-  const [apiFail, setApiFail]             = useState(false);
+  const [products, setProducts]               = useState<PrintfulProduct[]>([]);
+  const [loading, setLoading]                 = useState(true);
+  const [apiFail, setApiFail]                 = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<PrintfulProduct | null>(null);
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const scrollRef    = useRef<HTMLDivElement>(null);
+  const autoplayRef  = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -282,14 +332,60 @@ function MerchandiseStorefront() {
     })();
   }, []);
 
+  const getCardWidth = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el || !el.firstElementChild) return 276;
+    return (el.firstElementChild as HTMLElement).offsetWidth + 20;
+  }, []);
+
+  const scrollBy = useCallback((dir: 'left' | 'right') => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const w = getCardWidth();
+    el.scrollBy({ left: dir === 'right' ? w : -w, behavior: 'smooth' });
+  }, [getCardWidth]);
+
+  // Autoplay every 8 seconds
+  useEffect(() => {
+    if (products.length === 0) return;
+    autoplayRef.current = setInterval(() => {
+      const el = scrollRef.current;
+      if (!el) return;
+      const w    = getCardWidth();
+      const maxL = el.scrollWidth - el.clientWidth;
+      if (el.scrollLeft >= maxL - 10) {
+        el.scrollTo({ left: 0, behavior: 'smooth' });
+      } else {
+        el.scrollBy({ left: w, behavior: 'smooth' });
+      }
+    }, 8000);
+    return () => { if (autoplayRef.current) clearInterval(autoplayRef.current); };
+  }, [products, getCardWidth]);
+
+  // Pause autoplay on hover
+  const pauseAuto  = () => { if (autoplayRef.current) clearInterval(autoplayRef.current); };
+  const resumeAuto = () => {
+    if (products.length === 0) return;
+    autoplayRef.current = setInterval(() => {
+      const el = scrollRef.current;
+      if (!el) return;
+      const w    = getCardWidth();
+      const maxL = el.scrollWidth - el.clientWidth;
+      if (el.scrollLeft >= maxL - 10) el.scrollTo({ left: 0, behavior: 'smooth' });
+      else el.scrollBy({ left: w, behavior: 'smooth' });
+    }, 8000);
+  };
+
+  // Touch snap
   useEffect(() => {
     const el = scrollRef.current; if (!el) return;
     let startX = 0;
-    const onTouchStart = (e: TouchEvent) => { startX = e.touches[0].clientX; };
+    const onTouchStart = (e: TouchEvent) => { startX = e.touches[0].clientX; pauseAuto(); };
     const onTouchEnd   = (e: TouchEvent) => {
-      const dx    = startX - e.changedTouches[0].clientX;
-      const cardW = ((el.firstElementChild as HTMLElement)?.offsetWidth || 256) + 20;
-      if (Math.abs(dx) < cardW * 0.25) el.scrollTo({ left: Math.round(el.scrollLeft / cardW) * cardW, behavior: 'smooth' });
+      const dx = startX - e.changedTouches[0].clientX;
+      const w  = getCardWidth();
+      if (Math.abs(dx) < w * 0.25) el.scrollTo({ left: Math.round(el.scrollLeft / w) * w, behavior: 'smooth' });
+      resumeAuto();
     };
     el.addEventListener('touchstart', onTouchStart, { passive: true });
     el.addEventListener('touchend',   onTouchEnd,   { passive: true });
@@ -299,6 +395,7 @@ function MerchandiseStorefront() {
   return (
     <>
       <section className="py-8 px-6 max-w-[1280px] mx-auto z-10 relative">
+        {/* Header */}
         <div className="flex flex-wrap items-center gap-3 border-b border-white/5 pb-4 mb-5">
           <span className="font-orbitron text-xs text-neonCyan font-extrabold tracking-widest">01</span>
           <h2 className="font-orbitron font-extrabold text-3xl tracking-widest uppercase mr-3">Vice City <span className="text-neonCyan">Merch</span></h2>
@@ -314,7 +411,7 @@ function MerchandiseStorefront() {
             <AlertTriangle size={32} className="text-neonPink opacity-60" />
             <div>
               <h4 className="font-orbitron font-bold text-sm uppercase tracking-wider text-white mb-1">Store Temporarily Offline</h4>
-              <p className="text-[11px] text-gray-500 font-bold font-rajdhani uppercase tracking-wider max-w-sm">Corrupt cop bribed the server. <a href="https://vice-city-hub.printful.me" target="_blank" rel="noopener noreferrer" className="text-neonCyan hover:underline">Visit store directly →</a></p>
+              <p className="text-[11px] text-gray-500 font-bold font-rajdhani uppercase tracking-wider max-w-sm">Corrupt cop bribed the server.</p>
             </div>
           </div>
         )}
@@ -326,27 +423,61 @@ function MerchandiseStorefront() {
           </div>
         )}
 
+        {/* Carousel with arrows */}
         {!loading && !apiFail && products.length > 0 && (
-          <div ref={scrollRef} className="flex gap-5 overflow-x-auto pb-5 pt-2 custom-scrollbar" style={{ scrollSnapType: 'x mandatory', WebkitOverflowScrolling: 'touch', scrollBehavior: 'smooth' }}>
-            {products.map(product => (
-              <article key={product.id} onClick={() => setSelectedProduct(product)} className="flex-shrink-0 w-64 glass-card p-0 overflow-hidden cursor-pointer group" style={{ scrollSnapAlign: 'center' }}>
-                <div className="w-full h-52 bg-[#0a0a14] flex items-center justify-center overflow-hidden relative">
-                  <img src={product.thumbnail_url} alt={product.name} className="max-h-44 max-w-full object-contain transition-transform duration-500 group-hover:scale-110 drop-shadow-xl" loading="lazy"
-                    onError={e => { (e.target as HTMLImageElement).src = 'https://placehold.co/200x200/0c0c1c/444?text=MERCH'; }} />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center pb-3">
-                    <span className="font-orbitron text-[9px] font-bold uppercase tracking-widest text-neonCyan">View Options ↗</span>
+          <div className="relative" onMouseEnter={pauseAuto} onMouseLeave={resumeAuto}>
+            {/* Left arrow */}
+            <button
+              onClick={() => scrollBy('left')}
+              className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-3 z-20 w-9 h-9 rounded-full border border-white/15 bg-[#0a0a14]/90 hover:border-neonCyan hover:text-neonCyan text-gray-400 flex items-center justify-center transition-all shadow-lg backdrop-blur-sm"
+            >
+              <ChevronLeft size={16} />
+            </button>
+
+            {/* Right arrow */}
+            <button
+              onClick={() => scrollBy('right')}
+              className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-3 z-20 w-9 h-9 rounded-full border border-white/15 bg-[#0a0a14]/90 hover:border-neonCyan hover:text-neonCyan text-gray-400 flex items-center justify-center transition-all shadow-lg backdrop-blur-sm"
+            >
+              <ChevronRight size={16} />
+            </button>
+
+            {/* Scrollable list */}
+            <div
+              ref={scrollRef}
+              className="flex gap-5 overflow-x-auto pb-5 pt-2 px-1 custom-scrollbar"
+              style={{ scrollSnapType: 'x mandatory', WebkitOverflowScrolling: 'touch', scrollBehavior: 'smooth' }}
+            >
+              {products.map(product => (
+                <article
+                  key={product.id}
+                  onClick={() => setSelectedProduct(product)}
+                  className="flex-shrink-0 w-64 glass-card p-0 overflow-hidden cursor-pointer group"
+                  style={{ scrollSnapAlign: 'center' }}
+                >
+                  <div className="w-full h-52 bg-[#0a0a14] flex items-center justify-center overflow-hidden relative">
+                    <img
+                      src={product.thumbnail_url} alt={product.name}
+                      className="max-h-44 max-w-full object-contain transition-transform duration-500 group-hover:scale-110 drop-shadow-xl"
+                      loading="lazy"
+                      onError={e => { (e.target as HTMLImageElement).src = 'https://placehold.co/200x200/0c0c1c/444?text=MERCH'; }}
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center pb-3">
+                      <span className="font-orbitron text-[9px] font-bold uppercase tracking-widest text-neonCyan">View Options ↗</span>
+                    </div>
                   </div>
-                </div>
-                <div className="p-4 flex flex-col gap-2">
-                  <h3 className="font-orbitron font-bold text-[11px] text-white uppercase tracking-wide leading-snug line-clamp-2 group-hover:text-neonCyan transition-colors">{product.name}</h3>
-                  {product.variants != null && <span className="text-[9px] text-gray-500 font-bold font-orbitron uppercase tracking-widest flex items-center gap-1"><Tag size={9} className="text-neonOrange" />{product.variants} variant{product.variants !== 1 ? 's' : ''}</span>}
-                  <button onClick={e => { e.stopPropagation(); setSelectedProduct(product); }} className="mt-1 w-full py-2 rounded border border-neonCyan/40 text-neonCyan text-[9px] font-bold font-orbitron uppercase tracking-widest hover:bg-neonCyan/10 hover:border-neonCyan transition-all">View Options</button>
-                </div>
-              </article>
-            ))}
+                  <div className="p-4 flex flex-col gap-2">
+                    <h3 className="font-orbitron font-bold text-[11px] text-white uppercase tracking-wide leading-snug line-clamp-2 group-hover:text-neonCyan transition-colors">{product.name}</h3>
+                    {product.variants != null && <span className="text-[9px] text-gray-500 font-bold font-orbitron uppercase tracking-widest flex items-center gap-1"><Tag size={9} className="text-neonOrange" />{product.variants} variant{product.variants !== 1 ? 's' : ''}</span>}
+                    <button onClick={e => { e.stopPropagation(); setSelectedProduct(product); }} className="mt-1 w-full py-2 rounded border border-neonCyan/40 text-neonCyan text-[9px] font-bold font-orbitron uppercase tracking-widest hover:bg-neonCyan/10 hover:border-neonCyan transition-all">View Options</button>
+                  </div>
+                </article>
+              ))}
+            </div>
           </div>
         )}
 
+        {/* Info strip */}
         {!loading && !apiFail && products.length > 0 && (
           <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4 border border-white/5 p-5 rounded bg-[#050508]/60">
             <div className="flex items-start gap-3"><Shield className="text-neonCyan shrink-0 mt-0.5" size={16} /><div><h4 className="text-[10px] font-bold text-white uppercase tracking-wider font-orbitron">Secure Checkout</h4><p className="text-[10px] text-gray-500 font-bold leading-normal mt-0.5">Payments via PayPal encrypted gateway.</p></div></div>
@@ -355,11 +486,13 @@ function MerchandiseStorefront() {
           </div>
         )}
       </section>
+
       {selectedProduct && <MerchModal product={selectedProduct} onClose={() => setSelectedProduct(null)} />}
     </>
   );
 }
 
+// ─── Main Market Page ─────────────────────────────────────────────────────────
 export default function Market() {
   const getTldColor = (title: string) => {
     const colors = ['#ff2070', '#00e5ff', '#ff7b35', '#a855f7', '#00d68f'];
@@ -408,7 +541,9 @@ export default function Market() {
     return Array.from(tags);
   }, [allDomains]);
 
-  useEffect(() => { if (!availableTags.map(t => t.toLowerCase()).includes(selectedTag.toLowerCase())) setSelectedTag('All'); }, [availableTags, selectedTag]);
+  useEffect(() => {
+    if (!availableTags.map(t => t.toLowerCase()).includes(selectedTag.toLowerCase())) setSelectedTag('All');
+  }, [availableTags, selectedTag]);
 
   const filteredDomains = allDomains.filter(item => {
     let tag = 'eth';
@@ -431,6 +566,7 @@ export default function Market() {
       <MerchandiseStorefront />
       <div className="gradient-line" />
 
+      {/* BLOCK 02 — DOMAINS */}
       <section className="py-20 px-6 max-w-[1280px] mx-auto z-10 relative">
         <div className="flex items-baseline gap-3 border-b border-white/5 pb-5 mb-10">
           <span className="font-orbitron text-xs text-neonOrange font-extrabold tracking-widest">02</span>
@@ -476,6 +612,7 @@ export default function Market() {
 
       <div className="gradient-line" />
 
+      {/* BLOCK 03 — INVESTOR */}
       <section className="py-20 px-6 max-w-[1280px] mx-auto z-10 relative">
         <div className="flex items-baseline gap-3 border-b border-white/5 pb-5 mb-10">
           <span className="font-orbitron text-xs text-neonPink font-extrabold tracking-widest">03</span>
