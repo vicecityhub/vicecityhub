@@ -252,6 +252,8 @@ function LeaseForm({ selectedPlan, onClose, formRef }: { selectedPlan: StorePlan
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
 
+  const successRef = useRef<HTMLDivElement>(null);
+
   const submit = async () => {
     if (!form.store_name || !form.contact_email) return;
     setSubmitting(true);
@@ -280,6 +282,10 @@ function LeaseForm({ selectedPlan, onClose, formRef }: { selectedPlan: StorePlan
         });
       if (error) throw error;
       setSubmitted(true);
+      setTimeout(() => {
+        successRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        successRef.current?.focus();
+      }, 100);
     } catch (err: any) {
       setSubmitError('Connection error. Please try again or reach out via email.');
     } finally {
@@ -289,7 +295,7 @@ function LeaseForm({ selectedPlan, onClose, formRef }: { selectedPlan: StorePlan
 
   if (submitted) {
     return (
-      <div className="text-center py-8">
+      <div ref={successRef} tabIndex={-1} className="text-center py-8 outline-none">
         <div className="text-4xl mb-4">✅</div>
         <div className="font-orbitron font-black text-sm text-neonCyan mb-2 tracking-widest">APPLICATION RECEIVED</div>
         <p className="text-white/50 text-sm mb-6">We'll get back to you within 48 hours. Welcome to the District.</p>
