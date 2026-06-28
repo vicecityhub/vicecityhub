@@ -378,13 +378,7 @@ export default function StoreTab({ onFormOpen }: { onFormOpen?: (open: boolean) 
   const plansRef = useRef<HTMLDivElement>(null);
   const formRef  = useRef<HTMLDivElement>(null);
 
-  const scrollToPlans = () => {
-    setShowPricing(true);
-    setShowLeaseForm(false);
-    setTimeout(() => {
-      plansRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 80);
-  };
+  const scrollToPlans = () => { setShowPricing(true); setShowLeaseForm(false); setTimeout(() => { plansRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 100); };
 
   const [categoryFilter, setCategoryFilter] = useState<string>('ALL');
 
@@ -467,7 +461,7 @@ export default function StoreTab({ onFormOpen }: { onFormOpen?: (open: boolean) 
 
       {/* ── PRICING SECTION ── */}
       {showPricing && (
-        <div ref={plansRef} className="mb-8 slide-in" style={{ scrollMarginTop: "80px" }}>
+        <div ref={plansRef} className="mb-8 slide-in" style={{ scrollMarginTop: '148px' }}>
           <div className="flex items-center justify-between mb-4">
             <div>
               <h3 className="font-orbitron font-black text-sm tracking-widest text-neonCyan">◈ CHOOSE YOUR SLOT PLAN</h3>
