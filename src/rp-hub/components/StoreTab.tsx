@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState, useRef } from 'react';
 import { createClient } from '@supabase/supabase-js';
 
 const supabase = createClient(
@@ -369,6 +369,16 @@ export default function StoreTab() {
   const [showPricing, setShowPricing] = useState(false);
   const [showLeaseForm, setShowLeaseForm] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<StorePlan | null>(null);
+  const plansRef = useRef<HTMLDivElement>(null);
+
+  const scrollToPlans = () => {
+    setShowPricing(true);
+    setShowLeaseForm(false);
+    setTimeout(() => {
+      plansRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 80);
+  };
+
   const [categoryFilter, setCategoryFilter] = useState<string>('ALL');
 
   const handleRent = (plan: StorePlan) => {
@@ -410,7 +420,7 @@ export default function StoreTab() {
             </div>
           </div>
           <div className="flex flex-col gap-3 flex-shrink-0">
-            <button onClick={() => { setShowPricing(true); setShowLeaseForm(false); }}
+            <button onClick={scrollToPlans}
               className="btn-neon pulse-glow text-center">
               🏪 RENT A SLOT
             </button>
@@ -437,7 +447,7 @@ export default function StoreTab() {
 
       {/* ── PRICING SECTION ── */}
       {showPricing && (
-        <div className="mb-8 slide-in">
+        <div ref={plansRef} className="mb-8 slide-in" style={{ scrollMarginTop: "80px" }}>
           <div className="flex items-center justify-between mb-4">
             <div>
               <h3 className="font-orbitron font-black text-sm tracking-widest text-neonCyan">◈ CHOOSE YOUR SLOT PLAN</h3>
@@ -513,7 +523,7 @@ export default function StoreTab() {
         </div>
         <div className="mt-5 pt-4 border-t border-white/[0.05] text-center">
           <p className="text-[10px] text-white/25 mb-3">Ready to put your store in front of 12,000+ monthly visitors?</p>
-          <button onClick={() => { setShowPricing(true); setShowLeaseForm(false); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+          <button onClick={scrollToPlans}
             className="btn-neon btn-neon-sm">GET YOUR SLOT NOW</button>
         </div>
       </div>
@@ -521,3 +531,4 @@ export default function StoreTab() {
     </div>
   );
 }
+
