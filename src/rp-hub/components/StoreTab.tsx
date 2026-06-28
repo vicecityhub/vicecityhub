@@ -300,7 +300,7 @@ function LeaseForm({ selectedPlan, onClose, formRef }: { selectedPlan: StorePlan
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
           <label className="text-[9px] text-white/35 font-bold tracking-widest block mb-1">STORE NAME *</label>
           <input type="text" placeholder="Quasar Store" value={form.store_name} onChange={e => setForm(p => ({...p, store_name: e.target.value}))}
@@ -312,7 +312,7 @@ function LeaseForm({ selectedPlan, onClose, formRef }: { selectedPlan: StorePlan
             className="w-full bg-black/40 border border-neonPink/20 rounded px-3 py-2 text-sm text-white placeholder-white/20 outline-none focus:border-neonPink/50 transition-colors" />
         </div>
       </div>
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
           <label className="text-[9px] text-white/35 font-bold tracking-widest block mb-1">STORE URL</label>
           <input type="url" placeholder="https://yourstore.com" value={form.website_url} onChange={e => setForm(p => ({...p, website_url: e.target.value}))}
@@ -324,7 +324,7 @@ function LeaseForm({ selectedPlan, onClose, formRef }: { selectedPlan: StorePlan
             className="w-full bg-black/40 border border-neonPink/20 rounded px-3 py-2 text-sm text-white placeholder-white/20 outline-none focus:border-neonPink/50 transition-colors" />
         </div>
       </div>
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
           <label className="text-[9px] text-white/35 font-bold tracking-widest block mb-1">CATEGORY</label>
           <select value={form.category} onChange={e => setForm(p => ({...p, category: e.target.value}))}
@@ -389,12 +389,11 @@ export default function StoreTab({ onFormOpen }: { onFormOpen?: (open: boolean) 
     onFormOpen?.(true);
     setTimeout(() => {
       formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      // Focus first input after scroll
       setTimeout(() => {
         const first = formRef.current?.querySelector<HTMLInputElement>('input,select,textarea');
         first?.focus({ preventScroll: true });
-      }, 400);
-    }, 80);
+      }, 500);
+    }, 100);
   };
 
   const handleFormClose = () => {
@@ -478,7 +477,7 @@ export default function StoreTab({ onFormOpen }: { onFormOpen?: (open: boolean) 
 
       {/* ── LEASE FORM ── */}
       {showLeaseForm && (
-        <div ref={formRef} className="mb-8 slide-in glass-card-static rounded-xl p-6 border border-neonPink/20" style={{ scrollMarginTop: '12px' }}>
+        <div ref={formRef} className="mb-8 slide-in glass-card-static rounded-xl p-6 border border-neonPink/20" style={{ scrollMarginTop: '148px' }}>
           <div className="flex items-center justify-between mb-5">
             <div>
               <h3 className="font-orbitron font-black text-sm tracking-widest text-neonPink">◈ SLOT APPLICATION</h3>
