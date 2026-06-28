@@ -12,9 +12,9 @@ const TABS: Tab[] = [
   { id: 'store',     label: 'STORE DISTRICT', emoji: '🏪',  badge: 'NEW',  description: 'Apply for a store slot', badgeColor: 'cyan' },
 ];
 
-interface Props { activeTab: TabId; onTabChange: (t: TabId) => void; }
+interface Props { activeTab: TabId; onTabChange: (t: TabId) => void; formOpen?: boolean; }
 
-export default function TabNavigation({ activeTab, onTabChange }: Props) {
+export default function TabNavigation({ activeTab, onTabChange, formOpen = false }: Props) {
   const scrollRef       = useRef<HTMLDivElement>(null);
   const autoRef         = useRef<ReturnType<typeof setInterval> | null>(null);
   const [paused, setPaused]   = useState(false);
@@ -42,9 +42,10 @@ export default function TabNavigation({ activeTab, onTabChange }: Props) {
   }, [scrollToTab]);
 
   useEffect(() => {
-    if (!paused) startAuto();
+    if (!paused && !formOpen) startAuto();
+    else if (autoRef.current) clearInterval(autoRef.current);
     return () => { if (autoRef.current) clearInterval(autoRef.current); };
-  }, [paused, startAuto]);
+  }, [paused, formOpen, startAuto]);
 
   // Sync current with activeTab
   useEffect(() => {
@@ -62,7 +63,7 @@ export default function TabNavigation({ activeTab, onTabChange }: Props) {
   };
 
   return (
-    <div className="sticky top-0 z-50 bg-darkerBg/95 backdrop-blur-md border-b border-white/[0.06]">
+    <div className={`${formOpen ? 'relative' : 'sticky top-0'} z-50 bg-darkerBg/95 backdrop-blur-md border-b border-white/[0.06] transition-all`}>
       <div className="gradient-line" />
 
       {/* Mobile label — shows current tab description */}

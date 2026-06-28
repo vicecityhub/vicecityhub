@@ -245,7 +245,7 @@ function TenantCard({ tenant, onClick }: { tenant: StoreTenant; onClick: () => v
 }
 
 // ── LEASE REQUEST FORM ─────────────────────────────────────────────────────
-function LeaseForm({ selectedPlan, onClose }: { selectedPlan: StorePlan | null; onClose: () => void }) {
+function LeaseForm({ selectedPlan, onClose, formRef }: { selectedPlan: StorePlan | null; onClose: () => void; formRef?: React.RefObject<HTMLDivElement> }) {
   const [form, setForm] = useState({ store_name: '', contact_email: '', website_url: '', discord_url: '', category: 'SCRIPTS', message: '', plan_id: selectedPlan?.id || 'featured' });
   const [submitted, setSubmitted] = useState(false);
 
@@ -365,17 +365,18 @@ function LeaseForm({ selectedPlan, onClose }: { selectedPlan: StorePlan | null; 
 }
 
 // ── MAIN EXPORT ─────────────────────────────────────────────────────────────
-export default function StoreTab() {
+export default function StoreTab({ onFormOpen }: { onFormOpen?: (open: boolean) => void }) {
   const [showPricing, setShowPricing] = useState(false);
   const [showLeaseForm, setShowLeaseForm] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<StorePlan | null>(null);
   const plansRef = useRef<HTMLDivElement>(null);
+  const formRef  = useRef<HTMLDivElement>(null);
 
   const scrollToPlans = () => {
     setShowPricing(true);
     setShowLeaseForm(false);
     setTimeout(() => {
-      plansRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      plansRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }, 80);
   };
 
@@ -385,6 +386,20 @@ export default function StoreTab() {
     setSelectedPlan(plan);
     setShowLeaseForm(true);
     setShowPricing(false);
+    onFormOpen?.(true);
+    setTimeout(() => {
+      formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      // Focus first input after scroll
+      setTimeout(() => {
+        const first = formRef.current?.querySelector<HTMLInputElement>('input,select,textarea');
+        first?.focus({ preventScroll: true });
+      }, 400);
+    }, 80);
+  };
+
+  const handleFormClose = () => {
+    setShowLeaseForm(false);
+    onFormOpen?.(false);
   };
 
   const filtered = categoryFilter === 'ALL'
@@ -463,14 +478,14 @@ export default function StoreTab() {
 
       {/* ── LEASE FORM ── */}
       {showLeaseForm && (
-        <div className="mb-8 slide-in glass-card-static rounded-xl p-6 border border-neonPink/20">
+        <div ref={formRef} className="mb-8 slide-in glass-card-static rounded-xl p-6 border border-neonPink/20" style={{ scrollMarginTop: '12px' }}>
           <div className="flex items-center justify-between mb-5">
             <div>
               <h3 className="font-orbitron font-black text-sm tracking-widest text-neonPink">◈ SLOT APPLICATION</h3>
               {selectedPlan && <p className="text-[10px] text-white/35 mt-0.5">Plan: {selectedPlan.name} · ${selectedPlan.price_usd}/mo</p>}
             </div>
           </div>
-          <LeaseForm selectedPlan={selectedPlan} onClose={() => setShowLeaseForm(false)} />
+          <LeaseForm selectedPlan={selectedPlan} onClose={handleFormClose} formRef={formRef} />
         </div>
       )}
 

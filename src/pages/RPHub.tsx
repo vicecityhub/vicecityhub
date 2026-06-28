@@ -175,6 +175,7 @@ const IconMute = () => (
 
 export default function RPHub() {
   const [activeTab, setActiveTab] = useState<TabId>('servers')
+  const [formOpen, setFormOpen] = useState(false)
   const { isPlaying, toggle } = useRadio()
 
   return (
@@ -293,7 +294,7 @@ export default function RPHub() {
       </div>
 
       {/* ── TABS ── */}
-      <TabNavigation activeTab={activeTab} onTabChange={setActiveTab} />
+      <TabNavigation activeTab={activeTab} onTabChange={setActiveTab} formOpen={formOpen} />
 
       {/* ════════════════════════════════════════
           CONTENT — per-tab background из Supabase Storage
@@ -318,7 +319,7 @@ export default function RPHub() {
           {activeTab === 'glossary'   && <GlossaryTab />}
           {activeTab === 'characters' && <CharactersTab />}
           {activeTab === 'mods'       && <ModsTab />}
-          {activeTab === 'store'      && <StoreTab />}
+          {activeTab === 'store'      && <StoreTab onFormOpen={setFormOpen} />}
         </div>
       </div>
 
