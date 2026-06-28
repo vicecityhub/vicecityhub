@@ -513,7 +513,7 @@ export default function StoreTab({ onFormOpen }: { onFormOpen?: (open: boolean) 
           <TenantCard
             key={t.id}
             tenant={t}
-            onClick={() => { setShowPricing(true); setShowLeaseForm(false); }}
+            onClick={scrollToPlans}
           />
         ))}
       </div>
