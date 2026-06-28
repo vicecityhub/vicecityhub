@@ -23,6 +23,14 @@ const PRINTFUL_HUB     = 'https://lpglkglhjdqnktybksth.supabase.co/functions/v1/
 const PAYPAL_CHECKOUT  = 'https://lpglkglhjdqnktybksth.supabase.co/functions/v1/paypal-checkout';
 const PAYPAL_CLIENT_ID = import.meta.env.VITE_PAYPAL_CLIENT_ID || '';
 
+// ─── URL slug helpers ────────────────────────────────────────────────────────
+function toSlug(name: string): string {
+  return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+}
+function fromSlug(slug: string, products: PrintfulProduct[]): PrintfulProduct | null {
+  return products.find(p => toSlug(p.name) === slug) || null;
+}
+
 function fmt(p: string | number) {
   const n = parseFloat(String(p));
   return isNaN(n) ? 'TBD' : `$${n.toFixed(2)} USD`;
@@ -320,6 +328,31 @@ function MerchandiseStorefront() {
   const scrollRef    = useRef<HTMLDivElement>(null);
   const autoplayRef  = useRef<ReturnType<typeof setInterval> | null>(null);
 
+  const openProduct = useCallback((product: PrintfulProduct) => {
+    setSelectedProduct(product);
+    history.pushState({ productSlug: toSlug(product.name) }, '', `?p=${toSlug(product.name)}`);
+  }, []);
+
+  const closeProduct = useCallback(() => {
+    setSelectedProduct(null);
+    history.pushState({}, '', window.location.pathname);
+  }, []);
+
+  useEffect(() => {
+    if (products.length === 0) return;
+    const slug = new URLSearchParams(window.location.search).get('p');
+    if (slug) { const match = fromSlug(slug, products); if (match) setSelectedProduct(match); }
+  }, [products]);
+
+  useEffect(() => {
+    const onPop = () => {
+      const slug = new URLSearchParams(window.location.search).get('p');
+      setSelectedProduct(slug && products.length > 0 ? (fromSlug(slug, products) || null) : null);
+    };
+    window.addEventListener('popstate', onPop);
+    return () => window.removeEventListener('popstate', onPop);
+  }, [products]);
+
   useEffect(() => {
     (async () => {
       try {
@@ -451,7 +484,7 @@ function MerchandiseStorefront() {
               {products.map(product => (
                 <article
                   key={product.id}
-                  onClick={() => setSelectedProduct(product)}
+                  onClick={() => openProduct(product)}
                   className="flex-shrink-0 w-64 glass-card p-0 overflow-hidden cursor-pointer group"
                   style={{ scrollSnapAlign: 'center' }}
                 >
@@ -469,7 +502,7 @@ function MerchandiseStorefront() {
                   <div className="p-4 flex flex-col gap-2">
                     <h3 className="font-orbitron font-bold text-[11px] text-white uppercase tracking-wide leading-snug line-clamp-2 group-hover:text-neonCyan transition-colors">{product.name}</h3>
                     {product.variants != null && <span className="text-[9px] text-gray-500 font-bold font-orbitron uppercase tracking-widest flex items-center gap-1"><Tag size={9} className="text-neonOrange" />{product.variants} variant{product.variants !== 1 ? 's' : ''}</span>}
-                    <button onClick={e => { e.stopPropagation(); setSelectedProduct(product); }} className="mt-1 w-full py-2 rounded border border-neonCyan/40 text-neonCyan text-[9px] font-bold font-orbitron uppercase tracking-widest hover:bg-neonCyan/10 hover:border-neonCyan transition-all">View Options</button>
+                    <button onClick={e => { e.stopPropagation(); openProduct(product); }} className="mt-1 w-full py-2 rounded border border-neonCyan/40 text-neonCyan text-[9px] font-bold font-orbitron uppercase tracking-widest hover:bg-neonCyan/10 hover:border-neonCyan transition-all">View Options</button>
                   </div>
                 </article>
               ))}
@@ -487,7 +520,7 @@ function MerchandiseStorefront() {
         )}
       </section>
 
-      {selectedProduct && <MerchModal product={selectedProduct} onClose={() => setSelectedProduct(null)} />}
+      {selectedProduct && <MerchModal product={selectedProduct} onClose={closeProduct} />}
     </>
   );
 }
