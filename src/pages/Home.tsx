@@ -195,6 +195,13 @@ export default function Home({ onOpenModal, session }: HomeProps) {
   const mediaScrollRef = useRef<HTMLDivElement>(null);
   const [mediaScrollPaused, setMediaScrollPaused] = useState(false);
 
+  // При смене таба — скроллим в начало
+  useEffect(() => {
+    if (mediaScrollRef.current) {
+      mediaScrollRef.current.scrollTo({ left: 0, behavior: 'smooth' });
+    }
+  }, [activeMediaTab]);
+
   useEffect(() => {
     const container = mediaScrollRef.current;
     if (!container || mediaScrollPaused) return;
