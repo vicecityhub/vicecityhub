@@ -1,0 +1,22 @@
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://vicecityhub.github.io/vicecityhub/sitemap.xml
+
+# Crawl-delay for polite bots
+Crawl-delay: 10
+
+# Allow Google specific bots full access
+User-agent: Googlebot
+Allow: /
+User-agent: Googlebot-Image
+Allow: /
+
+# Block no useful bots
+User-agent: SemrushBot
+Disallow: /
+User-agent: AhrefsBot
+Disallow: /
+User-agent: MJ12bot
+Disallow: /
