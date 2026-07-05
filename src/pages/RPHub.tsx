@@ -5,6 +5,7 @@ import GlossaryTab   from '../rp-hub/components/GlossaryTab'
 import CharactersTab from '../rp-hub/components/CharactersTab'
 import ModsTab       from '../rp-hub/components/ModsTab'
 import StoreTab      from '../rp-hub/components/StoreTab'
+import CommunityTab  from '../rp-hub/components/CommunityTab'
 
 // ── те же треки что в Layout.tsx главного хаба ──
 const AUDIO_TRACKS = [
@@ -19,6 +20,7 @@ const BG_IMAGES: Record<TabId, string> = {
   characters: `${SUPABASE_STORE}/Poolside%20Boss%20_%20Bold%20Ink.jpg`,
   mods:       `${SUPABASE_STORE}/Halftone%20Wash.jpg`,
   store:      'https://lpglkglhjdqnktybksth.supabase.co/storage/v1/object/public/design%20photos/Yacht%20Captain%20_%20Halftone%20Wash.png',
+  community:  'https://lpglkglhjdqnktybksth.supabase.co/storage/v1/object/public/design%20photos/Wheelie%20Chase.jpg',
 }
 
 // ── Radio hook — идентичная логика Layout.tsx ──
@@ -175,7 +177,6 @@ const IconMute = () => (
 
 export default function RPHub() {
   const [activeTab, setActiveTab] = useState<TabId>('servers')
-  const [formOpen, setFormOpen] = useState(false)
   const { isPlaying, toggle } = useRadio()
 
   return (
@@ -196,7 +197,7 @@ export default function RPHub() {
       >
         {/* ── Левый блок: логотип + стрелка назад ── */}
         <a
-          href="/vicecityhub/index.html"
+          href="./index.html"
           className="flex items-center gap-2 hover:scale-105 transition-transform"
           aria-label="Back to Vice City Hub"
         >
@@ -294,7 +295,7 @@ export default function RPHub() {
       </div>
 
       {/* ── TABS ── */}
-      <TabNavigation activeTab={activeTab} onTabChange={setActiveTab} formOpen={formOpen} />
+      <TabNavigation activeTab={activeTab} onTabChange={setActiveTab} />
 
       {/* ════════════════════════════════════════
           CONTENT — per-tab background из Supabase Storage
@@ -319,7 +320,8 @@ export default function RPHub() {
           {activeTab === 'glossary'   && <GlossaryTab />}
           {activeTab === 'characters' && <CharactersTab />}
           {activeTab === 'mods'       && <ModsTab />}
-          {activeTab === 'store'      && <StoreTab onFormOpen={setFormOpen} />}
+          {activeTab === 'store'      && <StoreTab />}
+          {activeTab === 'community'   && <CommunityTab />}
         </div>
       </div>
 
@@ -327,7 +329,7 @@ export default function RPHub() {
       <footer className="border-t py-6 text-center" style={{ borderColor: 'rgba(255,0,255,0.08)', background: 'var(--darker-bg)' }}>
         <div className="gradient-line mb-4" />
         <a
-          href="/vicecityhub/index.html"
+          href="./index.html"
           className="inline-flex items-center gap-2 font-orbitron text-[10px] tracking-widest text-neonPink/40 hover:text-neonPink transition-colors mb-3"
         >
           ← BACK TO VICE CITY HUB
