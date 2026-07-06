@@ -5,7 +5,6 @@ on:
     branches: [ main ]
   workflow_dispatch:
   schedule:
-    # Автозапуск каждые 6 часов — для обновления news agent
     - cron: '0 */6 * * *'
 
 permissions:
@@ -18,22 +17,20 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  # ─────────────────────────────────────────────────────────────────
+  # ─────────────────────────────────────────────
   # JOB 1: BUILD
-  # ─────────────────────────────────────────────────────────────────
+  # ─────────────────────────────────────────────
   build:
-    name: 🏗 Build & Optimize
+    name: Build & Optimize
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
 
       - name: Install dependencies
@@ -48,40 +45,26 @@ jobs:
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
         run: npm run build
 
-      - name: Inject sitemap.xml & robots.txt into dist
+      - name: Copy SEO files to dist
         run: |
-          cp sitemap.xml dist/sitemap.xml 2>/dev/null || echo "No sitemap.xml found"
-          cp robots.txt dist/robots.txt 2>/dev/null || echo "No robots.txt found"
+          [ -f sitemap.xml ] && cp sitemap.xml dist/ || true
+          [ -f robots.txt  ] && cp robots.txt  dist/ || true
 
-      - name: Optimize images in dist (WebP conversion)
+      - name: Deployment summary
         run: |
-          npm install -g sharp-cli 2>/dev/null || true
-          find dist -name "*.jpg" -o -name "*.png" | head -20 | while read f; do
-            echo "Processing: $f"
-          done
-          echo "Image optimization pass complete"
+          echo "## Vice City Hub — Deployed" >> $GITHUB_STEP_SUMMARY
+          echo "**Time:** $(date -u '+%Y-%m-%d %H:%M UTC')" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
 
-      - name: Generate deployment report
-        run: |
-          echo "## 🚀 Vice City Hub Deployment" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Build time:** $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### 📦 Bundle sizes:" >> $GITHUB_STEP_SUMMARY
-          du -sh dist/assets/*.js 2>/dev/null | while read size file; do
-            echo "- \`$(basename $file)\`: $size" >> $GITHUB_STEP_SUMMARY
-          done || echo "- No JS assets found" >> $GITHUB_STEP_SUMMARY
-
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v3
         with:
           path: './dist'
 
-  # ─────────────────────────────────────────────────────────────────
+  # ─────────────────────────────────────────────
   # JOB 2: DEPLOY
-  # ─────────────────────────────────────────────────────────────────
+  # ─────────────────────────────────────────────
   deploy:
-    name: 🌐 Deploy to GitHub Pages
+    name: Deploy to GitHub Pages
     needs: build
     runs-on: ubuntu-latest
     environment:
@@ -92,38 +75,34 @@ jobs:
         id: deployment
         uses: actions/deploy-pages@v4
 
-      - name: Notify success
-        run: |
-          echo "✅ Deployed: ${{ steps.deployment.outputs.page_url }}"
-          echo "🕐 Time: $(date -u '+%Y-%m-%d %H:%M UTC')"
-
-  # ─────────────────────────────────────────────────────────────────
-  # JOB 3: NEWS AGENT (запускается отдельно по cron)
-  # ─────────────────────────────────────────────────────────────────
+  # ─────────────────────────────────────────────
+  # JOB 3: NEWS AGENT — только по расписанию
+  # Node 22 — нативный WebSocket, ws пакет не нужен
+  # ─────────────────────────────────────────────
   news-agent:
-    name: 📡 GTA VI News Agent
+    name: GTA VI News Agent
     runs-on: ubuntu-latest
     if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
 
-      - name: Install news agent deps
-        run: npm install @supabase/supabase-js node-fetch
+      - name: Install agent dependencies
+        run: |
+          npm install --prefix /tmp/agent @supabase/supabase-js
+          cp scripts/news-agent.mjs /tmp/agent/ 2>/dev/null || true
 
-      - name: Run GTA VI News Agent
+      - name: Run news agent
         env:
           SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
           NEWS_API_KEY: ${{ secrets.NEWS_API_KEY }}
         run: |
-          if [ -f "scripts/news-agent.mjs" ]; then
-            node scripts/news-agent.mjs
+          if [ -f "/tmp/agent/news-agent.mjs" ]; then
+            node /tmp/agent/news-agent.mjs
           else
-            echo "News agent script not found — skipping"
+            echo "News agent not found — skipping"
           fi

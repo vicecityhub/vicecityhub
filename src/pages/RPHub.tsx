@@ -20,7 +20,7 @@ const BG_IMAGES: Record<TabId, string> = {
   characters: `${SUPABASE_STORE}/Poolside%20Boss%20_%20Bold%20Ink.jpg`,
   mods:       `${SUPABASE_STORE}/Halftone%20Wash.jpg`,
   store:      'https://lpglkglhjdqnktybksth.supabase.co/storage/v1/object/public/design%20photos/Yacht%20Captain%20_%20Halftone%20Wash.png',
-  community:  'https://lpglkglhjdqnktybksth.supabase.co/storage/v1/object/public/design%20photos/Wheelie%20Chase.jpg',
+  community:  'https://lpglkglhjdqnktybksth.supabase.co/storage/v1/object/public/design%20photos/Pegassi%20Supercar%20v2.jpg',
 }
 
 // ── Radio hook — идентичная логика Layout.tsx ──

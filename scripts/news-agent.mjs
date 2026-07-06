@@ -4,11 +4,12 @@
  * Searches NewsAPI + GTA-specific outlets, deduplicates, writes to Supabase
  */
 import { createClient } from '@supabase/supabase-js';
+// scripts/news-agent.mjs
 
-const supa = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_KEY
-);
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY, {
+  auth: { persistSession: false },
+  realtime: { accessToken: null } // Это отключает автоматический старт WebSocket
+});
 
 const GTA_SOURCES = [
   'https://www.rockstargames.com/newswire',

@@ -1,10 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { createClient } from '@supabase/supabase-js';
-
-const supa = createClient(
-  'https://lpglkglhjdqnktybksth.supabase.co',
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxwZ2xrZ2xoamRxbmt0eWJrc3RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwMTYzMjUsImV4cCI6MjA5MTU5MjMyNX0.fMZo0fjEfPSf20w-rRQh25zPj7xPVOpU6lO2lon3EEk'
-);
+import { supa } from '../../lib/SupabaseClient';
 
 // ── TYPES ──────────────────────────────────────────────────────────────────
 type FactionType = 'GANG' | 'MC' | 'CARTEL' | 'LSPD' | 'EMS' | 'GOV' | 'CIVILIAN' | 'LEGAL_BIZ';
@@ -440,17 +435,22 @@ export default function CommunityTab() {
   useEffect(() => {
     const load = async () => {
       setLoading(true);
-      const [f, p, m, d] = await Promise.all([
-        supa.from('faction_slots').select('*').order('sort_order'),
-        supa.from('community_posts').select('*').order('is_pinned', { ascending: false }).order('created_at', { ascending: false }),
-        supa.from('server_marketplace').select('*').eq('status', 'ACTIVE').order('created_at', { ascending: false }),
-        supa.from('verified_devs').select('*').order('badge_level', { ascending: false }),
-      ]);
-      if (f.data) setFactions(f.data as FactionSlot[]);
-      if (p.data) setPosts(p.data as CommunityPost[]);
-      if (m.data) setMarket(m.data as MarketplaceItem[]);
-      if (d.data) setDevs(d.data as VerifiedDev[]);
-      setLoading(false);
+      try {
+        const [f, p, m, d] = await Promise.all([
+          supa.from('faction_slots').select('*').order('sort_order'),
+          supa.from('community_posts').select('*').order('is_pinned', { ascending: false }).order('created_at', { ascending: false }),
+          supa.from('server_marketplace').select('*').eq('status', 'ACTIVE').order('created_at', { ascending: false }),
+          supa.from('verified_devs').select('*').order('badge_level', { ascending: false }),
+        ]);
+        if (f.data && f.data.length > 0) setFactions(f.data as FactionSlot[]);
+        if (p.data && p.data.length > 0) setPosts(p.data as CommunityPost[]);
+        if (m.data && m.data.length > 0) setMarket(m.data as MarketplaceItem[]);
+        if (d.data && d.data.length > 0) setDevs(d.data as VerifiedDev[]);
+      } catch (err) {
+        console.error('[CommunityTab] Load error:', err);
+      } finally {
+        setLoading(false);
+      }
     };
     load();
   }, []);
@@ -494,6 +494,33 @@ export default function CommunityTab() {
           Faction Slots · Intel Board · Server Market · Verified Devs
         </p>
       </div>
+
+      {/* YouTube Community Banner */}
+      <a
+        href="https://youtube.com/@vicecity_hub/community?si=G6x0kiCdvueaTgR-"
+        target="_blank"
+        rel="noreferrer"
+        className="flex items-center gap-4 rounded-xl p-4 mb-5 transition-all duration-200 hover:transform hover:-translate-y-0.5 group"
+        style={{ background: 'linear-gradient(135deg, rgba(255,0,0,0.12), rgba(255,0,0,0.05))', border: '1px solid rgba(255,0,0,0.3)' }}
+      >
+        <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
+          style={{ background: 'rgba(255,0,0,0.15)', border: '1px solid rgba(255,0,0,0.4)' }}>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="#FF0000">
+            <path d="M23.5 6.19a3.02 3.02 0 0 0-2.12-2.14C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.38.55A3.02 3.02 0 0 0 .5 6.19C0 8.09 0 12 0 12s0 3.91.5 5.81a3.02 3.02 0 0 0 2.12 2.14C4.5 20.5 12 20.5 12 20.5s7.5 0 9.38-.55a3.02 3.02 0 0 0 2.12-2.14C24 15.91 24 12 24 12s0-3.91-.5-5.81zM9.75 15.5V8.5l6.5 3.5-6.5 3.5z"/>
+          </svg>
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="font-orbitron font-black text-xs text-white tracking-widest group-hover:text-red-400 transition-colors">
+            VICE CITY HUB — YOUTUBE COMMUNITY
+          </div>
+          <p className="text-[10px] text-white/40 mt-0.5">
+            Posts, polls, drops and drama. Join the community tab — we post what doesn't fit in a video.
+          </p>
+        </div>
+        <div className="font-orbitron font-black text-[9px] text-red-400/70 flex-shrink-0 flex items-center gap-1">
+          JOIN <span className="text-sm">›</span>
+        </div>
+      </a>
 
       {/* Stats row */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
