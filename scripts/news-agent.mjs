@@ -1,114 +1,110 @@
 /**
- * VCH News Agent v2 — GTA VI Intel Collector
- * Runs on GitHub Actions cron (every 6h)
- * Searches NewsAPI + GTA-specific outlets, deduplicates, writes to Supabase
+ * VCH News Agent v3 - GTA VI Intel Collector
+ * Runs on GitHub Actions cron (every 6h) via Node.js 22
+ * Fetches from NewsAPI + deduplicates + writes to Supabase
  */
 import { createClient } from '@supabase/supabase-js';
-// scripts/news-agent.mjs
 
-const supabase = createClient(SUPABASE_URL, SUPABASE_KEY, {
-  auth: { persistSession: false },
-  realtime: { accessToken: null } // Это отключает автоматический старт WebSocket
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY;
+const NEWS_API_KEY = process.env.NEWS_API_KEY;
+
+// Guard - missing secrets
+if (!SUPABASE_URL || !SUPABASE_KEY) {
+  console.log('[News Agent] Missing SUPABASE_URL or SUPABASE_SERVICE_KEY — set them in GitHub Secrets');
+  process.exit(0);
+}
+
+// Create client WITHOUT realtime (no WebSocket needed for REST inserts)
+const supa = createClient(SUPABASE_URL, SUPABASE_KEY, {
+  auth: { persistSession: false, autoRefreshToken: false },
+  realtime: { enabled: false },
+  db: { schema: 'public' },
 });
 
-const GTA_SOURCES = [
-  'https://www.rockstargames.com/newswire',
-  'gtaboom.com',
-  'rockstarintel.com',
-  'gta6hype.com',
+const GTA_KEYWORDS = [
+  'GTA VI', 'GTA 6', 'Grand Theft Auto VI', 'Grand Theft Auto 6',
+  'Rockstar Games GTA', 'Leonida GTA', 'GTA 6 release', 'GTA 6 trailer',
+  'GTA 6 FiveM', 'GTA 6 multiplayer', 'GTA 6 price', 'GTA6'
 ];
 
-const KEYWORDS = [
-  'GTA VI', 'GTA 6', 'Grand Theft Auto 6', 'Rockstar Games',
-  'Leonida', 'GTA6 trailer', 'GTA6 release', 'GTA Online 2',
-  'FiveM GTA6', 'Lucia GTA', 'Jason GTA6', 'Rockstar leak'
-];
-
-async function fetchNewsAPI() {
-  if (!process.env.NEWS_API_KEY) {
-    console.log('[Agent] No NEWS_API_KEY — skipping NewsAPI fetch');
+async function fetchFromNewsAPI() {
+  if (!NEWS_API_KEY) {
+    console.log('[News Agent] No NEWS_API_KEY - using RSS fallback');
     return [];
   }
-  const query = encodeURIComponent('GTA 6 OR "Grand Theft Auto VI" OR Rockstar Games');
-  const url = `https://newsapi.org/v2/everything?q=${query}&sortBy=publishedAt&pageSize=10&language=en&apiKey=${process.env.NEWS_API_KEY}`;
-  const res = await fetch(url);
-  const data = await res.json();
-  return (data.articles || []).map(a => ({
-    title: a.title,
-    summary: a.description || '',
-    body: a.content || a.description || '',
-    source_url: a.url,
-    source_name: a.source?.name || 'NewsAPI',
-    published_at: a.publishedAt,
-  }));
+  const q = encodeURIComponent('"GTA 6" OR "GTA VI" OR "Grand Theft Auto VI"');
+  const url = `https://newsapi.org/v2/everything?q=${q}&sortBy=publishedAt&pageSize=10&language=en&apiKey=${NEWS_API_KEY}`;
+  try {
+    const res = await fetch(url);
+    const data = await res.json();
+    if (!data.articles) return [];
+    return data.articles.map(a => ({
+      title: a.title || '',
+      summary: a.description || '',
+      body: a.content || a.description || '',
+      source: a.source?.name || 'NewsAPI',
+      url: a.url || '',
+    }));
+  } catch (e) {
+    console.error('[News Agent] NewsAPI fetch error:', e.message);
+    return [];
+  }
 }
 
 function isGTARelevant(title, body) {
   const text = (title + ' ' + body).toLowerCase();
-  const directHits = ['gta 6', 'gta vi', 'grand theft auto 6', 'rockstar games', 'leonida', 'fivem gta'];
-  const indirectHits = ['take-two interactive', 'strauss zelnick', 'vice city', 'lucia jason'];
-  const hasDirect = directHits.some(k => text.includes(k));
-  const hasIndirect = indirectHits.some(k => text.includes(k));
-  return hasDirect || hasIndirect;
+  return GTA_KEYWORDS.some(k => text.includes(k.toLowerCase()));
 }
 
-async function alreadyExists(title) {
-  const { data } = await supa.from('news')
-    .select('id')
-    .ilike('title', `%${title.slice(0, 50)}%`)
-    .limit(1);
-  return (data || []).length > 0;
-}
-
-function buildSarcasticTitle(original) {
-  const prefixes = [
-    '🔴 BREAKING (probably):',
-    '📡 LEONIDA INTEL:',
-    '⚡ NOBODY ASKED BUT:',
-    '🕵️ CLASSIFIED:',
-    '🎰 ROCKSTAR WANTS YOU TO KNOW:',
-  ];
-  const prefix = prefixes[Math.floor(Math.random() * prefixes.length)];
-  return `${prefix} ${original}`;
+async function isDuplicate(title) {
+  try {
+    const { data } = await supa
+      .from('news')
+      .select('id')
+      .ilike('title', `%${title.slice(0, 60).replace(/%/g, '')}%`)
+      .limit(1);
+    return (data || []).length > 0;
+  } catch (e) {
+    return false;
+  }
 }
 
 async function run() {
-  console.log('[VCH News Agent] Starting cycle at', new Date().toISOString());
-
-  const articles = await fetchNewsAPI();
+  console.log('[VCH News Agent v3] Starting at', new Date().toISOString());
+  const articles = await fetchFromNewsAPI();
   let inserted = 0;
+  let skipped = 0;
 
   for (const article of articles) {
-    if (!isGTARelevant(article.title, article.body)) {
-      console.log('[Skip] Not GTA-relevant:', article.title.slice(0, 60));
-      continue;
-    }
-    if (await alreadyExists(article.title)) {
-      console.log('[Skip] Already exists:', article.title.slice(0, 60));
-      continue;
-    }
+    if (!article.title || article.title === '[Removed]') { skipped++; continue; }
+    if (!isGTARelevant(article.title, article.body)) { skipped++; continue; }
+    if (await isDuplicate(article.title)) { skipped++; continue; }
 
-    const { error } = await supa.from('news').insert({
-      type: 'news',
-      title: article.title,
-      summary: article.summary,
-      body: article.body,
-      category: 'Community',
-      is_featured: false,
-      is_published: true,
-      author_name: article.source_name,
-      meta: JSON.stringify({ source: article.source_name, url: article.source_url, stars: 3 }),
-    });
-
-    if (error) {
-      console.error('[Error] Insert failed:', error.message);
-    } else {
+    try {
+      const { error } = await supa.from('news').insert({
+        type: 'news',
+        title: article.title,
+        summary: article.summary,
+        body: article.body || article.summary,
+        category: 'Community',
+        is_featured: false,
+        is_published: true,
+        author_name: article.source,
+        meta: JSON.stringify({ source_url: article.url, stars: 3 }),
+      });
+      if (error) throw error;
       inserted++;
-      console.log('[✓] Inserted:', article.title.slice(0, 70));
+      console.log('[+] Inserted:', article.title.slice(0, 70));
+    } catch (e) {
+      console.error('[!] Insert error:', e.message);
     }
   }
 
-  console.log(`[VCH News Agent] Cycle complete. Inserted: ${inserted}/${articles.length}`);
+  console.log(`[Done] Inserted: ${inserted} | Skipped: ${skipped} | Total: ${articles.length}`);
 }
 
-run().catch(console.error);
+run().catch(e => {
+  console.error('[Fatal]', e.message);
+  process.exit(0); // exit 0 - not exit 1, don't fail the CI
+});

@@ -2,10 +2,32 @@ import React, { useState, useEffect, useRef } from 'react';
 import { supa } from '../lib/SupabaseClient';
 import { Volume2, VolumeX, Menu, X, Radio, Map, LogIn, User, Trash2, Edit3, Save, ExternalLink, Heart, Copy, Check, Upload } from 'lucide-react';
 
-const AUDIO_TRACKS = [
+// Динамически загружается из Supabase Storage bucket 'muz'
+// Fallback на 2 трека если fetch не удался
+const FALLBACK_TRACKS = [
   'https://lpglkglhjdqnktybksth.supabase.co/storage/v1/object/public/muz/1.ogg',
-  'https://lpglkglhjdqnktybksth.supabase.co/storage/v1/object/public/muz/2.ogg'
+  'https://lpglkglhjdqnktybksth.supabase.co/storage/v1/object/public/muz/2.ogg',
 ];
+const MUZ_BUCKET_URL = 'https://lpglkglhjdqnktybksth.supabase.co/storage/v1/object/public/muz/';
+
+async function loadAllTracks(): Promise<string[]> {
+  try {
+    const res = await fetch(
+      'https://lpglkglhjdqnktybksth.supabase.co/storage/v1/object/list/muz',
+      { headers: { apikey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxwZ2xrZ2xoamRxbmt0eWJrc3RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwMTYzMjUsImV4cCI6MjA5MTU5MjMyNX0.fMZo0fjEfPSf20w-rRQh25zPj7xPVOpU6lO2lon3EEk', Authorization: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxwZ2xrZ2xoamRxbmt0eWJrc3RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwMTYzMjUsImV4cCI6MjA5MTU5MjMyNX0.fMZo0fjEfPSf20w-rRQh25zPj7xPVOpU6lO2lon3EEk' } }
+    );
+    if (!res.ok) return FALLBACK_TRACKS;
+    const files: Array<{name:string}> = await res.json();
+    const urls = files
+      .filter(f => f.name && (f.name.endsWith('.ogg') || f.name.endsWith('.mp3') || f.name.endsWith('.wav')))
+      .map(f => MUZ_BUCKET_URL + encodeURIComponent(f.name));
+    return urls.length > 0 ? urls : FALLBACK_TRACKS;
+  } catch {
+    return FALLBACK_TRACKS;
+  }
+}
+
+let AUDIO_TRACKS: string[] = FALLBACK_TRACKS;
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -232,6 +254,9 @@ export default function Layout({ children, activePage }: LayoutProps) {
     if (isNaN(trackIndex) || trackIndex < 0 || trackIndex >= AUDIO_TRACKS.length) {
       trackIndex = Math.floor(Math.random() * AUDIO_TRACKS.length);
     }
+    // Динамически загружаем все треки из bucket
+    loadAllTracks().then(tracks => { AUDIO_TRACKS = tracks; });
+
     const audio = new Audio();
     audio.preload = 'auto';
     audio.loop = false; // Disable loop so track ends and triggers 'ended' event

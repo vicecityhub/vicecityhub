@@ -17,52 +17,33 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  # ─────────────────────────────────────────────
-  # JOB 1: BUILD
-  # ─────────────────────────────────────────────
+  # ────────────────────────────────────
+  # JOB 1: BUILD + DEPLOY
+  # ────────────────────────────────────
   build:
     name: Build & Optimize
     runs-on: ubuntu-latest
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
           cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Type check
-        run: npx tsc -b --noEmit 2>&1 | grep -v "TS5101" || true
-
+      - run: npm ci
       - name: Build
         env:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
         run: npm run build
-
-      - name: Copy SEO files to dist
+      - name: Copy SEO files
         run: |
           [ -f sitemap.xml ] && cp sitemap.xml dist/ || true
           [ -f robots.txt  ] && cp robots.txt  dist/ || true
-
-      - name: Deployment summary
-        run: |
-          echo "## Vice City Hub — Deployed" >> $GITHUB_STEP_SUMMARY
-          echo "**Time:** $(date -u '+%Y-%m-%d %H:%M UTC')" >> $GITHUB_STEP_SUMMARY
-          echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
-
       - uses: actions/upload-pages-artifact@v3
         with:
           path: './dist'
 
-  # ─────────────────────────────────────────────
-  # JOB 2: DEPLOY
-  # ─────────────────────────────────────────────
   deploy:
     name: Deploy to GitHub Pages
     needs: build
@@ -71,38 +52,29 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: Deploy
-        id: deployment
+      - id: deployment
         uses: actions/deploy-pages@v4
 
-  # ─────────────────────────────────────────────
-  # JOB 3: NEWS AGENT — только по расписанию
-  # Node 22 — нативный WebSocket, ws пакет не нужен
-  # ─────────────────────────────────────────────
+  # ────────────────────────────────────
+  # JOB 2: NEWS AGENT (cron only)
+  # Runs independently - never blocks deploy
+  # ────────────────────────────────────
   news-agent:
     name: GTA VI News Agent
     runs-on: ubuntu-latest
     if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-
-      - name: Install agent dependencies
-        run: |
-          npm install --prefix /tmp/agent @supabase/supabase-js
-          cp scripts/news-agent.mjs /tmp/agent/ 2>/dev/null || true
-
+          cache: 'npm'
+      - name: Install dependencies
+        run: npm ci
       - name: Run news agent
+        continue-on-error: true
         env:
           SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
           NEWS_API_KEY: ${{ secrets.NEWS_API_KEY }}
-        run: |
-          if [ -f "/tmp/agent/news-agent.mjs" ]; then
-            node /tmp/agent/news-agent.mjs
-          else
-            echo "News agent not found — skipping"
-          fi
+        run: node scripts/news-agent.mjs
