@@ -230,12 +230,13 @@ export default function ServersTab() {
           <div className="glass-card-static rounded-lg p-4 border border-white/[0.05]">
             <h3 className="text-[11px] font-orbitron font-black tracking-widest mb-3" style={{color:'var(--neon-purple)'}}>◈ LIVE STREAMERS</h3>
             <div className="space-y-2">
-              {[{name:'SUMMIT1G',url:'https://www.twitch.tv/summit1g'},{name:'SHROUD',url:'https://www.twitch.tv/shroud'},
-                {name:'LIRIK',url:'https://www.twitch.tv/lirik'},{name:'MOONMOON',url:'https://www.twitch.tv/moonmoon'}].map(s => (
+              {[{name:'VICE CITY HUB',url:'https://www.twitch.tv/vicecityhub',img:'https://lpglkglhjdqnktybksth.supabase.co/storage/v1/object/public/photos/Vice_City_Hub.jpg'},{name:'SUMMIT1G',url:'https://www.twitch.tv/summit1g'},{name:'SHROUD',url:'https://www.twitch.tv/shroud'},{name:'LIRIK',url:'https://www.twitch.tv/lirik'},{name:'MOONMOON',url:'https://www.twitch.tv/moonmoon'}].map((s:any) => (
                 <a key={s.name} href={s.url} target="_blank" rel="noreferrer"
                   className="flex items-center gap-2 p-2 rounded transition-all hover:scale-[1.02] group"
                   style={{background:'rgba(180,79,255,0.08)',border:'1px solid rgba(180,79,255,0.15)'}}>
-                  <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse flex-shrink-0" />
+                  {s.img
+                    ? <img src={s.img} alt={s.name} className="w-5 h-5 rounded-full object-cover flex-shrink-0"/>
+                    : <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse flex-shrink-0" />}
                   <span className="text-[11px] font-black text-white/70 flex-1 group-hover:text-white/90">{s.name}</span>
                   <span className="text-[9px] font-black" style={{color:'#9146FF'}}>▶ LIVE</span>
                 </a>

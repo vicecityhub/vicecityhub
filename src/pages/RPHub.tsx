@@ -17,17 +17,26 @@ const MUZ_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsI
 
 async function loadAllTracks(): Promise<string[]> {
   try {
+    const ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxwZ2xrZ2xoamRxbmt0eWJrc3RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwMTYzMjUsImV4cCI6MjA5MTU5MjMyNX0.fMZo0fjEfPSf20w-rRQh25zPj7xPVOpU6lO2lon3EEk';
     const res = await fetch(
       'https://lpglkglhjdqnktybksth.supabase.co/storage/v1/object/list/muz',
-      { headers: { apikey: MUZ_ANON, Authorization: `Bearer ${MUZ_ANON}` } }
+      {
+        method: 'POST',
+        headers: { 'apikey': ANON, 'Authorization': `Bearer ${ANON}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prefix: '', limit: 100, offset: 0 }),
+      }
     );
     if (!res.ok) return FALLBACK_TRACKS;
     const files: Array<{name:string}> = await res.json();
     const urls = files
-      .filter(f => f.name && /\.(ogg|mp3|wav)$/i.test(f.name))
-      .map(f => MUZ_BASE + encodeURIComponent(f.name));
+      .filter(f => f.name && /\.(ogg|mp3|wav|flac)$/i.test(f.name))
+      .map(f => `https://lpglkglhjdqnktybksth.supabase.co/storage/v1/object/public/muz/${encodeURIComponent(f.name)}`);
+    console.log(`[Audio] Loaded ${urls.length} tracks from muz bucket`);
     return urls.length > 0 ? urls : FALLBACK_TRACKS;
-  } catch { return FALLBACK_TRACKS; }
+  } catch (e) {
+    console.warn('[Audio] Bucket fetch failed, using fallback:', e);
+    return FALLBACK_TRACKS;
+  }
 }
 
 let AUDIO_TRACKS = FALLBACK_TRACKS;
