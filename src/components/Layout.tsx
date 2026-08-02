@@ -261,14 +261,19 @@ export default function Layout({ children, activePage }: LayoutProps) {
     if (isNaN(trackIndex) || trackIndex < 0 || trackIndex >= AUDIO_TRACKS.length) {
       trackIndex = Math.floor(Math.random() * AUDIO_TRACKS.length);
     }
-    // Динамически загружаем все треки из bucket
-    loadAllTracks().then(tracks => { AUDIO_TRACKS = tracks; });
-
     const audio = new Audio();
+    // Загружаем полный список треков из bucket, ЗАТЕМ выбираем рандомный
+    loadAllTracks().then(tracks => {
+      AUDIO_TRACKS = tracks;
+      const newIdx = Math.floor(Math.random() * tracks.length);
+      audio.src = tracks[newIdx];
+      localStorage.setItem('radioTrackIndex', newIdx.toString());
+      console.log(`[Audio] Full list: ${tracks.length} tracks, playing #${newIdx}`);
+    });
     audio.preload = 'auto';
     audio.loop = false; // Disable loop so track ends and triggers 'ended' event
     audio.volume = 0.25;
-    audio.src = AUDIO_TRACKS[trackIndex];
+    // audio.src set after loadAllTracks() resolves above
     audioRef.current = audio;
 
     // Load play state from sessionStorage (not localStorage): if the user

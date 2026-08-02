@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 export type TabId = 'servers' | 'glossary' | 'characters' | 'mods' | 'store' | 'community';
 
@@ -17,24 +17,50 @@ interface Props { activeTab: TabId; onTabChange: (t: TabId) => void; }
 
 export default function TabNavigation({ activeTab, onTabChange }: Props) {
   const [loadingTab, setLoadingTab] = useState<TabId | null>(null);
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => { setMounted(true); }, []);
+  const [progress, setProgress] = useState(0);
+  const progressRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const handleClick = (id: TabId) => {
-    if (id === activeTab) return;
+    if (id === activeTab || loadingTab) return;
     setLoadingTab(id);
-    setTimeout(() => {
-      onTabChange(id);
-      setLoadingTab(null);
-    }, 280);
+    setProgress(0);
+    let p = 0;
+    if (progressRef.current) clearInterval(progressRef.current);
+    progressRef.current = setInterval(() => {
+      p += Math.random() * 30 + 15;
+      if (p >= 100) {
+        p = 100;
+        clearInterval(progressRef.current!);
+        setProgress(100);
+        setTimeout(() => {
+          onTabChange(id);
+          setLoadingTab(null);
+          setProgress(0);
+        }, 80);
+      } else {
+        setProgress(Math.min(p, 99));
+      }
+    }, 55);
   };
+
+  useEffect(() => () => { if (progressRef.current) clearInterval(progressRef.current); }, []);
 
 
   return (
-    <div className="sticky top-0 z-50 backdrop-blur-md border-b border-white/[0.06]"
+    <div className="sticky top-0 z-50 backdrop-blur-md border-b border-white/[0.06] relative"
       style={{ background: 'rgba(5,5,8,0.96)' }}>
       <div className="gradient-line" />
+
+      {/* Progress bar */}
+      {loadingTab && (
+        <div className="absolute bottom-0 left-0 h-[2px] z-10 rounded-r transition-all"
+          style={{
+            width: `${progress}%`,
+            background: 'linear-gradient(90deg, var(--neon-pink), var(--neon-cyan))',
+            boxShadow: '0 0 8px rgba(255,0,255,0.8)',
+            transition: 'width 0.055s linear',
+          }} />
+      )}
       <div className="max-w-7xl mx-auto px-4">
         <div className="flex overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
           {TABS.map(tab => {
@@ -51,7 +77,7 @@ export default function TabNavigation({ activeTab, onTabChange }: Props) {
                   color: isActive
                     ? 'var(--neon-pink)'
                     : isLoading ? 'rgba(255,255,255,0.75)' : 'rgba(255,255,255,0.38)',
-                  borderBottom: isActive ? '2px solid var(--neon-pink)' : '2px solid transparent',
+                  borderBottom: isActive ? '2px solid var(--neon-pink)' : isLoading ? '2px solid rgba(255,0,255,0.4)' : '2px solid transparent',
                   background: isActive
                     ? 'rgba(255,0,255,0.06)'
                     : isLoading ? 'rgba(255,0,255,0.04)' : 'transparent',
@@ -69,7 +95,7 @@ export default function TabNavigation({ activeTab, onTabChange }: Props) {
                   />
                 )}
 
-                <span style={{ filter: isActive ? 'drop-shadow(0 0 4px rgba(255,0,255,0.8))' : 'none' }}>
+                <span style={{ filter: isActive ? 'drop-shadow(0 0 4px rgba(255,0,255,0.8))' : 'none', transform: isActive ? 'scale(1.1)' : 'scale(1)', transition: 'transform 0.2s', display: 'inline-block' }}>
                   {tab.icon}
                 </span>
                 <span>{tab.label}</span>
@@ -95,21 +121,13 @@ export default function TabNavigation({ activeTab, onTabChange }: Props) {
                     {tab.badge}
                   </span>
                 )}
+                {isActive && <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full" style={{ background: 'var(--neon-pink)', boxShadow: '0 0 6px var(--neon-pink)', marginBottom: '-1px' }} />}
               </button>
             );
           })}
         </div>
       </div>
 
-      {/* keyframe для loading bar */}
-      {mounted && (
-        <style>{`
-          @keyframes tabLoadBar {
-            from { width: 0%; opacity: 1; }
-            to   { width: 100%; opacity: 0.6; }
-          }
-        `}</style>
-      )}
     </div>
   );
 }

@@ -347,7 +347,7 @@ export default function Community({ onOpenModal, session }: CommunityProps) {
         href="https://youtube.com/@vicecity_hub/community?si=G6x0kiCdvueaTgR-"
         target="_blank"
         rel="noreferrer"
-        className="flex items-center gap-4 rounded-xl p-4 mb-3 transition-all duration-200 hover:-translate-y-0.5 group"
+        className="flex items-center gap-4 rounded-xl p-4 mb-5 transition-all duration-200 hover:-translate-y-0.5 group"
         style={{ background: 'linear-gradient(135deg, rgba(255,0,0,0.1), rgba(255,0,0,0.04))', border: '1px solid rgba(255,0,0,0.25)' }}
       >
         <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
@@ -356,28 +356,9 @@ export default function Community({ onOpenModal, session }: CommunityProps) {
         </div>
         <div className="flex-1 min-w-0">
           <div className="font-orbitron font-black text-xs text-white tracking-widest group-hover:text-red-400 transition-colors">VICE CITY HUB — YOUTUBE COMMUNITY</div>
-          <p className="text-[10px] text-white/40 mt-0.5">Posts, polls, drops and drama. Join the community tab.</p>
+          <p className="text-[10px] text-white/40 mt-0.5">Posts, polls, drops and drama. Join the community tab — we post what doesn't fit in a video.</p>
         </div>
         <div className="font-orbitron font-black text-[9px] text-red-400/70 flex-shrink-0">JOIN ›</div>
-      </a>
-
-      {/* Twitch Community Banner */}
-      <a
-        href="https://www.twitch.tv/vicecityhub"
-        target="_blank"
-        rel="noreferrer"
-        className="flex items-center gap-4 rounded-xl p-4 mb-5 transition-all duration-200 hover:-translate-y-0.5 group"
-        style={{ background: 'linear-gradient(135deg, rgba(145,70,255,0.12), rgba(145,70,255,0.04))', border: '1px solid rgba(145,70,255,0.3)' }}
-      >
-        <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden"
-          style={{ background: 'rgba(145,70,255,0.2)', border: '1px solid rgba(145,70,255,0.5)' }}>
-          <img src="https://lpglkglhjdqnktybksth.supabase.co/storage/v1/object/public/photos/Vice_City_Hub.jpg" alt="VCH" className="w-full h-full object-cover" onError={e=>{(e.target as HTMLImageElement).style.display='none';}}/>
-        </div>
-        <div className="flex-1 min-w-0">
-          <div className="font-orbitron font-black text-xs tracking-widest group-hover:text-purple-400 transition-colors" style={{color:'#9146FF'}}>VICE CITY HUB — TWITCH</div>
-          <p className="text-[10px] text-white/40 mt-0.5">Live streams, watch parties and GTA VI launch coverage. Follow to get notified.</p>
-        </div>
-        <div className="font-orbitron font-black text-[9px] flex-shrink-0" style={{color:'#9146FF'}}>FOLLOW ›</div>
       </a>
 
       <div className="flex flex-wrap gap-2 mb-4">
