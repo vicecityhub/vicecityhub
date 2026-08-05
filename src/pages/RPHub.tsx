@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react'
+﻿import React, { useState, useRef, useEffect } from 'react'
 import TabNavigation, { TabId } from '../rp-hub/components/TabNavigation'
 import ServersTab    from '../rp-hub/components/ServersTab'
 import GlossaryTab   from '../rp-hub/components/GlossaryTab'
@@ -7,7 +7,7 @@ import ModsTab       from '../rp-hub/components/ModsTab'
 import StoreTab      from '../rp-hub/components/StoreTab'
 import CommunityTab  from '../rp-hub/components/CommunityTab'
 
-// ── те же треки что в Layout.tsx главного хаба ──
+// â”€â”€ Ñ‚Ðµ Ð¶Ðµ Ñ‚Ñ€ÐµÐºÐ¸ Ñ‡Ñ‚Ð¾ Ð² Layout.tsx Ð³Ð»Ð°Ð²Ð½Ð¾Ð³Ð¾ Ñ…Ð°Ð±Ð° â”€â”€
 const FALLBACK_TRACKS = [
   'https://lpglkglhjdqnktybksth.supabase.co/storage/v1/object/public/muz/1.ogg',
   'https://lpglkglhjdqnktybksth.supabase.co/storage/v1/object/public/muz/2.ogg',
@@ -51,7 +51,7 @@ const BG_IMAGES: Record<TabId, string> = {
   community:  'https://lpglkglhjdqnktybksth.supabase.co/storage/v1/object/public/design%20photos/Pegassi%20Supercar%20v2.jpg',
 }
 
-// ── Radio hook — идентичная логика Layout.tsx ──
+// â”€â”€ Radio hook â€” Ð¸Ð´ÐµÐ½Ñ‚Ð¸Ñ‡Ð½Ð°Ñ Ð»Ð¾Ð³Ð¸ÐºÐ° Layout.tsx â”€â”€
 function useRadio() {
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const [isPlaying, setIsPlaying] = useState(false)
@@ -65,7 +65,7 @@ function useRadio() {
       trackIndex = Math.floor(Math.random() * AUDIO_TRACKS.length)
     }
 
-    // Загружаем все треки из muz bucket
+    // Ð—Ð°Ð³Ñ€ÑƒÐ¶Ð°ÐµÐ¼ Ð²ÑÐµ Ñ‚Ñ€ÐµÐºÐ¸ Ð¸Ð· muz bucket
     loadAllTracks().then(tracks => { AUDIO_TRACKS = tracks; });
 
     const audio = new Audio()
@@ -75,11 +75,11 @@ function useRadio() {
     audio.src = AUDIO_TRACKS[trackIndex]
     audioRef.current = audio
 
-    // Восстанавливаем: играло до перехода сюда или нет
+    // Ð’Ð¾ÑÑÑ‚Ð°Ð½Ð°Ð²Ð»Ð¸Ð²Ð°ÐµÐ¼: Ð¸Ð³Ñ€Ð°Ð»Ð¾ Ð´Ð¾ Ð¿ÐµÑ€ÐµÑ…Ð¾Ð´Ð° ÑÑŽÐ´Ð° Ð¸Ð»Ð¸ Ð½ÐµÑ‚
     const savedPlaying = sessionStorage.getItem('radioPlaying')
     const shouldPlay = savedPlaying === null || savedPlaying === 'true'
 
-    // Восстанавливаем позицию трека
+    // Ð’Ð¾ÑÑÑ‚Ð°Ð½Ð°Ð²Ð»Ð¸Ð²Ð°ÐµÐ¼ Ð¿Ð¾Ð·Ð¸Ñ†Ð¸ÑŽ Ñ‚Ñ€ÐµÐºÐ°
     const savedTime = parseFloat(localStorage.getItem('radioTime') || '0')
     const restoreTime = !isNaN(savedTime) && isFinite(savedTime) && savedTime >= 0 ? savedTime : 0
     if (restoreTime > 0) {
@@ -99,19 +99,19 @@ function useRadio() {
       sessionStorage.setItem('radioPlaying', 'true')
     }
 
-    // Попытка немедленного запуска (работает после первого взаимодействия с сайтом)
+    // ÐŸÐ¾Ð¿Ñ‹Ñ‚ÐºÐ° Ð½ÐµÐ¼ÐµÐ´Ð»ÐµÐ½Ð½Ð¾Ð³Ð¾ Ð·Ð°Ð¿ÑƒÑÐºÐ° (Ñ€Ð°Ð±Ð¾Ñ‚Ð°ÐµÑ‚ Ð¿Ð¾ÑÐ»Ðµ Ð¿ÐµÑ€Ð²Ð¾Ð³Ð¾ Ð²Ð·Ð°Ð¸Ð¼Ð¾Ð´ÐµÐ¹ÑÑ‚Ð²Ð¸Ñ Ñ ÑÐ°Ð¹Ñ‚Ð¾Ð¼)
     if (shouldPlay) {
       const p = audio.play()
       if (p && typeof p.then === 'function') {
         p.then(markPlaying).catch(() => {
-          // Autoplay blocked — подхватим при первом клике ниже
+          // Autoplay blocked â€” Ð¿Ð¾Ð´Ñ…Ð²Ð°Ñ‚Ð¸Ð¼ Ð¿Ñ€Ð¸ Ð¿ÐµÑ€Ð²Ð¾Ð¼ ÐºÐ»Ð¸ÐºÐµ Ð½Ð¸Ð¶Ðµ
         })
       }
     } else {
       setIsPlaying(false)
     }
 
-    // Fallback — первый жест пользователя запускает радио
+    // Fallback â€” Ð¿ÐµÑ€Ð²Ñ‹Ð¹ Ð¶ÐµÑÑ‚ Ð¿Ð¾Ð»ÑŒÐ·Ð¾Ð²Ð°Ñ‚ÐµÐ»Ñ Ð·Ð°Ð¿ÑƒÑÐºÐ°ÐµÑ‚ Ñ€Ð°Ð´Ð¸Ð¾
     const onFirstGesture = () => {
       if (!audioRef.current) return
       const still = sessionStorage.getItem('radioPlaying') !== 'false'
@@ -123,7 +123,7 @@ function useRadio() {
     document.addEventListener('keydown', onFirstGesture, { capture: true, once: true })
     document.addEventListener('touchend',onFirstGesture, { capture: true, once: true })
 
-    // Следующий трек когда текущий заканчивается
+    // Ð¡Ð»ÐµÐ´ÑƒÑŽÑ‰Ð¸Ð¹ Ñ‚Ñ€ÐµÐº ÐºÐ¾Ð³Ð´Ð° Ñ‚ÐµÐºÑƒÑ‰Ð¸Ð¹ Ð·Ð°ÐºÐ°Ð½Ñ‡Ð¸Ð²Ð°ÐµÑ‚ÑÑ
     const onEnded = () => {
       const next = Math.floor(Math.random() * AUDIO_TRACKS.length)
       localStorage.setItem('radioTrackIndex', next.toString())
@@ -136,7 +136,7 @@ function useRadio() {
     }
     audio.addEventListener('ended', onEnded)
 
-    // Сохраняем прогресс при уходе со страницы
+    // Ð¡Ð¾Ñ…Ñ€Ð°Ð½ÑÐµÐ¼ Ð¿Ñ€Ð¾Ð³Ñ€ÐµÑÑ Ð¿Ñ€Ð¸ ÑƒÑ…Ð¾Ð´Ðµ ÑÐ¾ ÑÑ‚Ñ€Ð°Ð½Ð¸Ñ†Ñ‹
     const saveProgress = () => {
       if (audioRef.current && !audioRef.current.paused) {
         localStorage.setItem('radioTime', audioRef.current.currentTime.toString())
@@ -146,7 +146,7 @@ function useRadio() {
     window.addEventListener('beforeunload', saveProgress)
     const saveInterval = setInterval(saveProgress, 5000)
 
-    // Пауза когда вкладка скрыта, возобновление когда видна
+    // ÐŸÐ°ÑƒÐ·Ð° ÐºÐ¾Ð³Ð´Ð° Ð²ÐºÐ»Ð°Ð´ÐºÐ° ÑÐºÑ€Ñ‹Ñ‚Ð°, Ð²Ð¾Ð·Ð¾Ð±Ð½Ð¾Ð²Ð»ÐµÐ½Ð¸Ðµ ÐºÐ¾Ð³Ð´Ð° Ð²Ð¸Ð´Ð½Ð°
     const onVisibilityChange = () => {
       if (!audioRef.current) return
       if (document.hidden) {
@@ -190,7 +190,7 @@ function useRadio() {
   return { isPlaying, toggle }
 }
 
-// ── Иконки (SVG inline — без доп. зависимостей) ──
+// â”€â”€ Ð˜ÐºÐ¾Ð½ÐºÐ¸ (SVG inline â€” Ð±ÐµÐ· Ð´Ð¾Ð¿. Ð·Ð°Ð²Ð¸ÑÐ¸Ð¼Ð¾ÑÑ‚ÐµÐ¹) â”€â”€
 const IconVolume = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
@@ -213,10 +213,10 @@ export default function RPHub() {
   return (
     <div className="min-h-screen vibe-bg scanlines">
 
-      {/* ════════════════════════════════════════
-          HEADER — sticky, с кнопкой ← назад и радио
-          Идентичен по высоте и стилю Layout.tsx (h-[75px])
-          ════════════════════════════════════════ */}
+      {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+          HEADER â€” sticky, Ñ ÐºÐ½Ð¾Ð¿ÐºÐ¾Ð¹ â† Ð½Ð°Ð·Ð°Ð´ Ð¸ Ñ€Ð°Ð´Ð¸Ð¾
+          Ð˜Ð´ÐµÐ½Ñ‚Ð¸Ñ‡ÐµÐ½ Ð¿Ð¾ Ð²Ñ‹ÑÐ¾Ñ‚Ðµ Ð¸ ÑÑ‚Ð¸Ð»ÑŽ Layout.tsx (h-[75px])
+          â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
       <header
         className="sticky top-0 z-[500] h-[75px] flex items-center justify-between px-4 sm:px-6 lg:px-12 shadow-2xl"
         style={{
@@ -226,30 +226,30 @@ export default function RPHub() {
           borderBottom: '1px solid rgba(255,255,255,0.05)',
         }}
       >
-        {/* ── Левый блок: логотип + стрелка назад ── */}
+        {/* â”€â”€ Ð›ÐµÐ²Ñ‹Ð¹ Ð±Ð»Ð¾Ðº: Ð»Ð¾Ð³Ð¾Ñ‚Ð¸Ð¿ + ÑÑ‚Ñ€ÐµÐ»ÐºÐ° Ð½Ð°Ð·Ð°Ð´ â”€â”€ */}
         <a
           href="./index.html"
           className="flex items-center gap-2 hover:scale-105 transition-transform"
           aria-label="Back to Vice City Hub"
         >
-          {/* Стрелка — всегда видна */}
+          {/* Ð¡Ñ‚Ñ€ÐµÐ»ÐºÐ° â€” Ð²ÑÐµÐ³Ð´Ð° Ð²Ð¸Ð´Ð½Ð° */}
           <span
             className="font-orbitron font-black text-lg leading-none"
             style={{ color: '#FF00FF', filter: 'drop-shadow(0 0 8px rgba(255,0,255,0.8))' }}
           >
-            ←
+            â†
           </span>
-          {/* Полное название — скрыто на xs, видно начиная с sm */}
+          {/* ÐŸÐ¾Ð»Ð½Ð¾Ðµ Ð½Ð°Ð·Ð²Ð°Ð½Ð¸Ðµ â€” ÑÐºÑ€Ñ‹Ñ‚Ð¾ Ð½Ð° xs, Ð²Ð¸Ð´Ð½Ð¾ Ð½Ð°Ñ‡Ð¸Ð½Ð°Ñ Ñ sm */}
           <span className="hidden sm:block font-orbitron font-extrabold text-xl tracking-widest bg-gradient-to-r from-[#FF00FF] to-[#00FFFF] bg-clip-text text-transparent">
             VICE CITY HUB
           </span>
-          {/* Короткое — только xs */}
+          {/* ÐšÐ¾Ñ€Ð¾Ñ‚ÐºÐ¾Ðµ â€” Ñ‚Ð¾Ð»ÑŒÐºÐ¾ xs */}
           <span className="sm:hidden font-orbitron font-bold text-sm tracking-widest text-neonPink/80">
             HUB
           </span>
         </a>
 
-        {/* ── Центр: название раздела (только lg) ── */}
+        {/* â”€â”€ Ð¦ÐµÐ½Ñ‚Ñ€: Ð½Ð°Ð·Ð²Ð°Ð½Ð¸Ðµ Ñ€Ð°Ð·Ð´ÐµÐ»Ð° (Ñ‚Ð¾Ð»ÑŒÐºÐ¾ lg) â”€â”€ */}
         <div className="hidden lg:block absolute left-1/2 -translate-x-1/2 pointer-events-none">
           <span
             className="font-orbitron font-black text-sm tracking-[0.25em] bg-gradient-to-r from-[#FF00FF] via-[#CC00FF] to-[#00FFFF] bg-clip-text text-transparent"
@@ -259,14 +259,14 @@ export default function RPHub() {
           </span>
         </div>
 
-        {/* ── Правый блок: имя раздела (mobile) + кнопка радио ── */}
+        {/* â”€â”€ ÐŸÑ€Ð°Ð²Ñ‹Ð¹ Ð±Ð»Ð¾Ðº: Ð¸Ð¼Ñ Ñ€Ð°Ð·Ð´ÐµÐ»Ð° (mobile) + ÐºÐ½Ð¾Ð¿ÐºÐ° Ñ€Ð°Ð´Ð¸Ð¾ â”€â”€ */}
         <div className="flex items-center gap-3">
-          {/* Название раздела на мобайле */}
+          {/* ÐÐ°Ð·Ð²Ð°Ð½Ð¸Ðµ Ñ€Ð°Ð·Ð´ÐµÐ»Ð° Ð½Ð° Ð¼Ð¾Ð±Ð°Ð¹Ð»Ðµ */}
           <span className="lg:hidden font-orbitron font-black text-[10px] tracking-wider bg-gradient-to-r from-[#FF00FF] to-[#00FFFF] bg-clip-text text-transparent">
             RP HUB
           </span>
 
-          {/* Кнопка Leonida FM — идентична Layout.tsx */}
+          {/* ÐšÐ½Ð¾Ð¿ÐºÐ° Leonida FM â€” Ð¸Ð´ÐµÐ½Ñ‚Ð¸Ñ‡Ð½Ð° Layout.tsx */}
           <button
             onClick={toggle}
             title={isPlaying ? 'Pause Leonida FM' : 'Play Leonida FM'}
@@ -281,9 +281,9 @@ export default function RPHub() {
         </div>
       </header>
 
-      {/* ════════════════════════════════════════
+      {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
           PAGE HERO
-          ════════════════════════════════════════ */}
+          â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
       <div
         className="relative overflow-hidden"
         style={{ background: 'var(--darker-bg)', borderBottom: '1px solid rgba(255,0,255,0.1)' }}
@@ -297,7 +297,7 @@ export default function RPHub() {
         <div className="gradient-line" />
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 py-5 sm:py-7">
           <div className="font-orbitron text-[9px] tracking-[0.4em] text-white/20 mb-2 uppercase">
-            Leonida State · San Andreas · Est. 2025
+            Leonida State Â· San Andreas Â· Est. 2025
           </div>
           <h1 className="font-orbitron font-extrabold tracking-widest leading-none">
             <span
@@ -308,13 +308,13 @@ export default function RPHub() {
             </span>
           </h1>
           <p className="font-rajdhani text-white/30 text-xs sm:text-sm tracking-[0.2em] mt-2 uppercase">
-            Server Intel · Leonida Files · Identity Forge · Mod Vault · Store District
+            Server Intel Â· Leonida Files Â· Identity Forge Â· Mod Vault Â· Store District
           </p>
           <div className="flex flex-wrap gap-2 sm:gap-3 mt-3">
             {[
-              { label: '● FiveM / NoPixel', c: 'rgba(255,0,255' },
-              { label: '● GTA 6 Ready',     c: 'rgba(0,255,255' },
-              { label: '● v11 Build',        c: 'rgba(255,225,53' },
+              { label: 'â— FiveM / NoPixel', c: 'rgba(255,0,255' },
+              { label: 'â— GTA 6 Ready',     c: 'rgba(0,255,255' },
+              { label: 'â— v11 Build',        c: 'rgba(255,225,53' },
             ].map(b => (
               <span key={b.label} className="font-orbitron text-[9px] font-bold px-2 py-1 rounded"
                 style={{ background: `${b.c},0.08)`, border: `1px solid ${b.c},0.25)`, color: `${b.c},0.85)` }}>
@@ -325,12 +325,12 @@ export default function RPHub() {
         </div>
       </div>
 
-      {/* ── TABS ── */}
+      {/* â”€â”€ TABS â”€â”€ */}
       <TabNavigation activeTab={activeTab} onTabChange={setActiveTab} />
 
-      {/* ════════════════════════════════════════
-          CONTENT — per-tab background из Supabase Storage
-          ════════════════════════════════════════ */}
+      {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+          CONTENT â€” per-tab background Ð¸Ð· Supabase Storage
+          â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
       <div
         className="relative min-h-screen"
         style={{
@@ -356,19 +356,20 @@ export default function RPHub() {
         </div>
       </div>
 
-      {/* ── FOOTER ── */}
+      {/* â”€â”€ FOOTER â”€â”€ */}
       <footer className="border-t py-6 text-center" style={{ borderColor: 'rgba(255,0,255,0.08)', background: 'var(--darker-bg)' }}>
         <div className="gradient-line mb-4" />
         <a
           href="./index.html"
           className="inline-flex items-center gap-2 font-orbitron text-[10px] tracking-widest text-neonPink/40 hover:text-neonPink transition-colors mb-3"
         >
-          ← BACK TO VICE CITY HUB
+          â† BACK TO VICE CITY HUB
         </a>
         <p className="font-orbitron text-[8px] text-white/10 tracking-widest">
-          NOT AFFILIATED WITH ROCKSTAR GAMES · ALL DATA COMMUNITY-SOURCED · OBVIOUSLY
+          NOT AFFILIATED WITH ROCKSTAR GAMES Â· ALL DATA COMMUNITY-SOURCED Â· OBVIOUSLY
         </p>
       </footer>
     </div>
   )
 }
+

@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react';
+﻿import React, { useState, useEffect, useRef } from 'react';
 import { supa } from '../lib/SupabaseClient';
 import { Volume2, VolumeX, Menu, X, Radio, Map, LogIn, User, Trash2, Edit3, Save, ExternalLink, Heart, Copy, Check, Upload } from 'lucide-react';
 
-// Динамически загружается из Supabase Storage bucket 'muz'
-// Fallback на 2 трека если fetch не удался
+// Ð”Ð¸Ð½Ð°Ð¼Ð¸Ñ‡ÐµÑÐºÐ¸ Ð·Ð°Ð³Ñ€ÑƒÐ¶Ð°ÐµÑ‚ÑÑ Ð¸Ð· Supabase Storage bucket 'muz'
+// Fallback Ð½Ð° 2 Ñ‚Ñ€ÐµÐºÐ° ÐµÑÐ»Ð¸ fetch Ð½Ðµ ÑƒÐ´Ð°Ð»ÑÑ
 const FALLBACK_TRACKS = [
   'https://lpglkglhjdqnktybksth.supabase.co/storage/v1/object/public/muz/1.ogg',
   'https://lpglkglhjdqnktybksth.supabase.co/storage/v1/object/public/muz/2.ogg',
@@ -138,7 +138,7 @@ export default function Layout({ children, activePage }: LayoutProps) {
         setUserPosts([]);
       }
       // When user clicks the password reset link in email, Supabase fires
-      // this event and gives us a session — open the reset form immediately.
+      // this event and gives us a session â€” open the reset form immediately.
       if (event === 'PASSWORD_RECOVERY') {
         setAuthTab('reset');
         setAuthModalOpen(true);
@@ -251,7 +251,7 @@ export default function Layout({ children, activePage }: LayoutProps) {
   //  2) Try to resume playback immediately on mount (works once the browser has
   //     marked this origin as "audio-allowed" for the session).
   //  3) If blocked (true first visit / no interaction yet), call audio.play()
-  //     SYNCHRONOUSLY inside the very first click/tap/keypress handler — this is
+  //     SYNCHRONOUSLY inside the very first click/tap/keypress handler â€” this is
   //     required by browser autoplay policy: play() must be called directly inside
   //     the gesture handler, not inside a .then()/async callback, or it gets blocked.
   useEffect(() => {
@@ -262,13 +262,16 @@ export default function Layout({ children, activePage }: LayoutProps) {
       trackIndex = Math.floor(Math.random() * AUDIO_TRACKS.length);
     }
     const audio = new Audio();
-    // Загружаем полный список треков из bucket, ЗАТЕМ выбираем рандомный
+    // Ð—Ð°Ð³Ñ€ÑƒÐ¶Ð°ÐµÐ¼ Ð¿Ð¾Ð»Ð½Ñ‹Ð¹ ÑÐ¿Ð¸ÑÐ¾Ðº Ñ‚Ñ€ÐµÐºÐ¾Ð² Ð¸Ð· bucket, Ð—ÐÐ¢Ð•Ðœ Ð²Ñ‹Ð±Ð¸Ñ€Ð°ÐµÐ¼ Ñ€Ð°Ð½Ð´Ð¾Ð¼Ð½Ñ‹Ð¹
     loadAllTracks().then(tracks => {
       AUDIO_TRACKS = tracks;
       const newIdx = Math.floor(Math.random() * tracks.length);
       audio.src = tracks[newIdx];
       localStorage.setItem('radioTrackIndex', newIdx.toString());
       console.log(`[Audio] Full list: ${tracks.length} tracks, playing #${newIdx}`);
+      // Trigger play immediately after src is set (was playing silence before)
+      const sp = sessionStorage.getItem('radioPlaying');
+      if (sp === null || sp === 'true') { audio.play().catch(() => {}); }
     });
     audio.preload = 'auto';
     audio.loop = false; // Disable loop so track ends and triggers 'ended' event
@@ -278,7 +281,7 @@ export default function Layout({ children, activePage }: LayoutProps) {
 
     // Load play state from sessionStorage (not localStorage): if the user
     // muted the radio, that choice should only last for the current browser
-    // session — closing the tab/browser and coming back later should default
+    // session â€” closing the tab/browser and coming back later should default
     // back to "playing", per product requirement. sessionStorage clears
     // automatically when the tab/browser closes, while still persisting
     // across in-site page navigations within the same session.
@@ -319,7 +322,7 @@ export default function Layout({ children, activePage }: LayoutProps) {
           resumed = true;
           markPlaying();
         }).catch(() => {
-          // Blocked by autoplay policy — resumed on first user interaction below.
+          // Blocked by autoplay policy â€” resumed on first user interaction below.
         });
       }
     } else {
@@ -383,14 +386,14 @@ export default function Layout({ children, activePage }: LayoutProps) {
     // silently pause background audio when the tab/app is backgrounded
     // (e.g. switching apps, pulling down notifications, locking the
     // screen). When the page becomes visible again, try to resume if the
-    // user hadn't explicitly muted — this keeps the radio feeling
+    // user hadn't explicitly muted â€” this keeps the radio feeling
     // "always on" instead of staying silent until the next full reload.
     const handleVisibilityChange = () => {
       if (document.visibilityState !== 'visible') return;
       const stillShouldPlay = sessionStorage.getItem('radioPlaying') !== 'false';
       if (stillShouldPlay && audioRef.current && audioRef.current.paused) {
         audioRef.current.play().then(markPlaying).catch(() => {
-          // Still blocked — handleFirstInteraction below will catch the
+          // Still blocked â€” handleFirstInteraction below will catch the
           // next tap/click and resume it then.
         });
       }
@@ -842,19 +845,19 @@ export default function Layout({ children, activePage }: LayoutProps) {
           VICE CITY HUB
         </div>
         <div className="text-xs text-gray-500 tracking-wider mb-1 max-w-[600px]">
-          Leonida's definitive intelligence network. Fan-operated community portal — not affiliated with Rockstar Games or Take-Two Interactive Software, Inc.
+          Leonida's definitive intelligence network. Fan-operated community portal â€” not affiliated with Rockstar Games or Take-Two Interactive Software, Inc.
           <div className="flex flex-wrap justify-center gap-4 mt-4">
-            <a href="./index.html" className="text-[10px] text-gray-600 hover:text-neonCyan transition-colors uppercase tracking-wider font-bold">🎬 Home</a>
-            <a href="./news.html" className="text-[10px] text-gray-600 hover:text-neonCyan transition-colors uppercase tracking-wider font-bold">📡 The Wire</a>
-            <a href="./community.html" className="text-[10px] text-gray-600 hover:text-neonCyan transition-colors uppercase tracking-wider font-bold">🗣️ Community</a>
-            <a href="./market.html" className="text-[10px] text-gray-600 hover:text-neonCyan transition-colors uppercase tracking-wider font-bold">💰 Market</a>
-            <a href="./realestate.html" className="text-[10px] text-gray-600 hover:text-neonCyan transition-colors uppercase tracking-wider font-bold">🏢 Dynasty 8</a>
-            <a href="./document.html" className="text-[10px] text-gray-600 hover:text-neonCyan transition-colors uppercase tracking-wider font-bold">📁 Leonida DB</a>
-            <a href="./rp.html" className="text-[10px] text-neonPink/60 hover:text-neonPink transition-colors uppercase tracking-wider font-bold">🎮 RP Hub ✦</a>
+            <a href="./index.html" className="text-[10px] text-gray-600 hover:text-neonCyan transition-colors uppercase tracking-wider font-bold">ðŸŽ¬ Home</a>
+            <a href="./news.html" className="text-[10px] text-gray-600 hover:text-neonCyan transition-colors uppercase tracking-wider font-bold">ðŸ“¡ The Wire</a>
+            <a href="./community.html" className="text-[10px] text-gray-600 hover:text-neonCyan transition-colors uppercase tracking-wider font-bold">ðŸ—£ï¸ Community</a>
+            <a href="./market.html" className="text-[10px] text-gray-600 hover:text-neonCyan transition-colors uppercase tracking-wider font-bold">ðŸ’° Market</a>
+            <a href="./realestate.html" className="text-[10px] text-gray-600 hover:text-neonCyan transition-colors uppercase tracking-wider font-bold">ðŸ¢ Dynasty 8</a>
+            <a href="./document.html" className="text-[10px] text-gray-600 hover:text-neonCyan transition-colors uppercase tracking-wider font-bold">ðŸ“ Leonida DB</a>
+            <a href="./rp.html" className="text-[10px] text-neonPink/60 hover:text-neonPink transition-colors uppercase tracking-wider font-bold">ðŸŽ® RP Hub âœ¦</a>
           </div>
         </div>
         <div className="text-[10px] text-gray-600 tracking-widest uppercase mb-8">
-          Grand Theft Auto VI™ is a registered trademark of Take-Two Interactive Software, Inc.
+          Grand Theft Auto VIâ„¢ is a registered trademark of Take-Two Interactive Software, Inc.
         </div>
 
         {/* Contact Links Box */}
@@ -866,22 +869,22 @@ export default function Layout({ children, activePage }: LayoutProps) {
           <div className="flex flex-wrap justify-center gap-3 mt-2">
             <a href="mailto:vicecityhub@proton.me"
               className="btn-neon btn-neon-cyan !py-2 !px-5 !text-[10px] flex items-center gap-2">
-              ✉ E-Mail Us
+              âœ‰ E-Mail Us
             </a>
             <a href="https://x.com/vicecity_hub" target="_blank" rel="noopener noreferrer"
               className="btn-neon !py-2 !px-5 !text-[10px] flex items-center gap-2">
-              𝕏 Follow on X
+              ð• Follow on X
             </a>
             <a href="https://www.instagram.com/vicecity_hub?igsh=MXV6" target="_blank" rel="noopener noreferrer"
               className="btn-neon btn-neon-orange !py-2 !px-5 !text-[10px] flex items-center gap-2">
-              ◈ Instagram
+              â—ˆ Instagram
             </a>
           </div>
 
           {/* Donation CTA */}
           <div className="w-full border-t border-white/5 mt-4 pt-6 flex flex-col items-center gap-3">
             <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">
-              Vice City Hub runs on community fuel — no ads, no trackers, no corporate overlords.
+              Vice City Hub runs on community fuel â€” no ads, no trackers, no corporate overlords.
             </p>
             <div className="flex items-center gap-3 flex-wrap justify-center">
               <a
@@ -890,7 +893,7 @@ export default function Layout({ children, activePage }: LayoutProps) {
                 rel="noopener noreferrer"
                 className="btn-neon btn-neon-orange !py-2 !px-5 !text-[10px] flex items-center gap-2 font-extrabold"
               >
-                <Heart size={13} /> Donate ↗
+                <Heart size={13} /> Donate â†—
               </a>
               <button
                 onClick={() => setKofiOpen(true)}
@@ -916,7 +919,7 @@ export default function Layout({ children, activePage }: LayoutProps) {
             >
               <div className="flex justify-between items-center mb-4">
                 <div className="flex items-center gap-2">
-                  <span className="text-xl">🪙</span>
+                  <span className="text-xl">ðŸª™</span>
                   <span className="font-orbitron font-extrabold text-neonOrange text-xs tracking-wider uppercase">Bitcoin (BTC)</span>
                 </div>
                 {copiedAddress === 'btc' ? (
@@ -937,7 +940,7 @@ export default function Layout({ children, activePage }: LayoutProps) {
             >
               <div className="flex justify-between items-center mb-4">
                 <div className="flex items-center gap-2">
-                  <span className="text-xl">🔷</span>
+                  <span className="text-xl">ðŸ”·</span>
                   <span className="font-orbitron font-extrabold text-neonPink text-xs tracking-wider uppercase">Ethereum (ETH)</span>
                 </div>
                 {copiedAddress === 'eth' ? (
@@ -958,7 +961,7 @@ export default function Layout({ children, activePage }: LayoutProps) {
             >
               <div className="flex justify-between items-center mb-4">
                 <div className="flex items-center gap-2">
-                  <span className="text-xl">☀️</span>
+                  <span className="text-xl">â˜€ï¸</span>
                   <span className="font-orbitron font-extrabold text-green-500 text-xs tracking-wider uppercase">Solana (SOL)</span>
                 </div>
                 {copiedAddress === 'sol' ? (
@@ -979,7 +982,7 @@ export default function Layout({ children, activePage }: LayoutProps) {
             >
               <div className="flex justify-between items-center mb-4">
                 <div className="flex items-center gap-2">
-                  <span className="text-xl">🔺</span>
+                  <span className="text-xl">ðŸ”º</span>
                   <span className="font-orbitron font-extrabold text-red-500 text-xs tracking-wider uppercase">TRON (TRX / USDT)</span>
                 </div>
                 {copiedAddress === 'trx' ? (
@@ -1007,7 +1010,7 @@ export default function Layout({ children, activePage }: LayoutProps) {
             style={{ maxHeight: 'calc(100vh - 32px)' }}
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Header — always visible, crестик всегда доступен */}
+            {/* Header â€” always visible, crÐµÑÑ‚Ð¸Ðº Ð²ÑÐµÐ³Ð´Ð° Ð´Ð¾ÑÑ‚ÑƒÐ¿ÐµÐ½ */}
             <div className="flex-shrink-0 flex items-center gap-3 px-5 pt-5 pb-3 border-b border-white/5">
               <div className="flex items-center justify-center w-9 h-9 rounded-full bg-[#FF5E5B]/10 border border-[#FF5E5B]/30 flex-shrink-0">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="#FF5E5B">
@@ -1019,7 +1022,7 @@ export default function Layout({ children, activePage }: LayoutProps) {
                   Buy Us a Coffee
                 </div>
                 <div className="text-[9px] text-gray-500 uppercase tracking-widest font-bold">
-                  Keep the Hub alive · No ads · No tracking
+                  Keep the Hub alive Â· No ads Â· No tracking
                 </div>
               </div>
               <button
@@ -1051,9 +1054,9 @@ export default function Layout({ children, activePage }: LayoutProps) {
               <X size={20} />
             </button>
             <div className={`font-orbitron font-extrabold text-3xl text-neonPink neon-text-pink mb-1 tracking-widest uppercase ${authTab === 'reset' ? 'hidden' : ''}`}>MEMBER</div>
-            <div className={`text-[10px] text-gray-500 tracking-widest uppercase font-bold ${authTab === 'reset' ? 'hidden' : 'mb-6'}`}>Access • Post • Share Intel</div>
+            <div className={`text-[10px] text-gray-500 tracking-widest uppercase font-bold ${authTab === 'reset' ? 'hidden' : 'mb-6'}`}>Access â€¢ Post â€¢ Share Intel</div>
 
-            {/* Modal Tabs — hide tabs during password reset flow */}
+            {/* Modal Tabs â€” hide tabs during password reset flow */}
             {authTab !== 'reset' && (
               <div className="flex border-b border-white/5 mb-6 text-xs uppercase tracking-widest font-bold">
                 <button onClick={() => setAuthTab('login')} className={`pb-3 pr-6 ${authTab === 'login' ? 'text-neonCyan border-b-2 border-neonCyan' : 'text-gray-500'}`}>Sign In</button>
@@ -1067,15 +1070,15 @@ export default function Layout({ children, activePage }: LayoutProps) {
               </div>
             )}
 
-            {/* Reset Password Form — shown when user arrives via email link */}
+            {/* Reset Password Form â€” shown when user arrives via email link */}
             {authTab === 'reset' && (
               <div className="flex flex-col gap-4">
                 <div className="text-[10px] text-neonCyan uppercase tracking-widest font-bold mb-2">
-                  🔐 Set Your New Password
+                  ðŸ” Set Your New Password
                 </div>
                 {resetDone ? (
                   <div className="text-center py-6">
-                    <div className="text-2xl mb-2">✓</div>
+                    <div className="text-2xl mb-2">âœ“</div>
                     <p className="text-neonCyan font-bold font-orbitron text-sm">Password updated!</p>
                     <p className="text-xs text-gray-500 mt-1">Redirecting...</p>
                   </div>
@@ -1134,7 +1137,7 @@ export default function Layout({ children, activePage }: LayoutProps) {
                     value={loginPass}
                     onChange={e => setLoginPass(e.target.value)}
                     className="w-full bg-[#050508] border border-white/10 focus:border-neonCyan outline-none rounded p-3 text-sm transition-all"
-                    placeholder="••••••••"
+                    placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
                   />
                   <button
                     type="button"
@@ -1175,7 +1178,7 @@ export default function Layout({ children, activePage }: LayoutProps) {
                     value={registerPass}
                     onChange={e => setRegisterPass(e.target.value)}
                     className="w-full bg-[#050508] border border-white/10 focus:border-neonCyan outline-none rounded p-3 text-sm transition-all"
-                    placeholder="••••••••"
+                    placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
                   />
                 </div>
                 <div className="flex flex-col gap-2">
@@ -1185,7 +1188,7 @@ export default function Layout({ children, activePage }: LayoutProps) {
                     value={registerPassConfirm}
                     onChange={e => setRegisterPassConfirm(e.target.value)}
                     className="w-full bg-[#050508] border border-white/10 focus:border-neonCyan outline-none rounded p-3 text-sm transition-all"
-                    placeholder="••••••••"
+                    placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
                   />
                 </div>
                 <button onClick={handleRegister} className="btn-neon font-orbitron text-xs mt-4">Create Account</button>
@@ -1208,36 +1211,36 @@ export default function Layout({ children, activePage }: LayoutProps) {
 
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
               <a href="./index.html" className="glass-card p-6 text-center hover:border-neonCyan flex flex-col items-center gap-3">
-                <span className="text-3xl">🎬</span>
+                <span className="text-3xl">ðŸŽ¬</span>
                 <span className="text-xs uppercase font-orbitron tracking-widest text-gray-300">Home & Media</span>
               </a>
               <a href="./news.html" className="glass-card p-6 text-center hover:border-neonCyan flex flex-col items-center gap-3">
-                <span className="text-3xl">📡</span>
+                <span className="text-3xl">ðŸ“¡</span>
                 <span className="text-xs uppercase font-orbitron tracking-widest text-gray-300">The Wire News</span>
               </a>
               <a href="./market.html" className="glass-card p-6 text-center hover:border-neonCyan flex flex-col items-center gap-3">
-                <span className="text-3xl">💰</span>
+                <span className="text-3xl">ðŸ’°</span>
                 <span className="text-xs uppercase font-orbitron tracking-widest text-gray-300">Web3 Market</span>
               </a>
               <a href="./realestate.html" className="glass-card p-6 text-center hover:border-neonCyan flex flex-col items-center gap-3">
-                <span className="text-3xl">🏢</span>
+                <span className="text-3xl">ðŸ¢</span>
                 <span className="text-xs uppercase font-orbitron tracking-widest text-gray-300">Dynasty 8 ROI</span>
               </a>
               <a href="./document.html" className="glass-card p-6 text-center hover:border-neonCyan flex flex-col items-center gap-3">
-                <span className="text-3xl">📁</span>
+                <span className="text-3xl">ðŸ“</span>
                 <span className="text-xs uppercase font-orbitron tracking-widest text-gray-300">Leonida Database</span>
               </a>
               <a href="./community.html" className="glass-card p-6 text-center hover:border-neonCyan flex flex-col items-center gap-3">
-                <span className="text-3xl">🗣️</span>
+                <span className="text-3xl">ðŸ—£ï¸</span>
                 <span className="text-xs uppercase font-orbitron tracking-widest text-gray-300">Community</span>
               </a>
               <a href="./rp.html" className="glass-card p-6 text-center hover:border-neonPink flex flex-col items-center gap-3 relative border border-neonPink/20">
                 <span className="absolute -top-2 -right-2 text-[8px] px-1.5 py-0.5 rounded border border-neonPink/70 bg-neonPink/15 text-neonPink font-orbitron font-black">NEW</span>
-                <span className="text-3xl">🎮</span>
+                <span className="text-3xl">ðŸŽ®</span>
                 <span className="text-xs uppercase font-orbitron tracking-widest text-neonPink">RP Hub</span>
               </a>
               <div onClick={() => { setSitemapOpen(false); if (session) setDashboardOpen(true); else setAuthModalOpen(true); }} className="glass-card p-6 text-center hover:border-neonCyan flex flex-col items-center gap-3 cursor-pointer">
-                <span className="text-3xl">⚙️</span>
+                <span className="text-3xl">âš™ï¸</span>
                 <span className="text-xs uppercase font-orbitron tracking-widest text-gray-300">User Settings</span>
               </div>
             </div>
@@ -1403,12 +1406,12 @@ export default function Layout({ children, activePage }: LayoutProps) {
 
                   <p className="text-xs text-gray-500 leading-relaxed -mt-2">
                     Rockstar Social Club and PSN don't offer a public login API, so those fields are
-                    self-reported — they show with an "Unverified" badge until a moderator checks a
+                    self-reported â€” they show with an "Unverified" badge until a moderator checks a
                     screenshot. Steam can be linked for real, automatic verification.
                   </p>
 
                   <div className="flex flex-col gap-4">
-                    {/* Avatar upload — prominent, at top of form */}
+                    {/* Avatar upload â€” prominent, at top of form */}
                     <div className="flex flex-col gap-2">
                       <label className="text-[10px] text-gray-500 uppercase tracking-widest">Profile Avatar</label>
                       <div className="flex items-center gap-4">
@@ -1535,7 +1538,7 @@ export default function Layout({ children, activePage }: LayoutProps) {
                               onClick={() => setNewsStars(n === newsStars ? 0 : n)}
                               className="transition-colors"
                             >
-                              <span className={n <= newsStars ? 'text-neonOrange' : 'text-gray-700'}>★</span>
+                              <span className={n <= newsStars ? 'text-neonOrange' : 'text-gray-700'}>â˜…</span>
                             </button>
                           ))}
                         </div>
@@ -1648,3 +1651,4 @@ export default function Layout({ children, activePage }: LayoutProps) {
     </div>
   );
 }
+
