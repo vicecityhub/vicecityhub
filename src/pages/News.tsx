@@ -318,7 +318,7 @@ export default function News() {
                   <div
                     key={item.id}
                     onClick={() => toggleExpanded(item.id)}
-                    className={`snap-start [scroll-snap-stop:always] glass-card border transition-all duration-300 flex flex-col justify-between shadow-2xl group min-h-[375px] md:min-h-[380px] p-6 relative overflow-hidden cursor-pointer ${
+                    className={`snap-start [scroll-snap-stop:always] glass-card border transition-all duration-300 flex flex-col shadow-2xl group p-6 relative cursor-pointer ${isExpanded ? "min-h-0 overflow-visible" : "min-h-[375px] md:min-h-[380px] overflow-hidden justify-between"} ${
                       important
                         ? 'border-neonOrange/50 hover:border-neonOrange shadow-[0_0_25px_rgba(255,136,0,0.12)]'
                         : 'border-white/5 hover:border-neonCyan'
@@ -364,7 +364,13 @@ export default function News() {
                         {item.title}
                       </h3>
 
-                      <p className={`text-sm text-gray-300 leading-loose font-bold font-rajdhani mb-4 ${isExpanded ? 'line-clamp-none' : 'line-clamp-4 md:line-clamp-6'}`}>
+                      <p
+                        className={`text-sm text-gray-300 leading-loose font-bold font-rajdhani mb-4 ${isExpanded ? '' : 'line-clamp-4 md:line-clamp-6'}`}
+                        style={isExpanded ? { maxHeight: '55vh', overflowY: 'auto', touchAction: 'pan-y', WebkitOverflowScrolling: 'touch' as any, paddingRight: '4px' } : {}}
+                        onTouchStart={isExpanded ? (e) => e.stopPropagation() : undefined}
+                        onTouchMove={isExpanded ? (e) => e.stopPropagation() : undefined}
+                        onClick={(e) => e.stopPropagation()}
+                      >
                         {isExpanded ? item.body : previewText}
                       </p>
 

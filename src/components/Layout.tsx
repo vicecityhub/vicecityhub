@@ -4,37 +4,7 @@ import { Volume2, VolumeX, Menu, X, Radio, Map, LogIn, User, Trash2, Edit3, Save
 
 // Ð”Ð¸Ð½Ð°Ð¼Ð¸Ñ‡ÐµÑÐºÐ¸ Ð·Ð°Ð³Ñ€ÑƒÐ¶Ð°ÐµÑ‚ÑÑ Ð¸Ð· Supabase Storage bucket 'muz'
 // Fallback Ð½Ð° 2 Ñ‚Ñ€ÐµÐºÐ° ÐµÑÐ»Ð¸ fetch Ð½Ðµ ÑƒÐ´Ð°Ð»ÑÑ
-const FALLBACK_TRACKS = [
-  'https://lpglkglhjdqnktybksth.supabase.co/storage/v1/object/public/muz/1.ogg',
-  'https://lpglkglhjdqnktybksth.supabase.co/storage/v1/object/public/muz/2.ogg',
-];
-const MUZ_BUCKET_URL = 'https://lpglkglhjdqnktybksth.supabase.co/storage/v1/object/public/muz/';
-
-async function loadAllTracks(): Promise<string[]> {
-  try {
-    const ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxwZ2xrZ2xoamRxbmt0eWJrc3RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwMTYzMjUsImV4cCI6MjA5MTU5MjMyNX0.fMZo0fjEfPSf20w-rRQh25zPj7xPVOpU6lO2lon3EEk';
-    const res = await fetch(
-      'https://lpglkglhjdqnktybksth.supabase.co/storage/v1/object/list/muz',
-      {
-        method: 'POST',
-        headers: { 'apikey': ANON, 'Authorization': `Bearer ${ANON}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prefix: '', limit: 100, offset: 0 }),
-      }
-    );
-    if (!res.ok) return FALLBACK_TRACKS;
-    const files: Array<{name:string}> = await res.json();
-    const urls = files
-      .filter(f => f.name && /\.(ogg|mp3|wav|flac)$/i.test(f.name))
-      .map(f => `https://lpglkglhjdqnktybksth.supabase.co/storage/v1/object/public/muz/${encodeURIComponent(f.name)}`);
-    console.log(`[Audio] Loaded ${urls.length} tracks from muz bucket`);
-    return urls.length > 0 ? urls : FALLBACK_TRACKS;
-  } catch (e) {
-    console.warn('[Audio] Bucket fetch failed, using fallback:', e);
-    return FALLBACK_TRACKS;
-  }
-}
-
-let AUDIO_TRACKS: string[] = FALLBACK_TRACKS;
+import { getOrCreateAudio } from '../lib/AudioManager';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -255,28 +225,12 @@ export default function Layout({ children, activePage }: LayoutProps) {
   //     required by browser autoplay policy: play() must be called directly inside
   //     the gesture handler, not inside a .then()/async callback, or it gets blocked.
   useEffect(() => {
-    // Choose a track randomly or load from localStorage
-    const savedTrackIndex = localStorage.getItem('radioTrackIndex');
-    let trackIndex = savedTrackIndex ? parseInt(savedTrackIndex) : Math.floor(Math.random() * AUDIO_TRACKS.length);
-    if (isNaN(trackIndex) || trackIndex < 0 || trackIndex >= AUDIO_TRACKS.length) {
-      trackIndex = Math.floor(Math.random() * AUDIO_TRACKS.length);
-    }
-    const audio = new Audio();
+    const audio = getOrCreateAudio();
+
     // Ð—Ð°Ð³Ñ€ÑƒÐ¶Ð°ÐµÐ¼ Ð¿Ð¾Ð»Ð½Ñ‹Ð¹ ÑÐ¿Ð¸ÑÐ¾Ðº Ñ‚Ñ€ÐµÐºÐ¾Ð² Ð¸Ð· bucket, Ð—ÐÐ¢Ð•Ðœ Ð²Ñ‹Ð±Ð¸Ñ€Ð°ÐµÐ¼ Ñ€Ð°Ð½Ð´Ð¾Ð¼Ð½Ñ‹Ð¹
-    loadAllTracks().then(tracks => {
-      AUDIO_TRACKS = tracks;
-      const newIdx = Math.floor(Math.random() * tracks.length);
-      audio.src = tracks[newIdx];
-      localStorage.setItem('radioTrackIndex', newIdx.toString());
-      console.log(`[Audio] Full list: ${tracks.length} tracks, playing #${newIdx}`);
-      // Trigger play immediately after src is set (was playing silence before)
-      const sp = sessionStorage.getItem('radioPlaying');
-      if (sp === null || sp === 'true') { audio.play().catch(() => {}); }
-    });
     audio.preload = 'auto';
     audio.loop = false; // Disable loop so track ends and triggers 'ended' event
     audio.volume = 0.25;
-    // audio.src set after loadAllTracks() resolves above
     audioRef.current = audio;
 
     // Load play state from sessionStorage (not localStorage): if the user
@@ -351,15 +305,8 @@ export default function Layout({ children, activePage }: LayoutProps) {
 
     // Play random song when current one finishes
     const handleTrackEnded = () => {
-      const randomTrackIndex = Math.floor(Math.random() * AUDIO_TRACKS.length);
-      localStorage.setItem('radioTrackIndex', randomTrackIndex.toString());
-      localStorage.setItem('radioTime', '0');
       if (audioRef.current) {
-        audioRef.current.src = AUDIO_TRACKS[randomTrackIndex];
-        audioRef.current.load();
-        audioRef.current.play().then(() => {
-          markPlaying();
-        }).catch(() => { });
+        audioRef.current.play().then(() => { markPlaying(); }).catch(() => { });
       }
     };
     audio.addEventListener('ended', handleTrackEnded);
@@ -428,14 +375,9 @@ export default function Layout({ children, activePage }: LayoutProps) {
       setIsPlaying(false);
       sessionStorage.setItem('radioPlaying', 'false');
     } else {
-      // Pick a random track from Supabase public storage bucket
-      const randomTrackIndex = Math.floor(Math.random() * AUDIO_TRACKS.length);
-      audioRef.current.src = AUDIO_TRACKS[randomTrackIndex];
-      audioRef.current.load();
       audioRef.current.play().then(() => {
         setIsPlaying(true);
         sessionStorage.setItem('radioPlaying', 'true');
-        localStorage.setItem('radioTrackIndex', randomTrackIndex.toString());
       }).catch(() => { });
     }
   };
@@ -1651,4 +1593,6 @@ export default function Layout({ children, activePage }: LayoutProps) {
     </div>
   );
 }
+
+
 

@@ -1,4 +1,5 @@
-﻿import React, { useState, useRef, useEffect } from 'react'
+﻿import { getOrCreateAudio } from '../lib/AudioManager';
+import React, { useState, useRef, useEffect } from 'react'
 import TabNavigation, { TabId } from '../rp-hub/components/TabNavigation'
 import ServersTab    from '../rp-hub/components/ServersTab'
 import GlossaryTab   from '../rp-hub/components/GlossaryTab'
@@ -8,38 +9,7 @@ import StoreTab      from '../rp-hub/components/StoreTab'
 import CommunityTab  from '../rp-hub/components/CommunityTab'
 
 // â”€â”€ Ñ‚Ðµ Ð¶Ðµ Ñ‚Ñ€ÐµÐºÐ¸ Ñ‡Ñ‚Ð¾ Ð² Layout.tsx Ð³Ð»Ð°Ð²Ð½Ð¾Ð³Ð¾ Ñ…Ð°Ð±Ð° â”€â”€
-const FALLBACK_TRACKS = [
-  'https://lpglkglhjdqnktybksth.supabase.co/storage/v1/object/public/muz/1.ogg',
-  'https://lpglkglhjdqnktybksth.supabase.co/storage/v1/object/public/muz/2.ogg',
-];
-const MUZ_BASE = 'https://lpglkglhjdqnktybksth.supabase.co/storage/v1/object/public/muz/';
-const MUZ_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxwZ2xrZ2xoamRxbmt0eWJrc3RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwMTYzMjUsImV4cCI6MjA5MTU5MjMyNX0.fMZo0fjEfPSf20w-rRQh25zPj7xPVOpU6lO2lon3EEk';
-
-async function loadAllTracks(): Promise<string[]> {
-  try {
-    const ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxwZ2xrZ2xoamRxbmt0eWJrc3RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwMTYzMjUsImV4cCI6MjA5MTU5MjMyNX0.fMZo0fjEfPSf20w-rRQh25zPj7xPVOpU6lO2lon3EEk';
-    const res = await fetch(
-      'https://lpglkglhjdqnktybksth.supabase.co/storage/v1/object/list/muz',
-      {
-        method: 'POST',
-        headers: { 'apikey': ANON, 'Authorization': `Bearer ${ANON}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prefix: '', limit: 100, offset: 0 }),
-      }
-    );
-    if (!res.ok) return FALLBACK_TRACKS;
-    const files: Array<{name:string}> = await res.json();
-    const urls = files
-      .filter(f => f.name && /\.(ogg|mp3|wav|flac)$/i.test(f.name))
-      .map(f => `https://lpglkglhjdqnktybksth.supabase.co/storage/v1/object/public/muz/${encodeURIComponent(f.name)}`);
-    console.log(`[Audio] Loaded ${urls.length} tracks from muz bucket`);
-    return urls.length > 0 ? urls : FALLBACK_TRACKS;
-  } catch (e) {
-    console.warn('[Audio] Bucket fetch failed, using fallback:', e);
-    return FALLBACK_TRACKS;
-  }
-}
-
-let AUDIO_TRACKS = FALLBACK_TRACKS;
+;
 
 const SUPABASE_STORE = 'https://lpglkglhjdqnktybksth.supabase.co/storage/v1/object/public/design%20photos'
 const BG_IMAGES: Record<TabId, string> = {
@@ -58,21 +28,15 @@ function useRadio() {
 
   useEffect(() => {
     const savedTrackIndex = localStorage.getItem('radioTrackIndex')
+    const audio = getOrCreateAudio()
     let trackIndex = savedTrackIndex
       ? parseInt(savedTrackIndex)
-      : Math.floor(Math.random() * AUDIO_TRACKS.length)
-    if (isNaN(trackIndex) || trackIndex < 0 || trackIndex >= AUDIO_TRACKS.length) {
-      trackIndex = Math.floor(Math.random() * AUDIO_TRACKS.length)
     }
 
     // Ð—Ð°Ð³Ñ€ÑƒÐ¶Ð°ÐµÐ¼ Ð²ÑÐµ Ñ‚Ñ€ÐµÐºÐ¸ Ð¸Ð· muz bucket
-    loadAllTracks().then(tracks => { AUDIO_TRACKS = tracks; });
 
-    const audio = new Audio()
-    audio.preload = 'auto'
     audio.loop = false
     audio.volume = 0.25
-    audio.src = AUDIO_TRACKS[trackIndex]
     audioRef.current = audio
 
     // Ð’Ð¾ÑÑÑ‚Ð°Ð½Ð°Ð²Ð»Ð¸Ð²Ð°ÐµÐ¼: Ð¸Ð³Ñ€Ð°Ð»Ð¾ Ð´Ð¾ Ð¿ÐµÑ€ÐµÑ…Ð¾Ð´Ð° ÑÑŽÐ´Ð° Ð¸Ð»Ð¸ Ð½ÐµÑ‚
@@ -125,11 +89,10 @@ function useRadio() {
 
     // Ð¡Ð»ÐµÐ´ÑƒÑŽÑ‰Ð¸Ð¹ Ñ‚Ñ€ÐµÐº ÐºÐ¾Ð³Ð´Ð° Ñ‚ÐµÐºÑƒÑ‰Ð¸Ð¹ Ð·Ð°ÐºÐ°Ð½Ñ‡Ð¸Ð²Ð°ÐµÑ‚ÑÑ
     const onEnded = () => {
-      const next = Math.floor(Math.random() * AUDIO_TRACKS.length)
       localStorage.setItem('radioTrackIndex', next.toString())
       localStorage.setItem('radioTime', '0')
       if (audioRef.current) {
-        audioRef.current.src = AUDIO_TRACKS[next]
+        // AudioManager handles src
         audioRef.current.load()
         audioRef.current.play().then(markPlaying).catch(() => {})
       }
@@ -372,4 +335,5 @@ export default function RPHub() {
     </div>
   )
 }
+
 
