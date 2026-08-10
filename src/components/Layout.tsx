@@ -316,7 +316,7 @@ export default function Layout({ children, activePage }: LayoutProps) {
     const interval = setInterval(() => {
       if (audioRef.current && !audioRef.current.paused) {
         localStorage.setItem('radioTime', audioRef.current.currentTime.toString());
-        localStorage.setItem('radioTrackIndex', trackIndex.toString());
+        localStorage.setItem('radioTrackIndex', String(0));
       }
     }, 1000);
 
@@ -324,7 +324,7 @@ export default function Layout({ children, activePage }: LayoutProps) {
     const handleUnload = () => {
       if (audioRef.current && !audioRef.current.paused) {
         localStorage.setItem('radioTime', audioRef.current.currentTime.toString());
-        localStorage.setItem('radioTrackIndex', trackIndex.toString());
+        localStorage.setItem('radioTrackIndex', String(0));
       }
     };
     window.addEventListener('beforeunload', handleUnload);
@@ -1593,6 +1593,7 @@ export default function Layout({ children, activePage }: LayoutProps) {
     </div>
   );
 }
+
 
 
 

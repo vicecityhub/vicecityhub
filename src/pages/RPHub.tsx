@@ -8,7 +8,6 @@ import ModsTab       from '../rp-hub/components/ModsTab'
 import StoreTab      from '../rp-hub/components/StoreTab'
 import CommunityTab  from '../rp-hub/components/CommunityTab'
 
-// â”€â”€ Ñ‚Ðµ Ð¶Ðµ Ñ‚Ñ€ÐµÐºÐ¸ Ñ‡Ñ‚Ð¾ Ð² Layout.tsx Ð³Ð»Ð°Ð²Ð½Ð¾Ð³Ð¾ Ñ…Ð°Ð±Ð° â”€â”€
 ;
 
 const SUPABASE_STORE = 'https://lpglkglhjdqnktybksth.supabase.co/storage/v1/object/public/design%20photos'
@@ -21,29 +20,21 @@ const BG_IMAGES: Record<TabId, string> = {
   community:  'https://lpglkglhjdqnktybksth.supabase.co/storage/v1/object/public/design%20photos/Pegassi%20Supercar%20v2.jpg',
 }
 
-// â”€â”€ Radio hook â€” Ð¸Ð´ÐµÐ½Ñ‚Ð¸Ñ‡Ð½Ð°Ñ Ð»Ð¾Ð³Ð¸ÐºÐ° Layout.tsx â”€â”€
 function useRadio() {
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const [isPlaying, setIsPlaying] = useState(false)
 
   useEffect(() => {
-    const savedTrackIndex = localStorage.getItem('radioTrackIndex')
     const audio = getOrCreateAudio()
-    let trackIndex = savedTrackIndex
-      ? parseInt(savedTrackIndex)
-    }
 
-    // Ð—Ð°Ð³Ñ€ÑƒÐ¶Ð°ÐµÐ¼ Ð²ÑÐµ Ñ‚Ñ€ÐµÐºÐ¸ Ð¸Ð· muz bucket
 
     audio.loop = false
     audio.volume = 0.25
     audioRef.current = audio
 
-    // Ð’Ð¾ÑÑÑ‚Ð°Ð½Ð°Ð²Ð»Ð¸Ð²Ð°ÐµÐ¼: Ð¸Ð³Ñ€Ð°Ð»Ð¾ Ð´Ð¾ Ð¿ÐµÑ€ÐµÑ…Ð¾Ð´Ð° ÑÑŽÐ´Ð° Ð¸Ð»Ð¸ Ð½ÐµÑ‚
     const savedPlaying = sessionStorage.getItem('radioPlaying')
     const shouldPlay = savedPlaying === null || savedPlaying === 'true'
 
-    // Ð’Ð¾ÑÑÑ‚Ð°Ð½Ð°Ð²Ð»Ð¸Ð²Ð°ÐµÐ¼ Ð¿Ð¾Ð·Ð¸Ñ†Ð¸ÑŽ Ñ‚Ñ€ÐµÐºÐ°
     const savedTime = parseFloat(localStorage.getItem('radioTime') || '0')
     const restoreTime = !isNaN(savedTime) && isFinite(savedTime) && savedTime >= 0 ? savedTime : 0
     if (restoreTime > 0) {
@@ -63,19 +54,16 @@ function useRadio() {
       sessionStorage.setItem('radioPlaying', 'true')
     }
 
-    // ÐŸÐ¾Ð¿Ñ‹Ñ‚ÐºÐ° Ð½ÐµÐ¼ÐµÐ´Ð»ÐµÐ½Ð½Ð¾Ð³Ð¾ Ð·Ð°Ð¿ÑƒÑÐºÐ° (Ñ€Ð°Ð±Ð¾Ñ‚Ð°ÐµÑ‚ Ð¿Ð¾ÑÐ»Ðµ Ð¿ÐµÑ€Ð²Ð¾Ð³Ð¾ Ð²Ð·Ð°Ð¸Ð¼Ð¾Ð´ÐµÐ¹ÑÑ‚Ð²Ð¸Ñ Ñ ÑÐ°Ð¹Ñ‚Ð¾Ð¼)
     if (shouldPlay) {
       const p = audio.play()
       if (p && typeof p.then === 'function') {
         p.then(markPlaying).catch(() => {
-          // Autoplay blocked â€” Ð¿Ð¾Ð´Ñ…Ð²Ð°Ñ‚Ð¸Ð¼ Ð¿Ñ€Ð¸ Ð¿ÐµÑ€Ð²Ð¾Ð¼ ÐºÐ»Ð¸ÐºÐµ Ð½Ð¸Ð¶Ðµ
         })
       }
     } else {
       setIsPlaying(false)
     }
 
-    // Fallback â€” Ð¿ÐµÑ€Ð²Ñ‹Ð¹ Ð¶ÐµÑÑ‚ Ð¿Ð¾Ð»ÑŒÐ·Ð¾Ð²Ð°Ñ‚ÐµÐ»Ñ Ð·Ð°Ð¿ÑƒÑÐºÐ°ÐµÑ‚ Ñ€Ð°Ð´Ð¸Ð¾
     const onFirstGesture = () => {
       if (!audioRef.current) return
       const still = sessionStorage.getItem('radioPlaying') !== 'false'
@@ -87,9 +75,8 @@ function useRadio() {
     document.addEventListener('keydown', onFirstGesture, { capture: true, once: true })
     document.addEventListener('touchend',onFirstGesture, { capture: true, once: true })
 
-    // Ð¡Ð»ÐµÐ´ÑƒÑŽÑ‰Ð¸Ð¹ Ñ‚Ñ€ÐµÐº ÐºÐ¾Ð³Ð´Ð° Ñ‚ÐµÐºÑƒÑ‰Ð¸Ð¹ Ð·Ð°ÐºÐ°Ð½Ñ‡Ð¸Ð²Ð°ÐµÑ‚ÑÑ
     const onEnded = () => {
-      localStorage.setItem('radioTrackIndex', next.toString())
+      // AudioManager tracks index
       localStorage.setItem('radioTime', '0')
       if (audioRef.current) {
         // AudioManager handles src
@@ -103,13 +90,12 @@ function useRadio() {
     const saveProgress = () => {
       if (audioRef.current && !audioRef.current.paused) {
         localStorage.setItem('radioTime', audioRef.current.currentTime.toString())
-        localStorage.setItem('radioTrackIndex', trackIndex.toString())
+        // AudioManager tracks index
       }
     }
     window.addEventListener('beforeunload', saveProgress)
     const saveInterval = setInterval(saveProgress, 5000)
 
-    // ÐŸÐ°ÑƒÐ·Ð° ÐºÐ¾Ð³Ð´Ð° Ð²ÐºÐ»Ð°Ð´ÐºÐ° ÑÐºÑ€Ñ‹Ñ‚Ð°, Ð²Ð¾Ð·Ð¾Ð±Ð½Ð¾Ð²Ð»ÐµÐ½Ð¸Ðµ ÐºÐ¾Ð³Ð´Ð° Ð²Ð¸Ð´Ð½Ð°
     const onVisibilityChange = () => {
       if (!audioRef.current) return
       if (document.hidden) {
@@ -178,7 +164,6 @@ export default function RPHub() {
 
       {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
           HEADER â€” sticky, Ñ ÐºÐ½Ð¾Ð¿ÐºÐ¾Ð¹ â† Ð½Ð°Ð·Ð°Ð´ Ð¸ Ñ€Ð°Ð´Ð¸Ð¾
-          Ð˜Ð´ÐµÐ½Ñ‚Ð¸Ñ‡ÐµÐ½ Ð¿Ð¾ Ð²Ñ‹ÑÐ¾Ñ‚Ðµ Ð¸ ÑÑ‚Ð¸Ð»ÑŽ Layout.tsx (h-[75px])
           â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
       <header
         className="sticky top-0 z-[500] h-[75px] flex items-center justify-between px-4 sm:px-6 lg:px-12 shadow-2xl"
@@ -189,30 +174,25 @@ export default function RPHub() {
           borderBottom: '1px solid rgba(255,255,255,0.05)',
         }}
       >
-        {/* â”€â”€ Ð›ÐµÐ²Ñ‹Ð¹ Ð±Ð»Ð¾Ðº: Ð»Ð¾Ð³Ð¾Ñ‚Ð¸Ð¿ + ÑÑ‚Ñ€ÐµÐ»ÐºÐ° Ð½Ð°Ð·Ð°Ð´ â”€â”€ */}
         <a
           href="./index.html"
           className="flex items-center gap-2 hover:scale-105 transition-transform"
           aria-label="Back to Vice City Hub"
         >
-          {/* Ð¡Ñ‚Ñ€ÐµÐ»ÐºÐ° â€” Ð²ÑÐµÐ³Ð´Ð° Ð²Ð¸Ð´Ð½Ð° */}
           <span
             className="font-orbitron font-black text-lg leading-none"
             style={{ color: '#FF00FF', filter: 'drop-shadow(0 0 8px rgba(255,0,255,0.8))' }}
           >
             â†
           </span>
-          {/* ÐŸÐ¾Ð»Ð½Ð¾Ðµ Ð½Ð°Ð·Ð²Ð°Ð½Ð¸Ðµ â€” ÑÐºÑ€Ñ‹Ñ‚Ð¾ Ð½Ð° xs, Ð²Ð¸Ð´Ð½Ð¾ Ð½Ð°Ñ‡Ð¸Ð½Ð°Ñ Ñ sm */}
           <span className="hidden sm:block font-orbitron font-extrabold text-xl tracking-widest bg-gradient-to-r from-[#FF00FF] to-[#00FFFF] bg-clip-text text-transparent">
             VICE CITY HUB
           </span>
-          {/* ÐšÐ¾Ñ€Ð¾Ñ‚ÐºÐ¾Ðµ â€” Ñ‚Ð¾Ð»ÑŒÐºÐ¾ xs */}
           <span className="sm:hidden font-orbitron font-bold text-sm tracking-widest text-neonPink/80">
             HUB
           </span>
         </a>
 
-        {/* â”€â”€ Ð¦ÐµÐ½Ñ‚Ñ€: Ð½Ð°Ð·Ð²Ð°Ð½Ð¸Ðµ Ñ€Ð°Ð·Ð´ÐµÐ»Ð° (Ñ‚Ð¾Ð»ÑŒÐºÐ¾ lg) â”€â”€ */}
         <div className="hidden lg:block absolute left-1/2 -translate-x-1/2 pointer-events-none">
           <span
             className="font-orbitron font-black text-sm tracking-[0.25em] bg-gradient-to-r from-[#FF00FF] via-[#CC00FF] to-[#00FFFF] bg-clip-text text-transparent"
@@ -222,9 +202,7 @@ export default function RPHub() {
           </span>
         </div>
 
-        {/* â”€â”€ ÐŸÑ€Ð°Ð²Ñ‹Ð¹ Ð±Ð»Ð¾Ðº: Ð¸Ð¼Ñ Ñ€Ð°Ð·Ð´ÐµÐ»Ð° (mobile) + ÐºÐ½Ð¾Ð¿ÐºÐ° Ñ€Ð°Ð´Ð¸Ð¾ â”€â”€ */}
         <div className="flex items-center gap-3">
-          {/* ÐÐ°Ð·Ð²Ð°Ð½Ð¸Ðµ Ñ€Ð°Ð·Ð´ÐµÐ»Ð° Ð½Ð° Ð¼Ð¾Ð±Ð°Ð¹Ð»Ðµ */}
           <span className="lg:hidden font-orbitron font-black text-[10px] tracking-wider bg-gradient-to-r from-[#FF00FF] to-[#00FFFF] bg-clip-text text-transparent">
             RP HUB
           </span>
@@ -335,5 +313,7 @@ export default function RPHub() {
     </div>
   )
 }
+
+
 
 
