@@ -86,7 +86,6 @@ function useRadio() {
     }
     audio.addEventListener('ended', onEnded)
 
-    // Ð¡Ð¾Ñ…Ñ€Ð°Ð½ÑÐµÐ¼ Ð¿Ñ€Ð¾Ð³Ñ€ÐµÑÑ Ð¿Ñ€Ð¸ ÑƒÑ…Ð¾Ð´Ðµ ÑÐ¾ ÑÑ‚Ñ€Ð°Ð½Ð¸Ñ†Ñ‹
     const saveProgress = () => {
       if (audioRef.current && !audioRef.current.paused) {
         localStorage.setItem('radioTime', audioRef.current.currentTime.toString())
@@ -139,7 +138,6 @@ function useRadio() {
   return { isPlaying, toggle }
 }
 
-// â”€â”€ Ð˜ÐºÐ¾Ð½ÐºÐ¸ (SVG inline â€” Ð±ÐµÐ· Ð´Ð¾Ð¿. Ð·Ð°Ð²Ð¸ÑÐ¸Ð¼Ð¾ÑÑ‚ÐµÐ¹) â”€â”€
 const IconVolume = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
@@ -162,8 +160,6 @@ export default function RPHub() {
   return (
     <div className="min-h-screen vibe-bg scanlines">
 
-      {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-          HEADER â€” sticky, Ñ ÐºÐ½Ð¾Ð¿ÐºÐ¾Ð¹ â† Ð½Ð°Ð·Ð°Ð´ Ð¸ Ñ€Ð°Ð´Ð¸Ð¾
           â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
       <header
         className="sticky top-0 z-[500] h-[75px] flex items-center justify-between px-4 sm:px-6 lg:px-12 shadow-2xl"
@@ -183,7 +179,7 @@ export default function RPHub() {
             className="font-orbitron font-black text-lg leading-none"
             style={{ color: '#FF00FF', filter: 'drop-shadow(0 0 8px rgba(255,0,255,0.8))' }}
           >
-            â†
+            VCH
           </span>
           <span className="hidden sm:block font-orbitron font-extrabold text-xl tracking-widest bg-gradient-to-r from-[#FF00FF] to-[#00FFFF] bg-clip-text text-transparent">
             VICE CITY HUB
@@ -207,7 +203,6 @@ export default function RPHub() {
             RP HUB
           </span>
 
-          {/* ÐšÐ½Ð¾Ð¿ÐºÐ° Leonida FM â€” Ð¸Ð´ÐµÐ½Ñ‚Ð¸Ñ‡Ð½Ð° Layout.tsx */}
           <button
             onClick={toggle}
             title={isPlaying ? 'Pause Leonida FM' : 'Play Leonida FM'}
@@ -222,7 +217,6 @@ export default function RPHub() {
         </div>
       </header>
 
-      {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
           PAGE HERO
           â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
       <div
@@ -266,11 +260,8 @@ export default function RPHub() {
         </div>
       </div>
 
-      {/* â”€â”€ TABS â”€â”€ */}
       <TabNavigation activeTab={activeTab} onTabChange={setActiveTab} />
 
-      {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-          CONTENT â€” per-tab background Ð¸Ð· Supabase Storage
           â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
       <div
         className="relative min-h-screen"
@@ -297,7 +288,6 @@ export default function RPHub() {
         </div>
       </div>
 
-      {/* â”€â”€ FOOTER â”€â”€ */}
       <footer className="border-t py-6 text-center" style={{ borderColor: 'rgba(255,0,255,0.08)', background: 'var(--darker-bg)' }}>
         <div className="gradient-line mb-4" />
         <a
@@ -313,6 +303,9 @@ export default function RPHub() {
     </div>
   )
 }
+
+
+
 
 
 
