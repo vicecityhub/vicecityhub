@@ -160,7 +160,6 @@ export default function RPHub() {
   return (
     <div className="min-h-screen vibe-bg scanlines">
 
-          â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
       <header
         className="sticky top-0 z-[500] h-[75px] flex items-center justify-between px-4 sm:px-6 lg:px-12 shadow-2xl"
         style={{
@@ -218,7 +217,6 @@ export default function RPHub() {
       </header>
 
           PAGE HERO
-          â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
       <div
         className="relative overflow-hidden"
         style={{ background: 'var(--darker-bg)', borderBottom: '1px solid rgba(255,0,255,0.1)' }}
@@ -262,7 +260,6 @@ export default function RPHub() {
 
       <TabNavigation activeTab={activeTab} onTabChange={setActiveTab} />
 
-          â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
       <div
         className="relative min-h-screen"
         style={{
