@@ -230,7 +230,7 @@ export default function RPHub() {
         <div className="gradient-line" />
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 py-5 sm:py-7">
           <div className="font-orbitron text-[9px] tracking-[0.4em] text-white/20 mb-2 uppercase">
-            Leonida State Â· San Andreas Â· Est. 2025
+            Leonida State - San Andreas - Est. 2025
           </div>
           <h1 className="font-orbitron font-extrabold tracking-widest leading-none">
             <span
@@ -241,13 +241,13 @@ export default function RPHub() {
             </span>
           </h1>
           <p className="font-rajdhani text-white/30 text-xs sm:text-sm tracking-[0.2em] mt-2 uppercase">
-            Server Intel Â· Leonida Files Â· Identity Forge Â· Mod Vault Â· Store District
+            Server Intel - Leonida Files Â- Identity Forge Â- Mod Vault - Store District
           </p>
           <div className="flex flex-wrap gap-2 sm:gap-3 mt-3">
             {[
-              { label: 'â— FiveM / NoPixel', c: 'rgba(255,0,255' },
-              { label: 'â— GTA 6 Ready',     c: 'rgba(0,255,255' },
-              { label: 'â— v11 Build',        c: 'rgba(255,225,53' },
+              { label: '* FiveM / NoPixel', c: 'rgba(255,0,255' },
+              { label: '* GTA 6 Ready',     c: 'rgba(0,255,255' },
+              { label: '* v11 Build',        c: 'rgba(255,225,53' },
             ].map(b => (
               <span key={b.label} className="font-orbitron text-[9px] font-bold px-2 py-1 rounded"
                 style={{ background: `${b.c},0.08)`, border: `1px solid ${b.c},0.25)`, color: `${b.c},0.85)` }}>
@@ -291,15 +291,17 @@ export default function RPHub() {
           href="./index.html"
           className="inline-flex items-center gap-2 font-orbitron text-[10px] tracking-widest text-neonPink/40 hover:text-neonPink transition-colors mb-3"
         >
-          â† BACK TO VICE CITY HUB
+          << BACK TO VICE CITY HUB
         </a>
         <p className="font-orbitron text-[8px] text-white/10 tracking-widest">
-          NOT AFFILIATED WITH ROCKSTAR GAMES Â· ALL DATA COMMUNITY-SOURCED Â· OBVIOUSLY
+          NOT AFFILIATED WITH ROCKSTAR GAMES - ALL DATA COMMUNITY-SOURCED - OBVIOUSLY
         </p>
       </footer>
     </div>
   )
 }
+
+
 
 
 
