@@ -2,7 +2,7 @@
 import { supa } from '../lib/SupabaseClient';
 import { Volume2, VolumeX, Menu, X, Radio, Map, LogIn, User, Trash2, Edit3, Save, ExternalLink, Heart, Copy, Check, Upload } from 'lucide-react';
 
-// Ð”Ð¸Ð½Ð°Ð¼Ð¸Ñ‡ÐµÑÐºÐ¸ Ð·Ð°Ð³Ñ€ÑƒÐ¶Ð°ÐµÑ‚ÑÑ Ð¸Ð· Supabase Storage bucket 'muz'
+// Ð”Ð¸Ð½Ð°Ð¼Ð¸Ñ‡ÐµÑÐºÐ¸ Ð-Ð°Ð³Ñ€ÑƒÐ¶Ð°ÐµÑ‚ÑÑ Ð¸Ð- Supabase Storage bucket 'muz'
 // Fallback Ð½Ð° 2 Ñ‚Ñ€ÐµÐºÐ° ÐµÑÐ»Ð¸ fetch Ð½Ðµ ÑƒÐ´Ð°Ð»ÑÑ
 import { getOrCreateAudio } from '../lib/AudioManager';
 
@@ -227,7 +227,7 @@ export default function Layout({ children, activePage }: LayoutProps) {
   useEffect(() => {
     const audio = getOrCreateAudio();
 
-    // Ð—Ð°Ð³Ñ€ÑƒÐ¶Ð°ÐµÐ¼ Ð¿Ð¾Ð»Ð½Ñ‹Ð¹ ÑÐ¿Ð¸ÑÐ¾Ðº Ñ‚Ñ€ÐµÐºÐ¾Ð² Ð¸Ð· bucket, Ð—ÐÐ¢Ð•Ðœ Ð²Ñ‹Ð±Ð¸Ñ€Ð°ÐµÐ¼ Ñ€Ð°Ð½Ð´Ð¾Ð¼Ð½Ñ‹Ð¹
+    // Ð - Ð°Ð³Ñ€ÑƒÐ¶Ð°ÐµÐ¼ Ð¿Ð¾Ð»Ð½Ñ‹Ð¹ ÑÐ¿Ð¸ÑÐ¾Ðº Ñ‚Ñ€ÐµÐºÐ¾Ð² Ð¸Ð- bucket, Ð - ÐÐ¢Ð*Ðœ Ð²Ñ‹Ð±Ð¸Ñ€Ð°ÐµÐ¼ Ñ€Ð°Ð½Ð´Ð¾Ð¼Ð½Ñ‹Ð¹
     audio.preload = 'auto';
     audio.loop = false; // Disable loop so track ends and triggers 'ended' event
     audio.volume = 0.25;
@@ -791,8 +791,8 @@ export default function Layout({ children, activePage }: LayoutProps) {
           <div className="flex flex-wrap justify-center gap-4 mt-4">
             <a href="./index.html" className="text-[10px] text-gray-600 hover:text-neonCyan transition-colors uppercase tracking-wider font-bold">ðŸŽ¬ Home</a>
             <a href="./news.html" className="text-[10px] text-gray-600 hover:text-neonCyan transition-colors uppercase tracking-wider font-bold">ðŸ“¡ The Wire</a>
-            <a href="./community.html" className="text-[10px] text-gray-600 hover:text-neonCyan transition-colors uppercase tracking-wider font-bold">ðŸ—£ï¸ Community</a>
-            <a href="./market.html" className="text-[10px] text-gray-600 hover:text-neonCyan transition-colors uppercase tracking-wider font-bold">ðŸ’° Market</a>
+            <a href="./community.html" className="text-[10px] text-gray-600 hover:text-neonCyan transition-colors uppercase tracking-wider font-bold">ðŸ - £ï¸ Community</a>
+            <a href="./market.html" className="text-[10px] text-gray-600 hover:text-neonCyan transition-colors uppercase tracking-wider font-bold">ðŸ'° Market</a>
             <a href="./realestate.html" className="text-[10px] text-gray-600 hover:text-neonCyan transition-colors uppercase tracking-wider font-bold">ðŸ¢ Dynasty 8</a>
             <a href="./document.html" className="text-[10px] text-gray-600 hover:text-neonCyan transition-colors uppercase tracking-wider font-bold">ðŸ“ Leonida DB</a>
             <a href="./rp.html" className="text-[10px] text-neonPink/60 hover:text-neonPink transition-colors uppercase tracking-wider font-bold">ðŸŽ® RP Hub âœ¦</a>
@@ -815,11 +815,11 @@ export default function Layout({ children, activePage }: LayoutProps) {
             </a>
             <a href="https://x.com/vicecity_hub" target="_blank" rel="noopener noreferrer"
               className="btn-neon !py-2 !px-5 !text-[10px] flex items-center gap-2">
-              ð• Follow on X
+              ð* Follow on X
             </a>
             <a href="https://www.instagram.com/vicecity_hub?igsh=MXV6" target="_blank" rel="noopener noreferrer"
               className="btn-neon btn-neon-orange !py-2 !px-5 !text-[10px] flex items-center gap-2">
-              â—ˆ Instagram
+              â - ˆ Instagram
             </a>
           </div>
 
@@ -835,7 +835,7 @@ export default function Layout({ children, activePage }: LayoutProps) {
                 rel="noopener noreferrer"
                 className="btn-neon btn-neon-orange !py-2 !px-5 !text-[10px] flex items-center gap-2 font-extrabold"
               >
-                <Heart size={13} /> Donate â†—
+                <Heart size={13} /> Donate â† - 
               </a>
               <button
                 onClick={() => setKofiOpen(true)}
@@ -882,7 +882,7 @@ export default function Layout({ children, activePage }: LayoutProps) {
             >
               <div className="flex justify-between items-center mb-4">
                 <div className="flex items-center gap-2">
-                  <span className="text-xl">ðŸ”·</span>
+                  <span className="text-xl">ðŸ”-</span>
                   <span className="font-orbitron font-extrabold text-neonPink text-xs tracking-wider uppercase">Ethereum (ETH)</span>
                 </div>
                 {copiedAddress === 'eth' ? (
@@ -964,7 +964,7 @@ export default function Layout({ children, activePage }: LayoutProps) {
                   Buy Us a Coffee
                 </div>
                 <div className="text-[9px] text-gray-500 uppercase tracking-widest font-bold">
-                  Keep the Hub alive Â· No ads Â· No tracking
+                  Keep the Hub alive Â- No ads Â- No tracking
                 </div>
               </div>
               <button
@@ -1161,7 +1161,7 @@ export default function Layout({ children, activePage }: LayoutProps) {
                 <span className="text-xs uppercase font-orbitron tracking-widest text-gray-300">The Wire News</span>
               </a>
               <a href="./market.html" className="glass-card p-6 text-center hover:border-neonCyan flex flex-col items-center gap-3">
-                <span className="text-3xl">ðŸ’°</span>
+                <span className="text-3xl">ðŸ'°</span>
                 <span className="text-xs uppercase font-orbitron tracking-widest text-gray-300">Web3 Market</span>
               </a>
               <a href="./realestate.html" className="glass-card p-6 text-center hover:border-neonCyan flex flex-col items-center gap-3">
@@ -1173,7 +1173,7 @@ export default function Layout({ children, activePage }: LayoutProps) {
                 <span className="text-xs uppercase font-orbitron tracking-widest text-gray-300">Leonida Database</span>
               </a>
               <a href="./community.html" className="glass-card p-6 text-center hover:border-neonCyan flex flex-col items-center gap-3">
-                <span className="text-3xl">ðŸ—£ï¸</span>
+                <span className="text-3xl">ðŸ - £ï¸</span>
                 <span className="text-xs uppercase font-orbitron tracking-widest text-gray-300">Community</span>
               </a>
               <a href="./rp.html" className="glass-card p-6 text-center hover:border-neonPink flex flex-col items-center gap-3 relative border border-neonPink/20">

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+﻿import React, { useState, useRef, useEffect } from 'react';
 import { supa } from '../../lib/SupabaseClient';
 
 type Faction = 'LSPD'|'EMS'|'GOV'|'LAWYER'|'VAGOS'|'BALLAS'|'MARABUNTA'|'KKMC'|'CIVILIAN'|'MECHANIC'|'TRUCKER'|'JOURNALIST';
@@ -26,11 +26,11 @@ function IDCard({char,avatar}:{char:IChar;avatar:string|null}) {
         </div>
         <div className="flex-1 space-y-2">
           <div><div className="text-[8px] text-white/30 tracking-widest">FULL NAME</div>
-            <div className="text-sm font-black text-white">{char.first_name||'—'} {char.last_name}</div></div>
+            <div className="text-sm font-black text-white">{char.first_name||' - '} {char.last_name}</div></div>
           <div><div className="text-[8px] text-white/30 tracking-widest">AGE</div>
-            <div className="text-xs font-bold text-white/80">{char.age>0?`AGE ${char.age}`:'—'}</div></div>
+            <div className="text-xs font-bold text-white/80">{char.age>0?`AGE ${char.age}`:' - '}</div></div>
           <div><div className="text-[8px] text-white/30 tracking-widest">AFFILIATION</div>
-            <div className="text-[10px] font-black" style={{color:fac?.c||'#fff'}}>{fac?.l||'—'}</div></div>
+            <div className="text-[10px] font-black" style={{color:fac?.c||'#fff'}}>{fac?.l||' - '}</div></div>
         </div>
       </div>
       {char.bio&&<div className="mb-3 p-2 rounded bg-black/30 border border-white/10">
@@ -211,7 +211,7 @@ function WantedBoard() {
     <div>
       <div className="flex items-center justify-between mb-4">
         <div><h3 className="font-orbitron font-black text-lg tracking-widest text-orange-400">◈ WANTED BOARD</h3>
-          <p className="text-[10px] text-white/35 tracking-wider">LSPD MOST WANTED — VICE CITY DIVISION</p></div>
+          <p className="text-[10px] text-white/35 tracking-wider">LSPD MOST WANTED  -  VICE CITY DIVISION</p></div>
         <button onClick={()=>setShowForm(!showForm)} className="px-4 py-2 rounded text-[10px] font-orbitron font-black tracking-widest border border-orange-400/50 text-orange-400 hover:bg-orange-400/10 transition-all">+ POST YOURSELF</button>
       </div>
       {showForm&&(

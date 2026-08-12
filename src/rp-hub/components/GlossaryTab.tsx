@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+﻿import React, { useState, useCallback, useEffect } from 'react';
 import { supa } from '../../lib/SupabaseClient';
 
 interface IJob {
@@ -23,7 +23,7 @@ const RP_CLASSES: IRPClass[] = [
   { id:'dealer',     title:'The Operator',    subtitle:'Unlicensed Pharmaceutical Distribution', icon:'💊', color:'#FF2D78',
     description:'The streets are your boardroom. High risk, high reward. You have better lawyers than the police chief.' },
   { id:'lawyer',     title:'The Counselor',   subtitle:'Making Crime Legally Defensible', icon:'⚖️', color:'#b44fff',
-    description:'You don\'t break laws — you interpret them creatively. Three attempted murderers off on technicalities this week alone.' },
+    description:'You don\'t break laws  -  you interpret them creatively. Three attempted murderers off on technicalities this week alone.' },
   { id:'ems',        title:'The Medic',       subtitle:'Keeping the Body Count Manageable', icon:'🚑', color:'#00FFFF',
     description:'The unsung hero. You show up after every shootout and get zero respect. You are why the death count stays in double digits.' },
   { id:'mechanic',   title:'The Wrench',      subtitle:'Certified Vehicle Specialist (No Questions Asked)', icon:'🔧', color:'#FFE135',
@@ -143,7 +143,7 @@ function QuizSection({ questions }: { questions: IQuestion[] }) {
       </div>
       <button onClick={advance} disabled={!selected}
         className={`w-full py-2.5 rounded text-xs font-black tracking-widest transition-all ${selected?'btn-neon':'bg-white/5 border border-white/10 text-white/25 cursor-not-allowed'}`}>
-        {step+1>=questions.length?'SUBMIT — GET MY CLASS':'NEXT SCENARIO ›'}
+        {step+1>=questions.length?'SUBMIT  -  GET MY CLASS':'NEXT SCENARIO ›'}
       </button>
     </div>
   );
@@ -173,7 +173,7 @@ export default function GlossaryTab() {
     <div className="slide-in">
       <div className="mb-6">
         <h2 className="font-orbitron font-black text-2xl tracking-widest mb-1 neon-text-cyan">◈ LEONIDA CLASSIFIED FILES</h2>
-        <p className="text-white/40 text-xs tracking-wider font-bold">OCCUPATIONAL DATABASE — STATE OF LEONIDA, SAN ANDREAS</p>
+        <p className="text-white/40 text-xs tracking-wider font-bold">OCCUPATIONAL DATABASE  -  STATE OF LEONIDA, SAN ANDREAS</p>
       </div>
       <div className="flex flex-col lg:flex-row gap-6">
         <div className="flex-1">
@@ -192,7 +192,7 @@ export default function GlossaryTab() {
                     <div className="text-2xl mb-2">{job.icon||'💼'}</div>
                     <div className="text-xs font-black text-white mb-1 group-hover:text-neonPink transition-colors">{job.title}</div>
                     <div className={`text-[9px] font-black tracking-widest border px-1.5 py-0.5 rounded inline-block mb-2 ${leg.cls}`}>{leg.label}</div>
-                    <div className="text-[10px] text-neonCyan/70 font-bold">{(job.salary_range||'').split('–')[0]}+</div>
+                    <div className="text-[10px] text-neonCyan/70 font-bold">{(job.salary_range||'').split('-')[0]}+</div>
                     <div className="mt-2"><DiffBar level={job.difficulty||3}/></div>
                   </button>
                 );

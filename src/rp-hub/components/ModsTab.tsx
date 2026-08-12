@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+﻿import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { supa } from '../../lib/SupabaseClient';
 
 type Cat = 'SCRIPTS'|'VEHICLES'|'GRAPHICS'|'INTERIORS'|'WEAPONS'|'MAPS';
@@ -108,7 +108,7 @@ export default function ModsTab() {
     <div className="slide-in">
       <div className="mb-6">
         <h2 className="font-orbitron font-black text-2xl tracking-widest mb-1 neon-text-purple">◈ MOD VAULT</h2>
-        <p className="text-white/40 text-xs tracking-wider font-bold">GTA 6 ADAPTATION STATUS — COMMUNITY UPVOTE SYSTEM</p>
+        <p className="text-white/40 text-xs tracking-wider font-bold">GTA 6 ADAPTATION STATUS  -  COMMUNITY UPVOTE SYSTEM</p>
       </div>
       {topMod&&(
         <div className="glass-card-static rounded-xl p-4 mb-6 border border-neonPink/30">
@@ -116,7 +116,7 @@ export default function ModsTab() {
             <span className="text-[9px] font-orbitron font-black tracking-widest text-yellow-400">MOST WANTED MOD</span></div>
           <div className="flex items-center justify-between">
             <div><h3 className="text-base font-black text-white">{topMod.title}</h3>
-              <p className="text-[10px] text-white/40">{topMod.votes} upvotes · {topMod.progress_pct}% GTA6 ready</p></div>
+              <p className="text-[10px] text-white/40">{topMod.votes} upvotes - {topMod.progress_pct}% GTA6 ready</p></div>
             <span className="text-3xl">{CATS[topMod.category]?.icon}</span>
           </div>
         </div>

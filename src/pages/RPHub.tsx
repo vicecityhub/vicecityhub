@@ -291,7 +291,7 @@ export default function RPHub() {
           href="./index.html"
           className="inline-flex items-center gap-2 font-orbitron text-[10px] tracking-widest text-neonPink/40 hover:text-neonPink transition-colors mb-3"
         >
-          << BACK TO VICE CITY HUB
+          {'\u00AB'} BACK TO VICE CITY HUB
         </a>
         <p className="font-orbitron text-[8px] text-white/10 tracking-widest">
           NOT AFFILIATED WITH ROCKSTAR GAMES - ALL DATA COMMUNITY-SOURCED - OBVIOUSLY

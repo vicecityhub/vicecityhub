@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+﻿import React, { useState, useEffect, useCallback } from 'react';
 import { supa } from '../../lib/SupabaseClient';
 
 // ── TYPES ──────────────────────────────────────────────────────────────────
@@ -96,7 +96,7 @@ function FactionSlotCard({ slot }: { slot: FactionSlot }) {
             ? 'text-emerald-400 border-emerald-400/50 bg-emerald-400/10'
             : 'text-red-400 border-red-400/30 bg-red-400/08'
         }`}>
-          {slot.is_available ? '● OPEN' : '● TAKEN'}
+          {slot.is_available ? '* OPEN' : '* TAKEN'}
         </div>
       </div>
 
@@ -130,7 +130,7 @@ function FactionSlotCard({ slot }: { slot: FactionSlot }) {
       {/* Lore badge */}
       {!slot.is_lore_friendly && (
         <div className="text-[8px] text-yellow-400/70 mb-2 flex items-center gap-1">
-          <span>⚠</span> Hors lore accepté — préférence lore existant
+          <span>⚠</span> Hors lore accepté  -  préférence lore existant
         </div>
       )}
 
@@ -384,7 +384,7 @@ function DevCard({ dev }: { dev: VerifiedDev }) {
         <div>
           <div className="font-orbitron font-black text-sm text-white">{dev.name}</div>
           <div className="text-[9px] font-bold mt-0.5" style={{ color: badgeColor }}>
-            {badgeIcon} · {dev.completed_projects} projects
+            {badgeIcon} - {dev.completed_projects} projects
           </div>
         </div>
         <div className={`flex items-center gap-1 text-[9px] font-black px-2 py-0.5 rounded border ${
@@ -392,7 +392,7 @@ function DevCard({ dev }: { dev: VerifiedDev }) {
             ? 'text-emerald-400 border-emerald-400/50 bg-emerald-400/10'
             : 'text-white/30 border-white/15'
         }`}>
-          {dev.is_available ? '● AVAILABLE' : '● BUSY'}
+          {dev.is_available ? '* AVAILABLE' : '* BUSY'}
         </div>
       </div>
 
@@ -491,7 +491,7 @@ export default function CommunityTab() {
           ◈ COMMUNITY BOARD
         </h2>
         <p className="text-white/35 text-xs tracking-wider font-bold uppercase">
-          Faction Slots · Intel Board · Server Market · Verified Devs
+          Faction Slots - Intel Board - Server Market - Verified Devs
         </p>
       </div>
 
@@ -568,7 +568,7 @@ export default function CommunityTab() {
               {filteredFactions.filter(f => f.is_available).length > 0 && (
                 <div className="mb-6">
                   <div className="text-[10px] font-orbitron font-black tracking-widest text-emerald-400 mb-3">
-                    ● {filteredFactions.filter(f => f.is_available).length} OPEN SLOTS
+                    * {filteredFactions.filter(f => f.is_available).length} OPEN SLOTS
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     {filteredFactions.filter(f => f.is_available).map(f => <FactionSlotCard key={f.id} slot={f} />)}
@@ -639,7 +639,7 @@ export default function CommunityTab() {
           {/* ── MARKETPLACE ── */}
           {section === 'market' && (
             <div>
-              <SectionHeader icon="💰" title="SERVER MARKETPLACE" subtitle="Buy and sell complete FiveM server packages — CFX keys, scripts, Discord communities" color="#FFE135" />
+              <SectionHeader icon="💰" title="SERVER MARKETPLACE" subtitle="Buy and sell complete FiveM server packages  -  CFX keys, scripts, Discord communities" color="#FFE135" />
 
               <div className="glass-card-static rounded-xl p-4 mb-5 border border-neonYellow/15"
                 style={{ background: 'rgba(255,225,53,0.03)' }}>
@@ -664,7 +664,7 @@ export default function CommunityTab() {
                   List your complete server package on the Vice City Hub marketplace. Reach thousands of serious buyers in the FiveM community.
                 </p>
                 <button className="btn-neon btn-neon-sm">
-                  LIST YOUR SERVER — coming soon
+                  LIST YOUR SERVER  -  coming soon
                 </button>
               </div>
             </div>
@@ -681,9 +681,9 @@ export default function CommunityTab() {
                 <div className="flex items-start gap-3">
                   <span className="text-xl flex-shrink-0">⚠️</span>
                   <div>
-                    <div className="font-orbitron font-black text-xs text-red-400 tracking-widest mb-1">COMMUNITY ALERT — DEV FRAUD</div>
+                    <div className="font-orbitron font-black text-xs text-red-400 tracking-widest mb-1">COMMUNITY ALERT  -  DEV FRAUD</div>
                     <p className="text-[10px] text-white/50 leading-relaxed">
-                      Multiple community reports of developers taking €65–€500+ payments, promising server builds in weeks,
+                      Multiple community reports of developers taking €65-€500+ payments, promising server builds in weeks,
                       then going dark. <strong className="text-white/70">Never pay 100% upfront.</strong> Always demand a live portfolio link,
                       split payments into milestones, and verify their CFX work. Use the verified list below.
                     </p>
@@ -703,7 +703,7 @@ export default function CommunityTab() {
                   Elite status requires 10+ completed projects with community ratings and active references.
                 </p>
                 <button className="btn-neon btn-neon-sm">
-                  APPLY FOR VERIFICATION — coming soon
+                  APPLY FOR VERIFICATION  -  coming soon
                 </button>
               </div>
             </div>

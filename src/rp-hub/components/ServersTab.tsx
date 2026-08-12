@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+﻿import React, { useState, useMemo, useEffect } from 'react';
 import { supa } from '../../lib/SupabaseClient';
 
 type ServerStatus = 'ONLINE' | 'IN_DEVELOPMENT' | 'WHITELIST_OPEN' | 'OFFLINE';
@@ -45,14 +45,14 @@ function ConnectModal({ server, onClose }: { server: IServer; onClose: () => voi
           <button onClick={onClose} className="text-white/30 hover:text-white text-xl font-black">✕</button>
         </div>
         <div className="mb-4 p-4 rounded-lg" style={{ background:'rgba(0,255,255,0.05)', border:'1px solid rgba(0,255,255,0.2)' }}>
-          <div className="font-orbitron font-black text-[10px] text-neonCyan tracking-widest mb-2">STEP 1 — COPY ADDRESS</div>
+          <div className="font-orbitron font-black text-[10px] text-neonCyan tracking-widest mb-2">STEP 1  -  COPY ADDRESS</div>
           <div className="flex items-center gap-2">
             <div className="flex-1 font-mono text-sm text-white bg-black/40 rounded px-3 py-2 border border-white/10 truncate">{ip || 'No IP'}</div>
             {ip && <button onClick={copy} className={`btn-neon btn-neon-sm ${copied?'btn-neon-cyan':''}`}>{copied?'✓ COPIED':'COPY'}</button>}
           </div>
         </div>
         <div className="mb-4 p-4 rounded-lg" style={{ background:'rgba(255,0,255,0.04)', border:'1px solid rgba(255,0,255,0.15)' }}>
-          <div className="font-orbitron font-black text-[10px] text-neonPink tracking-widest mb-2">STEP 2 — OPEN FIVEM</div>
+          <div className="font-orbitron font-black text-[10px] text-neonPink tracking-widest mb-2">STEP 2  -  OPEN FIVEM</div>
           {['Launch FiveM','Press F8 to open console',`Type: connect ${ip}`,'Hit Enter'].map((s,i) => (
             <div key={i} className="flex items-start gap-2 text-xs text-white/65 mb-1">
               <span className="font-orbitron font-black text-neonPink/70 w-4">{i+1}.</span><span>{s}</span>
@@ -181,7 +181,7 @@ export default function ServersTab() {
       <div className="mb-6">
         <h2 className="font-orbitron font-black text-2xl tracking-widest mb-1 neon-text-pink">◈ SERVER INTEL DATABASE</h2>
         <p className="text-white/40 text-xs tracking-wider font-bold">
-          LIVE FEED — {servers.filter(s=>s.status==='ONLINE').length} SERVERS BROADCASTING
+          LIVE FEED  -  {servers.filter(s=>s.status==='ONLINE').length} SERVERS BROADCASTING
         </p>
       </div>
       <div className="flex flex-col lg:flex-row gap-6">
