@@ -1,9 +1,9 @@
-﻿import React, { useState, useEffect, useRef } from 'react';
+﻿﻿import React, { useState, useEffect, useRef } from 'react';
 import { supa } from '../lib/SupabaseClient';
 import { Volume2, VolumeX, Menu, X, Radio, Map, LogIn, User, Trash2, Edit3, Save, ExternalLink, Heart, Copy, Check, Upload } from 'lucide-react';
 
-// Ð”Ð¸Ð½Ð°Ð¼Ð¸Ñ‡ÐµÑÐºÐ¸ Ð-Ð°Ð³Ñ€ÑƒÐ¶Ð°ÐµÑ‚ÑÑ Ð¸Ð- Supabase Storage bucket 'muz'
-// Fallback Ð½Ð° 2 Ñ‚Ñ€ÐµÐºÐ° ÐµÑÐ»Ð¸ fetch Ð½Ðµ ÑƒÐ´Ð°Ð»ÑÑ
+// Ð”Ð¸Ð½Ð°Ð¼Ð¸Ñ‡ÐµÑÐºÐ¸ Ð-Ð°Ð³Ñ€ÑƒÐ¶Ð°ÐµÑ‚ÑÑ Ð¸Ð- Supabase Storage bucket 'muz'
+// Fallback Ð½Ð° 2 Ñ‚Ñ€ÐµÐºÐ° ÐµÑÐ»Ð¸ fetch Ð½Ðµ ÑƒÐ´Ð°Ð»ÑÑ
 import { getOrCreateAudio } from '../lib/AudioManager';
 
 interface LayoutProps {
@@ -227,7 +227,7 @@ export default function Layout({ children, activePage }: LayoutProps) {
   useEffect(() => {
     const audio = getOrCreateAudio();
 
-    // Ð - Ð°Ð³Ñ€ÑƒÐ¶Ð°ÐµÐ¼ Ð¿Ð¾Ð»Ð½Ñ‹Ð¹ ÑÐ¿Ð¸ÑÐ¾Ðº Ñ‚Ñ€ÐµÐºÐ¾Ð² Ð¸Ð- bucket, Ð - ÐÐ¢Ð*Ðœ Ð²Ñ‹Ð±Ð¸Ñ€Ð°ÐµÐ¼ Ñ€Ð°Ð½Ð´Ð¾Ð¼Ð½Ñ‹Ð¹
+    // Ð - Ð°Ð³Ñ€ÑƒÐ¶Ð°ÐµÐ¼ Ð¿Ð¾Ð»Ð½Ñ‹Ð¹ ÑÐ¿Ð¸ÑÐ¾Ðº Ñ‚Ñ€ÐµÐºÐ¾Ð² Ð¸Ð- bucket, Ð - ÐÐ¢Ð*Ðœ Ð²Ñ‹Ð±Ð¸Ñ€Ð°ÐµÐ¼ Ñ€Ð°Ð½Ð´Ð¾Ð¼Ð½Ñ‹Ð¹
     audio.preload = 'auto';
     audio.loop = false; // Disable loop so track ends and triggers 'ended' event
     audio.volume = 0.25;
@@ -791,15 +791,15 @@ export default function Layout({ children, activePage }: LayoutProps) {
           <div className="flex flex-wrap justify-center gap-4 mt-4">
             <a href="./index.html" className="text-[10px] text-gray-600 hover:text-neonCyan transition-colors uppercase tracking-wider font-bold">ðŸŽ¬ Home</a>
             <a href="./news.html" className="text-[10px] text-gray-600 hover:text-neonCyan transition-colors uppercase tracking-wider font-bold">ðŸ“¡ The Wire</a>
-            <a href="./community.html" className="text-[10px] text-gray-600 hover:text-neonCyan transition-colors uppercase tracking-wider font-bold">ðŸ - £ï¸ Community</a>
+            <a href="./community.html" className="text-[10px] text-gray-600 hover:text-neonCyan transition-colors uppercase tracking-wider font-bold">ðŸ - £ï¸ Community</a>
             <a href="./market.html" className="text-[10px] text-gray-600 hover:text-neonCyan transition-colors uppercase tracking-wider font-bold">ðŸ'° Market</a>
-            <a href="./realestate.html" className="text-[10px] text-gray-600 hover:text-neonCyan transition-colors uppercase tracking-wider font-bold">ðŸ¢ Dynasty 8</a>
-            <a href="./document.html" className="text-[10px] text-gray-600 hover:text-neonCyan transition-colors uppercase tracking-wider font-bold">ðŸ“ Leonida DB</a>
+            <a href="./realestate.html" className="text-[10px] text-gray-600 hover:text-neonCyan transition-colors uppercase tracking-wider font-bold">ðŸ¢ Dynasty 8</a>
+            <a href="./document.html" className="text-[10px] text-gray-600 hover:text-neonCyan transition-colors uppercase tracking-wider font-bold">ðŸ“ Leonida DB</a>
             <a href="./rp.html" className="text-[10px] text-neonPink/60 hover:text-neonPink transition-colors uppercase tracking-wider font-bold">ðŸŽ® RP Hub âœ¦</a>
           </div>
         </div>
         <div className="text-[10px] text-gray-600 tracking-widest uppercase mb-8">
-          Grand Theft Auto VIâ„¢ is a registered trademark of Take-Two Interactive Software, Inc.
+          Grand Theft Auto VI™ is a registered trademark of Take-Two Interactive Software, Inc.
         </div>
 
         {/* Contact Links Box */}
@@ -811,15 +811,15 @@ export default function Layout({ children, activePage }: LayoutProps) {
           <div className="flex flex-wrap justify-center gap-3 mt-2">
             <a href="mailto:vicecityhub@proton.me"
               className="btn-neon btn-neon-cyan !py-2 !px-5 !text-[10px] flex items-center gap-2">
-              âœ‰ E-Mail Us
+              ✉ E-Mail Us
             </a>
             <a href="https://x.com/vicecity_hub" target="_blank" rel="noopener noreferrer"
               className="btn-neon !py-2 !px-5 !text-[10px] flex items-center gap-2">
-              ð* Follow on X
+              X Follow on X
             </a>
             <a href="https://www.instagram.com/vicecity_hub?igsh=MXV6" target="_blank" rel="noopener noreferrer"
               className="btn-neon btn-neon-orange !py-2 !px-5 !text-[10px] flex items-center gap-2">
-              â - ˆ Instagram
+              @ Instagram
             </a>
           </div>
 
@@ -835,7 +835,7 @@ export default function Layout({ children, activePage }: LayoutProps) {
                 rel="noopener noreferrer"
                 className="btn-neon btn-neon-orange !py-2 !px-5 !text-[10px] flex items-center gap-2 font-extrabold"
               >
-                <Heart size={13} /> Donate â† - 
+                <Heart size={13} /> Donate 
               </a>
               <button
                 onClick={() => setKofiOpen(true)}
@@ -861,7 +861,7 @@ export default function Layout({ children, activePage }: LayoutProps) {
             >
               <div className="flex justify-between items-center mb-4">
                 <div className="flex items-center gap-2">
-                  <span className="text-xl">ðŸª™</span>
+            <span className="font-orbitron font-black text-xs">BTC</span>
                   <span className="font-orbitron font-extrabold text-neonOrange text-xs tracking-wider uppercase">Bitcoin (BTC)</span>
                 </div>
                 {copiedAddress === 'btc' ? (
@@ -882,7 +882,7 @@ export default function Layout({ children, activePage }: LayoutProps) {
             >
               <div className="flex justify-between items-center mb-4">
                 <div className="flex items-center gap-2">
-                  <span className="text-xl">ðŸ”-</span>
+            <span className="font-orbitron font-black text-xs">ETH</span>
                   <span className="font-orbitron font-extrabold text-neonPink text-xs tracking-wider uppercase">Ethereum (ETH)</span>
                 </div>
                 {copiedAddress === 'eth' ? (
@@ -903,7 +903,7 @@ export default function Layout({ children, activePage }: LayoutProps) {
             >
               <div className="flex justify-between items-center mb-4">
                 <div className="flex items-center gap-2">
-                  <span className="text-xl">â˜€ï¸</span>
+            <span className="font-orbitron font-black text-xs">SOL</span>
                   <span className="font-orbitron font-extrabold text-green-500 text-xs tracking-wider uppercase">Solana (SOL)</span>
                 </div>
                 {copiedAddress === 'sol' ? (
@@ -924,7 +924,7 @@ export default function Layout({ children, activePage }: LayoutProps) {
             >
               <div className="flex justify-between items-center mb-4">
                 <div className="flex items-center gap-2">
-                  <span className="text-xl">ðŸ”º</span>
+            <span className="font-orbitron font-black text-xs">TRX</span>
                   <span className="font-orbitron font-extrabold text-red-500 text-xs tracking-wider uppercase">TRON (TRX / USDT)</span>
                 </div>
                 {copiedAddress === 'trx' ? (
@@ -952,7 +952,7 @@ export default function Layout({ children, activePage }: LayoutProps) {
             style={{ maxHeight: 'calc(100vh - 32px)' }}
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Header â€” always visible, crÐµÑÑ‚Ð¸Ðº Ð²ÑÐµÐ³Ð´Ð° Ð´Ð¾ÑÑ‚ÑƒÐ¿ÐµÐ½ */}
+            {/* Header â€” always visible, crÐµÑÑ‚Ð¸Ðº Ð²ÑÐµÐ³Ð´Ð° Ð´Ð¾ÑÑ‚ÑƒÐ¿ÐµÐ½ */}
             <div className="flex-shrink-0 flex items-center gap-3 px-5 pt-5 pb-3 border-b border-white/5">
               <div className="flex items-center justify-center w-9 h-9 rounded-full bg-[#FF5E5B]/10 border border-[#FF5E5B]/30 flex-shrink-0">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="#FF5E5B">
@@ -1016,7 +1016,7 @@ export default function Layout({ children, activePage }: LayoutProps) {
             {authTab === 'reset' && (
               <div className="flex flex-col gap-4">
                 <div className="text-[10px] text-neonCyan uppercase tracking-widest font-bold mb-2">
-                  ðŸ” Set Your New Password
+                  ðŸ” Set Your New Password
                 </div>
                 {resetDone ? (
                   <div className="text-center py-6">
@@ -1165,15 +1165,15 @@ export default function Layout({ children, activePage }: LayoutProps) {
                 <span className="text-xs uppercase font-orbitron tracking-widest text-gray-300">Web3 Market</span>
               </a>
               <a href="./realestate.html" className="glass-card p-6 text-center hover:border-neonCyan flex flex-col items-center gap-3">
-                <span className="text-3xl">ðŸ¢</span>
+                <span className="text-3xl">ðŸ¢</span>
                 <span className="text-xs uppercase font-orbitron tracking-widest text-gray-300">Dynasty 8 ROI</span>
               </a>
               <a href="./document.html" className="glass-card p-6 text-center hover:border-neonCyan flex flex-col items-center gap-3">
-                <span className="text-3xl">ðŸ“</span>
+                <span className="text-3xl">ðŸ“</span>
                 <span className="text-xs uppercase font-orbitron tracking-widest text-gray-300">Leonida Database</span>
               </a>
               <a href="./community.html" className="glass-card p-6 text-center hover:border-neonCyan flex flex-col items-center gap-3">
-                <span className="text-3xl">ðŸ - £ï¸</span>
+                <span className="text-3xl">ðŸ - £ï¸</span>
                 <span className="text-xs uppercase font-orbitron tracking-widest text-gray-300">Community</span>
               </a>
               <a href="./rp.html" className="glass-card p-6 text-center hover:border-neonPink flex flex-col items-center gap-3 relative border border-neonPink/20">
@@ -1182,7 +1182,7 @@ export default function Layout({ children, activePage }: LayoutProps) {
                 <span className="text-xs uppercase font-orbitron tracking-widest text-neonPink">RP Hub</span>
               </a>
               <div onClick={() => { setSitemapOpen(false); if (session) setDashboardOpen(true); else setAuthModalOpen(true); }} className="glass-card p-6 text-center hover:border-neonCyan flex flex-col items-center gap-3 cursor-pointer">
-                <span className="text-3xl">âš™ï¸</span>
+                <span className="text-3xl">âš™ï¸</span>
                 <span className="text-xs uppercase font-orbitron tracking-widest text-gray-300">User Settings</span>
               </div>
             </div>

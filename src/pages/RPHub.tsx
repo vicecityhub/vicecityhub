@@ -216,7 +216,6 @@ export default function RPHub() {
         </div>
       </header>
 
-          PAGE HERO
       <div
         className="relative overflow-hidden"
         style={{ background: 'var(--darker-bg)', borderBottom: '1px solid rgba(255,0,255,0.1)' }}
