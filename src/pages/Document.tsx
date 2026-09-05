@@ -1,360 +1,278 @@
-import React, { useState } from 'react';
-import { Search, Download, BookOpen, User, Flame, Compass, Cpu, FileText, ChevronRight, Check } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
 
-interface Chapter {
-  id: string;
-  num: string;
-  title: string;
-  category: 'leaks' | 'characters' | 'weapons' | 'world' | 'engine';
-  summary: string;
-  details: string[];
-  image?: string;
+type VClass = 'All'|'Supercar'|'Sports'|'Muscle'|'Sedan'|'SUV'|'Motorcycle'|'Boat'|'Utility'|'Off-Road';
+interface IVehicle {
+  id: string; name: string; maker: string; cls: VClass; body: string;
+  seats: number; realLife: string; status: 'NEW'|'RETURNING'|'CONFIRMED';
+  desc: string; wiki: string; year?: string;
 }
 
-const DATABASE_CHAPTERS: Chapter[] = [
-  {
-    id: 'leaks',
-    num: 'CH 01',
-    title: 'The September 18, 2022 Intelligence Breach',
-    category: 'leaks',
-    summary: 'The historic event that exposed Grand Theft Auto VI development telemetry to the public sphere.',
-    image: 'https://lpglkglhjdqnktybksth.supabase.co/storage/v1/object/public/photos/Vice%20City%20Sign%20_%20Sunset%20Flyover.png',
-    details: [
-      'HISTORIC BREACH DETAILS: On September 18, 2022, an attacker named teapotuberhacker breached Rockstar\'s internal Confluence servers and Slack channels, downloading 90+ early development videos showcasing active gameplay telemetry.',
-      'TWEAKED EUPHORIA PHYSICS: Tweaked Euphoria ragdoll physics engine can be seen active when enemies fall or the playable characters jump down and dynamically ragdoll from elevations, introducing natural skeletal dynamics.',
-      'RDR2 LIGHTING & SKYBOX PIPELINES: Lighting and skybox volumetric cloud rendering engines from Red Dead Redemption 2 are present and integrated into the next-generation global lighting subsystem.',
-      'HEAVY VOLUMETRIC FOG (Americas 2022-04-06 15-55-26): Leaked video during a police shootout showcases a massive amount of dense volumetric fog. While fog existed in GTA V, this represents a major leap where you can barely see anything beyond a couple of meters.',
-      'STORY STAGES DEBUGS: Debug character labels inside the development telemetry are dynamically numbered based on the active stage of the story progression.',
-      'WORLD EVENT TRIGGER RULES: Every single open-world event evaluates active player rules. Events display "NotPassing" when conditions are unmet, and "Passing" when conditions are met (marked by green dots in logs). Some rules include "isPlayableCharacter (PlayerLucia or PlayerJason)", "isWantedRule", and dynamic progression scripts.'
-    ]
-  },
-  {
-    id: 'characters',
-    num: 'CH 02',
-    title: 'Protagonist & Community Intelligence Dossiers',
-    category: 'characters',
-    summary: 'Comprehensive profile assessment of the dual protagonists and key supporting actors in the Leonida underground.',
-    image: 'https://lpglkglhjdqnktybksth.supabase.co/storage/v1/object/public/photos/Vice%20City%20Kingpin%20_%20Hero%20Portrait.png',
-    details: [
-      'LUCIA CAMINOS (Protagonist): Designed as the "Bonnie" of the central romantic duo. burly burglary telemetry suggests a hacker background. Her arc is shown starting paroled from a correctional facility.',
-      'JASON DUVAL (Protagonist): The "Clyde" companion in a deep romantic relationship with Lucia, as evidenced by gameplay dialogues and cooperative actions during active diner robberies.',
-      'WYMAN: A close associate and friend of Boobie. Wyman acts as a key coordinator, introducing Jason and Lucia to Boobie and getting in touch with a couple of local music artists in the underground scene.',
-      'TIT BILLY: A DJ at Dre\'s nightclub and a close friend of Dre. Dossiers show Tit Billy is on extremely thin ice after insulting Dre for not bringing his drinks. Dre tells him this attitude is why "no one likes him" and considers firing him.',
-      'KAI & SUPPORTING PLAYERS: Kai is a close associate of Dre seen struggling with relationship conflicts with his partner at the nightclub. Other verified characters include Sam, Zach, RB Shaw, Vicky, Iris, and Shanese (spotted under the moniker "@shaneycee" in Trailer 1).'
-    ]
-  },
-  {
-    id: 'weapons',
-    num: 'CH 03',
-    title: 'Tactical Combat, Weaponry, & Systems Gear',
-    category: 'weapons',
-    summary: 'Analysis of the expanded tactical combat mechanics, inventory constraints, and verified gear.',
-    image: 'https://lpglkglhjdqnktybksth.supabase.co/storage/v1/object/public/photos/Vice%20City%20Pursuit%20_%20Low%20Angle.png',
-    details: [
-      'AUTO DIALER: A high-tech digital countermeasures item carried by Lucia, used to trigger automatic calls for fraud or network technical disruption during tactical infiltration.',
-      'IMMOBILIZER BYPASS: Used to hijack and steal luxury vehicles. Bypassing vehicle immobilizers requires the player to match keycodes using a PDA device, reminiscent of the luxury car mechanics in GTA Chinatown Wars.',
-      'TRACKER JAMMER: A specialized electronic counter-GPS device. It prevents GPS tracking devices from receiving or transmitting coordinate telemetries, used to suppress police locator signals.',
-      'SLIM JIM: Used for mechanical lock picking. It is physically limited to unlocking older car doors, since it cannot bypass newer vehicles equipped with modern internal defense barrier blocks and lock rod shrouds.',
-      'SURVIVAL GEAR: Core recovery inventory includes Painkillers, Trauma Kits, Cigarettes, Food & Drink items, alongside tactical gear like Crowbars, Torches/Flashlights, Binoculars, Pool Cues, Duffle Bags, and Backpacks for active looting.',
-      'TACTICAL ACTIONS: Expanded mechanics feature prone crawling (similar to Max Payne 3), Aim Shoulder-Swapping, Buddy-Up cover commands, and dynamic hostage-taking scenarios.'
-    ]
-  },
-  {
-    id: 'world',
-    num: 'CH 04',
-    title: 'Leonida World Geography & Enterable Structures',
-    category: 'world',
-    summary: 'Comprehensive geographical telemetry of Leonida\'s cities, swamps, and 157+ enterable buildings.',
-    image: 'https://lpglkglhjdqnktybksth.supabase.co/storage/v1/object/public/photos/Vice%20City%20Hub%20_%20Neon%20Bar%20Interior.png',
-    details: [
-      '157+ CONFIRMED ENTERABLE BUILDINGS: Debug files "pedpopulation.cpp (3032)" in the class "CPedPopulation::AddPed(CScenarioSpawnHelper)" verify at least 157 unique enterable interiors (e.g. "/ss15lok_1_gfa_bespoke Room:1/room-Main"), directly linking interiors to expanded theft and robbery loops.',
-      'MALIBU CLUB & JACK OF HEARTS: Premium nightlife interiors verified in telemetry logs (such as "Americas_1 2022-08-02 20-20-00") include the legendary Malibu Club and the Jack of Hearts Strip Club.',
-      'PORT GELLHORN DELIVERY WORKSHOPS (Americas 2022-05-25 13-29-33): Leaked logs detail a delivery van event near Port Gellhorn industrial warehouses. Garages feature warning signs regarding security cameras, requiring stealth to avoid detection.',
-      'DELIVERY/PICKUP & WAREHOUSE EVENTS: World activities include specific Port Gellhorn warehouse deliveries and pickups (GET_SLTH delivery event, Pickup Warehouse event) where players hijack cargo vans.',
-      'EXPANDED ROBBERY MECHANICS: Robberies (like the Hank\'s Waffles diner sequence or pawn shop runs) feature detailed interior states (dirtiness on strip club and waffles diner floors). Players can search vehicle trunks, loot cash registers, and break open cargo containers (exclusive to Jason\'s tracking abilities).'
-    ]
-  },
-  {
-    id: 'engine',
-    num: 'CH 05',
-    title: 'Next-Generation RAGE Engine Architecture',
-    category: 'engine',
-    summary: 'Analysis of the revolutionary software pipelines driving rendering and physics in Leonida.',
-    image: 'https://lpglkglhjdqnktybksth.supabase.co/storage/v1/object/public/photos/Coastal%20Skyline%20Overdrive.png',
-    details: [
-      'GLOBAL REAL-TIME RAY TRACING: Built on Rockstar\'s next-gen proprietary RAGE engine, featuring real-time ray-traced global illumination, reflection pipelines on wet tarmac surfaces, and active light scattering.',
-      'VOLUMETRIC CLOUDS & SKYBOX FLUIDS: Uses the highly praised atmospheric simulator from RDR2 but scaled up to support dynamic storms, hurricanes, offshore wind swells, and realistic coastal erosion.',
-      'ADVANCED OCEAN HYDRODYNAMICS: Realistic water tide simulations, high-fidelity boat wave hydrodynamics, dynamic sea height variations, and underwater sunbeam light diffusion.',
-      'VEHICLE DEFORMATION & TYRE TELEMETRY: Cars feature high-fidelity skeletal structural damage deformation modeling, detailed tire physics telemetry, dynamic engine temperature indices, and realistic exhaust systems.',
-      'NPC LONG-TERM MEMORY SCHEMAS: Implementing Take-Two\'s revolutionary AI memory patents, enabling NPCs to recognize player clothes, vehicle models, facial descriptions, and criminal history within specific sectors, altering local police search responses.'
-    ]
-  }
+const VEHICLES: IVehicle[] = [
+  { id:'cheetah95', name:"Grotti Cheetah '95", maker:'Grotti', cls:'Supercar', body:'2-door coupe', seats:2, realLife:'Ferrari Testarossa', status:'NEW', year:'1995', desc:'Ultimate Edition bonus. Mid-engine Italian supercar with pop-up headlights. The most talked-about new car in GTA VI.', wiki:'https://gta.fandom.com/wiki/Cheetah' },
+  { id:'furia', name:'Grotti Furia', maker:'Grotti', cls:'Supercar', body:'2-door coupe', seats:2, realLife:'Ferrari SF90 Stradale', status:'RETURNING', desc:'The hybrid hypercar from GTA Online returns. One of the fastest cars on Leonida coastal highways.', wiki:'https://gta.fandom.com/wiki/Furia' },
+  { id:'pariah', name:'Ocelot Pariah', maker:'Ocelot', cls:'Supercar', body:'2-door coupe', seats:2, realLife:'Jaguar F-Type SVR', status:'RETURNING', desc:'Former king of top speed in GTA Online. Sleek British lines with enough power to outrun anything on the Vice City highway.', wiki:'https://gta.fandom.com/wiki/Pariah' },
+  { id:'locust', name:'Ocelot Locust', maker:'Ocelot', cls:'Supercar', body:'2-door coupe', seats:2, realLife:'Lotus Elise', status:'RETURNING', desc:'Featherweight track weapon. Handling so sharp it borders on telepathic. Confirmed returning for Leonida.', wiki:'https://gta.fandom.com/wiki/Locust' },
+  { id:'comet', name:'Pfister Comet S2 Cabrio', maker:'Pfister', cls:'Sports', body:'2-door convertible', seats:2, realLife:'Porsche 911 Cabriolet', status:'RETURNING', desc:'Drop-top German engineering. The Cabriolet version of the legendary Comet with extensive customization options.', wiki:'https://gta.fandom.com/wiki/Comet_S2_Cabrio' },
+  { id:'elegy', name:'Annis Elegy Retro Custom', maker:'Annis', cls:'Sports', body:'2-door coupe', seats:2, realLife:'Nissan Skyline GT-R R32', status:'RETURNING', desc:'JDM legend. The Retro Custom variant with RWB-style wide-body returns to Leonida with updated liveries.', wiki:'https://gta.fandom.com/wiki/Elegy_Retro_Custom' },
+  { id:'drafter', name:'Obey 8F Drafter', maker:'Obey', cls:'Sports', body:'2-door coupe', seats:2, realLife:'Audi RS5 Coupe', status:'RETURNING', desc:'German sports coupe confirmed multiple times in Trailer 2. Reliable, balanced, and fast.', wiki:'https://gta.fandom.com/wiki/8F_Drafter' },
+  { id:'sultan', name:'Karin Sultan RS', maker:'Karin', cls:'Sports', body:'4-door sedan', seats:4, realLife:'Subaru Impreza WRX STI', status:'RETURNING', desc:'Fan-favorite rally car with signature widebody returns. AWD and turbocharged for maximum Leonida sideways action.', wiki:'https://gta.fandom.com/wiki/Sultan_RS' },
+  { id:'novak', name:'Lampadati Novak', maker:'Lampadati', cls:'Sports', body:'2-door coupe', seats:2, realLife:'Alfa Romeo Giulia GTA', status:'RETURNING', desc:'Italian flair meets Vice City sunshine. Agile sports coupe confirmed in the Extended Look trailer.', wiki:'https://gta.fandom.com/wiki/Novak' },
+  { id:'tailgater', name:'Obey Tailgater S', maker:'Obey', cls:'Sports', body:'4-door sedan', seats:4, realLife:'Audi A6 Allroad', status:'RETURNING', desc:'Executive sporty wagon confirmed returning in GTA VI footage.', wiki:'https://gta.fandom.com/wiki/Tailgater_S' },
+  { id:'alvino', name:'Principe Alvino V1', maker:'Principe', cls:'Motorcycle', body:'Sport motorcycle', seats:1, realLife:'Ducati Panigale V4', status:'NEW', desc:'Confirmed on the official GTA VI cover art. Italian superbike making its GTA debut. Extremely high top speed.', wiki:'https://gta.fandom.com/wiki/Grand_Theft_Auto_VI' },
+  { id:'dominator67', name:"Vapid Dominator '67", maker:'Vapid', cls:'Muscle', body:'2-door convertible', seats:2, realLife:'Ford Mustang (1967)', status:'NEW', year:'1967', desc:'Seen in the Extended Look. Classic American muscle with a drop-top. Type: Muscle car, Body: 2-door convertible, Manufacturer: Vapid, Year: 1967.', wiki:'https://gta.fandom.com/wiki/Dominator' },
+  { id:'dominatorbuggy', name:"Vapid Dominator '67 Buggy", maker:'Vapid', cls:'Muscle', body:'2-door buggy', seats:2, realLife:'Ford Mustang Buggy', status:'NEW', year:'1967', desc:'Ultimate Edition exclusive off-road variant of the Dominator. Lifted, roll-caged, and ready for Leonida dirt roads.', wiki:'https://gta.fandom.com/wiki/Dominator' },
+  { id:'dominatorgtx', name:'Vapid Dominator GTX', maker:'Vapid', cls:'Muscle', body:'2-door coupe', seats:2, realLife:'Ford Mustang Shelby GT500', status:'RETURNING', desc:'The most powerful factory Dominator. Wide-body kit, supercharged V8, enough tire smoke to block out the Miami sun.', wiki:'https://gta.fandom.com/wiki/Dominator_GTX' },
+  { id:'buffalo', name:'Bravado Buffalo STX', maker:'Bravado', cls:'Muscle', body:'4-door sedan', seats:4, realLife:'Dodge Charger Hellcat', status:'RETURNING', desc:'One of the most celebrated confirmations from the trailers. GTA equivalent of the Dodge Charger returns with widebody and supercharged Hellcat engine.', wiki:'https://gta.fandom.com/wiki/Buffalo_STX' },
+  { id:'vamos', name:'Declasse Vamos', maker:'Declasse', cls:'Muscle', body:'2-door coupe', seats:2, realLife:'Chevrolet Nova SS', status:'RETURNING', desc:'GTA Online exclusive now returning to story mode. Classic 70s American muscle with one of the most stylish builds in the franchise.', wiki:'https://gta.fandom.com/wiki/Vamos' },
+  { id:'sabre', name:'Declasse Sabre Turbo', maker:'Declasse', cls:'Muscle', body:'2-door coupe', seats:2, realLife:'Oldsmobile Cutlass', status:'RETURNING', desc:'GTA classic. The turbocharged coupe with lowrider DNA confirmed for Leonida streets.', wiki:'https://gta.fandom.com/wiki/Sabre_Turbo' },
+  { id:'tornado', name:'Declasse Tornado', maker:'Declasse', cls:'Muscle', body:'2-door convertible', seats:2, realLife:'Chevrolet Bel Air', status:'RETURNING', desc:'50s cruiser culture in GTA VI. The classic convertible is a natural fit for Vice City beach boulevards.', wiki:'https://gta.fandom.com/wiki/Tornado' },
+  { id:'df8', name:'Imponte DF8-90', maker:'Imponte', cls:'Muscle', body:'2-door coupe', seats:2, realLife:'Pontiac Firebird Trans Am', status:'RETURNING', desc:'The Firebird-inspired coupe returns. V8 power, pop-up headlights, and a hood decal that earns respect.', wiki:'https://gta.fandom.com/wiki/DF8-90' },
+  { id:'creado', name:'Vapid Creado', maker:'Vapid', cls:'Muscle', body:'4-door sedan', seats:4, realLife:'Ford (1970s)', status:'NEW', desc:"Jason's personal car and the GTA VI hero vehicle. The first named new vehicle in the game. Expected to be highly customizable.", wiki:'https://gta.fandom.com/wiki/Grand_Theft_Auto_VI' },
+  { id:'intruder', name:'Karin Intruder', maker:'Karin', cls:'Sedan', body:'4-door sedan', seats:4, realLife:'Toyota Crown', status:'RETURNING', desc:'Spotted 3 times in Trailer 1 — red with a dancer on the roof, two silver units in Leonida traffic. A true Leonida street staple.', wiki:'https://gta.fandom.com/wiki/Intruder' },
+  { id:'stanier55', name:"Vapid Stanier '55", maker:'Vapid', cls:'Sedan', body:'4-door sedan', seats:4, realLife:'Ford (1955)', status:'NEW', year:'1955', desc:"Classic 1950s American full-size confirmed for GTA VI. Police and taxi variants expected. New addition to the Stanier family.", wiki:'https://gta.fandom.com/wiki/Stanier' },
+  { id:'emperor', name:'Albany Emperor', maker:'Albany', cls:'Sedan', body:'4-door sedan', seats:5, realLife:'Cadillac DeVille', status:'RETURNING', desc:'Full-size Cadillac-inspired luxury barge spotted in Leonida traffic with various liveries.', wiki:'https://gta.fandom.com/wiki/Emperor' },
+  { id:'alpha', name:'Albany Alpha', maker:'Albany', cls:'Sedan', body:'2-door coupe', seats:2, realLife:'Cadillac ATS-V Coupe', status:'RETURNING', desc:'Albany sports coupe confirmed in GTA VI database. Performance-oriented American coupe.', wiki:'https://gta.fandom.com/wiki/Alpha' },
+  { id:'schafter', name:'Benefactor Schafter LWB', maker:'Benefactor', cls:'Sedan', body:'4-door sedan', seats:4, realLife:'Mercedes S-Class LWB', status:'RETURNING', desc:'Long wheelbase luxury confirmed for GTA VI. The choice of Leonida crime bosses and business executives.', wiki:'https://gta.fandom.com/wiki/Schafter_LWB' },
+  { id:'jubilee', name:'Enus Jubilee', maker:'Enus', cls:'SUV', body:'4-door SUV', seats:4, realLife:'Rolls-Royce Cullinan', status:'RETURNING', desc:'Most expensive civilian SUV confirmed in GTA VI footage. Available with Imani Tech luxury upgrades.', wiki:'https://gta.fandom.com/wiki/Jubilee' },
+  { id:'baller', name:'Gallivanter Baller ST', maker:'Gallivanter', cls:'SUV', body:'4-door SUV', seats:4, realLife:'Range Rover Sport', status:'RETURNING', desc:'Vice City status symbol. Range Rover-inspired luxury SUV is what you drive when you want everyone to know you made it.', wiki:'https://gta.fandom.com/wiki/Baller_ST' },
+  { id:'aleutian', name:'Vapid Aleutian', maker:'Vapid', cls:'SUV', body:'4-door SUV', seats:4, realLife:'Ford Expedition (4th Gen)', status:'RETURNING', desc:'Full-size American SUV confirmed for GTA VI. The working-class family hauler with truck DNA.', wiki:'https://gta.fandom.com/wiki/Aleutian' },
+  { id:'toros', name:'Pegassi Toros', maker:'Pegassi', cls:'SUV', body:'4-door SUV', seats:4, realLife:'Lamborghini Urus', status:'RETURNING', desc:'The super-SUV from GTA Online returns. Italian supercar performance in a body that seats four.', wiki:'https://gta.fandom.com/wiki/Toros' },
+  { id:'seminole', name:'Canis Seminole Frontier', maker:'Canis', cls:'SUV', body:'4-door SUV', seats:5, realLife:'Jeep Grand Wagoneer', status:'RETURNING', desc:'Off-road capable SUV confirmed for Leonida. Rugged American four-wheel-drive in wood panel trim.', wiki:'https://gta.fandom.com/wiki/Seminole_Frontier' },
+  { id:'nightblade', name:'Western Nightblade', maker:'Western', cls:'Motorcycle', body:'Chopper', seats:1, realLife:'Harley-Davidson Night Rod', status:'RETURNING', desc:'American V-twin cruiser confirmed for GTA VI. Dark-themed chopper with chrome accents.', wiki:'https://gta.fandom.com/wiki/Nightblade' },
+  { id:'doublet', name:'Dinka Double-T', maker:'Dinka', cls:'Motorcycle', body:'Sport motorcycle', seats:1, realLife:'Honda CBR1000RR', status:'RETURNING', desc:'The sportbike from GTA V returns. Lightweight Japanese superbike built for lane-splitting through Leonida traffic.', wiki:'https://gta.fandom.com/wiki/Double-T' },
+  { id:'sanchez', name:'Maibatsu Sanchez', maker:'Maibatsu', cls:'Motorcycle', body:'Dirt bike', seats:1, realLife:'Yamaha WR450F', status:'RETURNING', desc:'GTA dirt bike legend returns with custom livery variants. Ideal for off-road terrain across Leonida.', wiki:'https://gta.fandom.com/wiki/Sanchez' },
+  { id:'enduro', name:'Dinka Enduro', maker:'Dinka', cls:'Motorcycle', body:'Dirt bike', seats:1, realLife:'Honda CRF450R', status:'RETURNING', desc:'Ultimate Edition DLC motorcycle. High-revving off-road specialist with multiple livery options.', wiki:'https://gta.fandom.com/wiki/Enduro' },
+  { id:'squalo', name:'Shitzu Squalo', maker:'Shitzu', cls:'Boat', body:'Speedboat', seats:2, realLife:'Mangusta 80', status:'NEW', desc:"Ultimate Edition bonus. The Squalo name returns from GTA IV as a new high-performance speedboat for Vice City's coastal waters.", wiki:'https://gta.fandom.com/wiki/Squalo' },
+  { id:'dodo', name:'Mammoth Dodo', maker:'Mammoth', cls:'Boat', body:'Seaplane', seats:4, realLife:'de Havilland Canada DHC-2 Beaver', status:'RETURNING', desc:'The legendary GTA seaplane returns. Land on water, take off from bay. The most versatile vehicle in Leonida.', wiki:'https://gta.fandom.com/wiki/Dodo' },
+  { id:'airboat', name:'Airboat', maker:'Various', cls:'Boat', body:'Airboat', seats:2, realLife:'Panther Airboats', status:'RETURNING', desc:'Swamp-ready airboat for the Everglades-inspired regions of Leonida. Seen navigating shallow waterways in Trailer 1.', wiki:'https://gta.fandom.com/wiki/Airboat' },
+  { id:'bus', name:'Brute Rental Shuttle Bus', maker:'Brute', cls:'Utility', body:'Minibus', seats:10, realLife:'Chevrolet Express (Airport)', status:'RETURNING', desc:"Ten seats of pure Vice City tourism. Confirmed in GTA VI Trailer 1. Perfect for the world's most memorable airport pickups.", wiki:'https://gta.fandom.com/wiki/Rental_Shuttle_Bus' },
+  { id:'towtruck', name:'Vapid Tow Truck', maker:'Vapid', cls:'Utility', body:'Tow truck', seats:2, realLife:'Ford F-Series Tow Truck', status:'RETURNING', desc:'The HD-era utility vehicle returns for GTA VI. Seen across multiple trailer shots.', wiki:'https://gta.fandom.com/wiki/Tow_Truck' },
+  { id:'rumpo', name:'Bravado Rumpo Custom', maker:'Bravado', cls:'Utility', body:'Van', seats:2, realLife:'Dodge Ram Van', status:'RETURNING', desc:'Custom panel van confirmed for GTA VI. Classic heist vehicle.', wiki:'https://gta.fandom.com/wiki/Rumpo_Custom' },
+  { id:'outlaw', name:'Nagasaki Outlaw', maker:'Nagasaki', cls:'Off-Road', body:'UTV', seats:2, realLife:'Can-Am Maverick X3', status:'RETURNING', desc:'Two-seat off-road UTV confirmed in GTA VI Trailer 1. Spotted at the Thrillbilly Mud Club.', wiki:'https://gta.fandom.com/wiki/Outlaw' },
+  { id:'rebel', name:'Karin Rebel', maker:'Karin', cls:'Off-Road', body:'4-door truck', seats:4, realLife:'Toyota Hilux', status:'RETURNING', desc:'Iconic off-road pickup returns. Most versatile vehicle in the franchise and a staple of GTA criminal operations.', wiki:'https://gta.fandom.com/wiki/Rebel' },
+  { id:'granger', name:'Declasse Granger', maker:'Declasse', cls:'Off-Road', body:'4-door SUV', seats:6, realLife:'Chevrolet Suburban', status:'RETURNING', desc:'Law enforcement favorite confirmed for civilian use in GTA VI. Six seats and enough American iron to end any police chase.', wiki:'https://gta.fandom.com/wiki/Granger' },
 ];
 
+const CLASS_CFG: Record<string, { color: string; icon: string }> = {
+  All:        { color: '#fff',     icon: '\u25c8' },
+  Supercar:   { color: '#FF2D78', icon: '\u2605' },
+  Sports:     { color: '#00FFFF', icon: '\u26a1' },
+  Muscle:     { color: '#FF9900', icon: '\u2666' },
+  Sedan:      { color: '#b44fff', icon: '\u25fb' },
+  SUV:        { color: '#44ff88', icon: '\u25a0' },
+  Motorcycle: { color: '#FF6622', icon: '\u25c6' },
+  Boat:       { color: '#0099ff', icon: '~' },
+  Utility:    { color: '#FFE135', icon: '#' },
+  'Off-Road': { color: '#8B4513', icon: '*' },
+};
+
+const MAKERS = ['All Makers','Albany','Annis','Benefactor','Bravado','Brute','Canis','Declasse','Dinka','Enus','Gallivanter','Grotti','Imponte','Karin','Lampadati','Maibatsu','Mammoth','Nagasaki','Obey','Ocelot','Pegassi','Pfister','Principe','Shitzu','Vapid','Various','Western'];
+
+function VehicleCard({ v, onClick }: { v: IVehicle; onClick: () => void }) {
+  const cfg = CLASS_CFG[v.cls];
+  const statusClr = v.status === 'NEW' ? '#FF2D78' : v.status === 'CONFIRMED' ? '#00FFFF' : 'rgba(255,255,255,0.4)';
+  return (
+    <div onClick={onClick} className="glass-card rounded-xl p-4 cursor-pointer group transition-all duration-200 hover:-translate-y-0.5 hover:scale-[1.01] flex flex-col">
+      <div className="flex items-start justify-between mb-2">
+        <div className="flex items-center gap-2">
+          <span className="text-base" style={{ color: cfg.color }}>{cfg.icon}</span>
+          <div>
+            <div className="font-black text-sm text-white leading-tight group-hover:text-neonPink transition-colors">{v.name}</div>
+            <div className="text-[10px] text-white/40 font-bold tracking-wider">{v.maker}</div>
+          </div>
+        </div>
+        <span className="text-[9px] font-black px-2 py-0.5 rounded border tracking-widest flex-shrink-0"
+          style={{ color: statusClr, borderColor: `${statusClr}50`, background: `${statusClr}12` }}>
+          {v.status}
+        </span>
+      </div>
+      <div className="flex items-center justify-between mt-auto pt-2">
+        <span className="text-[10px] font-bold tracking-wide" style={{ color: cfg.color }}>{v.cls.toUpperCase()}</span>
+        <span className="text-[9px] text-white/30">{v.body}</span>
+      </div>
+      <div className="text-[9px] text-white/40 mt-1 line-clamp-1">{v.realLife}</div>
+    </div>
+  );
+}
+
+function VehicleModal({ v, onClose }: { v: IVehicle; onClose: () => void }) {
+  const cfg = CLASS_CFG[v.cls];
+  return (
+    <div className="fixed inset-0 z-[600] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm" onClick={onClose}>
+      <div className="glass-card-static rounded-xl max-w-lg w-full p-6 slide-in border" style={{ borderColor: `${cfg.color}50` }} onClick={e => e.stopPropagation()}>
+        <div className="flex items-start justify-between mb-4">
+          <div>
+            <div className="font-orbitron font-black text-xl text-white">{v.name}</div>
+            <div className="text-[11px] text-white/45 tracking-widest">{v.maker.toUpperCase()} - {v.cls.toUpperCase()}</div>
+          </div>
+          <button onClick={onClose} className="text-white/30 hover:text-white text-xl font-black ml-4">X</button>
+        </div>
+        <div className="grid grid-cols-2 gap-3 mb-4">
+          {[
+            { label: 'CLASS', val: v.cls },
+            { label: 'BODY STYLE', val: v.body },
+            { label: 'CAPACITY', val: `${v.seats} ${v.seats === 1 ? 'seat' : 'seats'}` },
+            { label: 'MANUFACTURER', val: v.maker },
+            { label: 'REAL-LIFE BASE', val: v.realLife },
+            { label: 'STATUS', val: v.status },
+            ...(v.year ? [{ label: 'MODEL YEAR', val: v.year }] : []),
+          ].map(r => (
+            <div key={r.label} className="p-2 rounded-lg bg-black/30 border border-white/10">
+              <div className="text-[9px] text-white/35 tracking-widest font-bold mb-0.5">{r.label}</div>
+              <div className="text-xs font-bold text-white">{r.val}</div>
+            </div>
+          ))}
+        </div>
+        <p className="text-sm text-white/65 leading-relaxed mb-5">{v.desc}</p>
+        <div className="flex gap-3">
+          <a href={v.wiki} target="_blank" rel="noreferrer" className="btn-neon flex-1 justify-center text-[10px]">VIEW ON GTA WIKI</a>
+          <button onClick={onClose} className="btn-neon btn-neon-sm px-4">CLOSE</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function Document() {
-  const [activeTab, setActiveTab] = useState<'all' | 'leaks' | 'characters' | 'weapons' | 'world' | 'engine'>('all');
-  const [searchQuery, setSearchQuery] = useState<string>('');
-  const [downloadSuccess, setDownloadSuccess] = useState<boolean>(false);
+  const [search, setSearch] = useState('');
+  const [cls, setCls] = useState<VClass>('All');
+  const [maker, setMaker] = useState('All Makers');
+  const [status, setStatus] = useState('All');
+  const [selected, setSelected] = useState<IVehicle | null>(null);
 
-  const handleDownloadClick = () => {
-    // PDF name in root workspace
-    const link = document.createElement('a');
-    link.href = '/The GTA VI Document (v1.6).pdf';
-    link.download = 'The GTA VI Document (v1.6).pdf';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+  const filtered = useMemo(() => VEHICLES.filter(v => {
+    const q = search.toLowerCase();
+    return (cls === 'All' || v.cls === cls)
+      && (maker === 'All Makers' || v.maker === maker)
+      && (status === 'All' || v.status === status)
+      && (!q || v.name.toLowerCase().includes(q) || v.maker.toLowerCase().includes(q) || v.realLife.toLowerCase().includes(q) || v.cls.toLowerCase().includes(q));
+  }), [search, cls, maker, status]);
 
-    setDownloadSuccess(true);
-    setTimeout(() => setDownloadSuccess(false), 3000);
-  };
-
-  // Filter Chapters
-  const filteredChapters = DATABASE_CHAPTERS.filter(chapter => {
-    const matchesTab = activeTab === 'all' || chapter.category === activeTab;
-    const matchesSearch = 
-      chapter.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      chapter.summary.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      chapter.details.some(d => d.toLowerCase().includes(searchQuery.toLowerCase()));
-
-    return matchesTab && matchesSearch;
-  });
-
-  const getCategoryIcon = (category: string) => {
-    switch (category) {
-      case 'leaks': return <FileText size={16} className="text-neonPink" />;
-      case 'characters': return <User size={16} className="text-neonCyan" />;
-      case 'weapons': return <Flame size={16} className="text-neonOrange" />;
-      case 'world': return <Compass size={16} className="text-green-400" />;
-      default: return <Cpu size={16} className="text-purple-400" />;
-    }
-  };
-
-  const getCategoryBadge = (category: string) => {
-    switch (category) {
-      case 'leaks': return 'border-neonPink/25 text-neonPink bg-neonPink/5';
-      case 'characters': return 'border-neonCyan/25 text-neonCyan bg-neonCyan/5';
-      case 'weapons': return 'border-neonOrange/25 text-neonOrange bg-neonOrange/5';
-      case 'world': return 'border-green-500/25 text-green-400 bg-green-500/5';
-      default: return 'border-purple-500/25 text-purple-400 bg-purple-500/5';
-    }
-  };
+  const counts = useMemo(() => ({
+    total: VEHICLES.length,
+    NEW: VEHICLES.filter(v => v.status === 'NEW').length,
+    RETURNING: VEHICLES.filter(v => v.status === 'RETURNING').length,
+  }), []);
 
   return (
-    <div className="w-full">
-      {/* HEADER BANNER */}
-      <header className="min-h-[40vh] flex flex-col items-center justify-center text-center px-6 relative overflow-hidden bg-radial-hero py-16">
-        <div className="absolute inset-0 z-0 pointer-events-none bg-[radial-gradient(ellipse_80%_50%_at_50%_85%,rgba(0,229,255,0.06)_0%,transparent_60%)]" />
-        
-        <div className="relative z-10 flex flex-col items-center max-w-4xl">
-          <div className="font-orbitron text-[10px] sm:text-xs font-bold tracking-[0.3em] text-neonCyan uppercase border border-neonCyan/40 px-6 py-2.5 rounded-full bg-neonCyan/5 shadow-[0_0_15px_rgba(0,255,255,0.15)] mb-6 animate-pulse">
-            LEONIDA INTELLIGENCE DATABASE &mdash; DECRYPTED DATA
-          </div>
+    <div className="min-h-screen" style={{ background: 'linear-gradient(180deg, #05050a 0%, #0a0a18 100%)' }}>
+      {selected && <VehicleModal v={selected} onClose={() => setSelected(null)} />}
 
-          <h1 className="font-orbitron font-black text-4xl sm:text-6xl uppercase tracking-tighter bg-gradient-to-br from-white via-neonCyan to-neonPink bg-clip-text text-transparent filter drop-shadow-2xl">
-            THE GTA VI DOCUMENT
+      {/* HERO */}
+      <div className="relative overflow-hidden border-b border-white/[0.07]" style={{ background: 'linear-gradient(135deg, rgba(255,45,120,0.08) 0%, rgba(180,79,255,0.06) 100%)' }}>
+        <div className="max-w-7xl mx-auto px-4 py-10 sm:py-14">
+          <div className="flex flex-wrap items-center gap-3 mb-3">
+            <span className="font-orbitron font-black text-[10px] tracking-widest text-neonCyan bg-neonCyan/10 border border-neonCyan/30 px-3 py-1 rounded">GTA VI</span>
+            <span className="font-orbitron font-black text-[10px] tracking-widest text-neonPink bg-neonPink/10 border border-neonPink/30 px-3 py-1 rounded">LEONIDA STATE</span>
+            <span className="text-[10px] text-white/40 font-bold">UPDATED: SEPT 2026</span>
+          </div>
+          <h1 className="font-orbitron font-black text-3xl sm:text-4xl tracking-wider mb-3" style={{ background: 'linear-gradient(90deg,#FF2D78,#b44fff)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+            LEONIDA VEHICLE DATABASE
           </h1>
-
-          <p className="text-xs sm:text-sm text-gray-400 font-bold max-w-lg mx-auto mt-4 leading-relaxed font-rajdhani uppercase tracking-widest">
-            Interactive analytical framework for document version 1.6 detailing leaked structures, weapons matrices, protagonists profiles, and RAGE engine specs.
+          <p className="text-white/55 text-sm max-w-2xl leading-relaxed mb-6">
+            Every confirmed vehicle in Grand Theft Auto VI, catalogued from official trailers, pre-order packs, and the Extended Look. <span className="text-neonCyan font-bold">{counts.total} vehicles confirmed</span>. Click any vehicle for full stats and its GTA Wiki entry.
           </p>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {[
+              { val: `${counts.total}`, label: 'Confirmed Vehicles', color: '#FF2D78' },
+              { val: `${counts.NEW}`, label: 'New to Series', color: '#00FFFF' },
+              { val: `${counts.RETURNING}`, label: 'Returning', color: '#b44fff' },
+              { val: `${Object.keys(CLASS_CFG).length - 1}`, label: 'Vehicle Classes', color: '#FFE135' },
+            ].map(s => (
+              <div key={s.label} className="glass-card-static rounded-xl p-3 text-center border border-white/[0.05]">
+                <div className="font-orbitron font-black text-2xl" style={{ color: s.color, textShadow: `0 0 12px ${s.color}66` }}>{s.val}</div>
+                <div className="text-[10px] text-white/40 tracking-wider font-bold mt-0.5">{s.label}</div>
+              </div>
+            ))}
+          </div>
         </div>
-      </header>
+      </div>
 
-      <div className="gradient-line" />
-
-      {/* DOWNLOAD BANNER */}
-      <section className="py-8 px-6 max-w-[1280px] mx-auto z-10 relative">
-        <div className="glass-card p-8 border-neonCyan/30 bg-gradient-to-r from-neonCyan/5 via-transparent to-transparent flex flex-col lg:flex-row justify-between items-center gap-6 shadow-2xl">
-          <div className="flex items-start gap-4">
-            <div className="w-14 h-14 rounded-lg bg-neonCyan/10 border border-neonCyan/25 flex items-center justify-center text-neonCyan text-2xl shrink-0 shadow-lg">
-              📕
-            </div>
-            <div>
-              <h3 className="font-orbitron font-bold text-lg text-white uppercase tracking-wide">
-                Download Official Document PDF
-              </h3>
-              <p className="text-xs text-gray-400 font-bold font-rajdhani mt-1 max-w-2xl leading-relaxed">
-                Unlock the entire, unabridged 150-page "The GTA VI Document (v1.6)" containing full geographical grids, coordinate telemetry charts, and comprehensive fan analysis in high resolution.
-              </p>
-              <div className="flex flex-wrap gap-4 mt-3 text-[10px] text-gray-500 font-bold uppercase tracking-wider font-orbitron">
-                <span>File: The GTA VI Document (v1.6).pdf</span>
-                <span>•</span>
-                <span>Size: ~51 MB</span>
-                <span>•</span>
-                <span>Version: v1.6 Decrypted</span>
+      {/* FEATURES STRIP */}
+      <div className="border-b border-white/[0.05] overflow-x-auto">
+        <div className="max-w-7xl mx-auto px-4 py-4 flex gap-6">
+          {[
+            { icon: '+', label: 'FUEL SYSTEM', desc: 'Cars need refueling' },
+            { icon: '~', label: 'VEHICLE PHYSICS', desc: 'Heavier handling' },
+            { icon: '#', label: 'CAR THEFT TIERS', desc: 'WAINK scanner required' },
+            { icon: '*', label: 'PAY & SPRAY', desc: 'Full repaint & repair' },
+            { icon: '=', label: 'TRUNK STORAGE', desc: 'Mobile weapon inventory' },
+            { icon: '^', label: 'MOD SHOPS', desc: 'Ride Out Customs + more' },
+          ].map(f => (
+            <div key={f.label} className="flex items-center gap-2 flex-shrink-0 opacity-60 hover:opacity-100 transition-opacity">
+              <span className="text-neonPink font-black">{f.icon}</span>
+              <div>
+                <div className="text-[9px] font-black tracking-widest text-white">{f.label}</div>
+                <div className="text-[9px] text-white/40">{f.desc}</div>
               </div>
             </div>
-          </div>
-
-          <button
-            onClick={handleDownloadClick}
-            className={`px-8 py-3 rounded font-orbitron text-xs font-bold uppercase tracking-widest transition-all border flex items-center gap-2.5 group shrink-0 ${
-              downloadSuccess
-                ? 'border-green-500 text-green-400 bg-green-500/10 shadow-[0_0_20px_rgba(0,255,0,0.2)]'
-                : 'border-neonCyan text-neonCyan hover:bg-neonCyan hover:text-black hover:scale-105 shadow-[0_0_15px_rgba(0,255,255,0.15)]'
-            }`}
-          >
-            {downloadSuccess ? (
-              <>
-                <Check size={16} /> Decryption Complete!
-              </>
-            ) : (
-              <>
-                <Download size={16} className="group-hover:translate-y-0.5 transition-transform" /> Decrypt &amp; Download PDF
-              </>
-            )}
-          </button>
+          ))}
         </div>
-      </section>
+      </div>
 
-      {/* SEARCH AND CHAPTER DISPLAY */}
-      <section className="pb-24 px-6 max-w-[1280px] mx-auto z-10 relative">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 mt-6 items-start">
-          
-          {/* Left Navigation and Filter Sidebar */}
-          <div className="lg:col-span-1 flex flex-col gap-6 lg:sticky lg:top-[90px]">
-            {/* Search inputs */}
-            <div className="glass-card p-5 border-white/5 shadow-xl flex flex-col gap-3">
-              <label className="text-xs text-gray-400 font-bold uppercase tracking-wider font-orbitron">Database Search</label>
-              <div className="relative">
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={e => setSearchQuery(e.target.value)}
-                  className="w-full bg-[#050508]/80 border border-white/10 focus:border-neonCyan outline-none rounded p-2.5 pl-9 text-xs text-white transition-all font-rajdhani placeholder-gray-600 font-bold"
-                  placeholder="Query chapters..."
-                />
-                <Search className="absolute left-3 top-3 text-gray-600" size={14} />
-              </div>
-            </div>
-
-            {/* Interactive Chapter List */}
-            <div className="glass-card p-5 border-white/5 shadow-xl flex flex-col gap-2">
-              <span className="text-[10px] text-gray-500 font-bold uppercase tracking-widest font-orbitron mb-2 ml-2">
-                Intelligence Chapters
-              </span>
-              <button
-                onClick={() => setActiveTab('all')}
-                className={`w-full py-2.5 px-4 rounded text-left text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-between ${
-                  activeTab === 'all' ? 'bg-neonCyan/10 text-neonCyan border border-neonCyan/30' : 'text-gray-400 hover:bg-white/5'
-                }`}
-              >
-                <span>Show All Folders</span>
-                <BookOpen size={14} />
+      {/* FILTERS */}
+      <div className="max-w-7xl mx-auto px-4 py-6">
+        <div className="glass-card-static rounded-xl p-4 mb-5 border border-white/[0.05]">
+          <input type="text" placeholder="SEARCH VEHICLES, MANUFACTURERS, REAL-LIFE COUNTERPARTS..."
+            value={search} onChange={e => setSearch(e.target.value)}
+            className="w-full bg-transparent text-white text-sm font-bold tracking-wider placeholder-white/25 outline-none pb-2 mb-4"
+            style={{ borderBottom: '1px solid rgba(255,45,120,0.35)' }} />
+          <div className="flex flex-wrap gap-1.5 mb-3">
+            {Object.entries(CLASS_CFG).map(([c, cfg]) => (
+              <button key={c} onClick={() => setCls(c as VClass)}
+                className="text-[9px] px-3 py-1 rounded font-orbitron font-black tracking-wider transition-all border"
+                style={{
+                  color: cls === c ? cfg.color : 'rgba(255,255,255,0.35)',
+                  borderColor: cls === c ? `${cfg.color}70` : 'rgba(255,255,255,0.1)',
+                  background: cls === c ? `${cfg.color}18` : 'transparent',
+                }}>
+                {cfg.icon} {c}
               </button>
-
-              <div className="h-px bg-white/5 my-2" />
-
-              <button
-                onClick={() => setActiveTab('leaks')}
-                className={`w-full py-2.5 px-4 rounded text-left text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-between ${
-                  activeTab === 'leaks' ? 'bg-neonPink/10 text-neonPink border border-neonPink/30 font-orbitron' : 'text-gray-400 hover:bg-white/5 font-orbitron'
-                }`}
-              >
-                <span>CH 01: Leak Intel</span>
-                <ChevronRight size={14} />
-              </button>
-              <button
-                onClick={() => setActiveTab('characters')}
-                className={`w-full py-2.5 px-4 rounded text-left text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-between ${
-                  activeTab === 'characters' ? 'bg-neonCyan/10 text-neonCyan border border-neonCyan/30 font-orbitron' : 'text-gray-400 hover:bg-white/5 font-orbitron'
-                }`}
-              >
-                <span>CH 02: Character Logs</span>
-                <ChevronRight size={14} />
-              </button>
-              <button
-                onClick={() => setActiveTab('weapons')}
-                className={`w-full py-2.5 px-4 rounded text-left text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-between ${
-                  activeTab === 'weapons' ? 'bg-neonOrange/10 text-neonOrange border border-neonOrange/30 font-orbitron' : 'text-gray-400 hover:bg-white/5 font-orbitron'
-                }`}
-              >
-                <span>CH 03: Weapons Grid</span>
-                <ChevronRight size={14} />
-              </button>
-              <button
-                onClick={() => setActiveTab('world')}
-                className={`w-full py-2.5 px-4 rounded text-left text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-between ${
-                  activeTab === 'world' ? 'bg-green-500/10 text-green-400 border border-green-500/30 font-orbitron' : 'text-gray-400 hover:bg-white/5 font-orbitron'
-                }`}
-              >
-                <span>CH 04: Geography Maps</span>
-                <ChevronRight size={14} />
-              </button>
-              <button
-                onClick={() => setActiveTab('engine')}
-                className={`w-full py-2.5 px-4 rounded text-left text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-between ${
-                  activeTab === 'engine' ? 'bg-purple-500/10 text-purple-400 border border-purple-500/30 font-orbitron' : 'text-gray-400 hover:bg-white/5 font-orbitron'
-                }`}
-              >
-                <span>CH 05: RAGE Specs</span>
-                <ChevronRight size={14} />
-              </button>
-            </div>
+            ))}
           </div>
-
-          {/* Right Content area */}
-          <div className="lg:col-span-3 flex flex-col gap-8">
-            {filteredChapters.length === 0 ? (
-              <div className="glass-card p-16 text-center border border-white/5">
-                <FileText size={40} className="text-neonPink mx-auto mb-4 animate-bounce" />
-                <div className="text-white font-orbitron font-extrabold text-lg uppercase tracking-wider">No Chapters Found</div>
-                <p className="text-gray-400 text-xs font-bold uppercase tracking-widest mt-2 max-w-sm mx-auto leading-relaxed">
-                  No decrypted pages match your current search terms inside the GTA VI Database logs.
-                </p>
-              </div>
-            ) : (
-              filteredChapters.map(chapter => (
-                <div
-                  key={chapter.id}
-                  className="glass-card border border-white/5 hover:border-neonCyan transition-all duration-300 p-8 shadow-2xl"
-                >
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/5 pb-4 mb-6">
-                    <div className="flex items-center gap-3">
-                      <span className="font-orbitron font-black text-2xl text-neonCyan neon-text-cyan shrink-0">
-                        {chapter.num}
-                      </span>
-                      <h2 className="font-orbitron font-bold text-xl text-white tracking-wide">
-                        {chapter.title}
-                      </h2>
-                    </div>
-
-                    <span className={`border text-[9px] font-extrabold tracking-widest px-3 py-1 uppercase rounded font-orbitron shrink-0 flex items-center gap-1.5 ${getCategoryBadge(chapter.category)}`}>
-                      {getCategoryIcon(chapter.category)}
-                      {chapter.category}
-                    </span>
-                  </div>
-
-                  <p className="text-xs sm:text-sm text-neonOrange tracking-wide font-orbitron uppercase font-bold mb-6">
-                    Summary: {chapter.summary}
-                  </p>
-
-                  {chapter.image && (
-                    <div className="mb-6 relative group overflow-hidden rounded border border-white/5 shadow-2xl aspect-video max-h-[220px]">
-                      <img
-                        src={chapter.image}
-                        alt={chapter.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 scroll-dynamic-img"
-                        loading="lazy"
-                      />
-                    </div>
-                  )}
-
-                  <div className="space-y-4">
-                    {chapter.details.map((detail, index) => (
-                      <div key={index} className="flex items-start gap-3 text-xs sm:text-sm text-gray-300 leading-relaxed font-semibold font-rajdhani border-l-2 border-neonCyan/20 pl-4 hover:border-neonCyan transition-colors">
-                        {detail}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ))
-            )}
+          <div className="flex flex-wrap gap-2">
+            <select value={maker} onChange={e => setMaker(e.target.value)}
+              className="bg-black/50 border border-white/20 rounded px-3 py-1.5 text-xs text-white/70 font-bold outline-none">
+              {MAKERS.map(m => <option key={m} value={m}>{m}</option>)}
+            </select>
+            <div className="flex gap-1.5">
+              {['All','NEW','RETURNING'].map(s => (
+                <button key={s} onClick={() => setStatus(s)}
+                  className={`text-[9px] px-3 py-1.5 rounded font-orbitron font-black tracking-wider border transition-all ${status===s?'border-neonPink/60 bg-neonPink/15 text-neonPink':'border-white/10 text-white/35 hover:border-white/25'}`}>
+                  {s}
+                </button>
+              ))}
+            </div>
+            <div className="text-[10px] text-white/35 self-center ml-auto font-bold">{filtered.length} / {VEHICLES.length} vehicles</div>
           </div>
-
         </div>
-      </section>
+
+        {filtered.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+            {filtered.map(v => <VehicleCard key={v.id} v={v} onClick={() => setSelected(v)} />)}
+          </div>
+        ) : (
+          <div className="text-center py-16">
+            <div className="font-orbitron text-sm text-white/25 tracking-widest mb-3">NO VEHICLES MATCH YOUR SEARCH</div>
+            <button onClick={() => { setSearch(''); setCls('All'); setMaker('All Makers'); setStatus('All'); }}
+              className="text-[10px] text-neonPink/60 hover:text-neonPink transition-colors font-bold">CLEAR ALL FILTERS</button>
+          </div>
+        )}
+
+        <div className="mt-12 p-5 glass-card-static rounded-xl border border-white/[0.05]">
+          <div className="font-orbitron font-black text-[10px] tracking-widest text-neonCyan mb-3">ABOUT THIS DATABASE</div>
+          <p className="text-white/45 text-xs leading-relaxed">
+            Data sourced from official Rockstar Games trailers, the September 2026 Extended Look, and official pre-order pack descriptions. Vehicle names are community-confirmed from GTA Wiki and GTA Forums.
+            GTA VI features <span className="text-white/70">heavier handling physics</span>, a new <span className="text-white/70">fuel system</span>, tiered <span className="text-white/70">car theft mechanics</span> via the WAINK scanner, and <span className="text-white/70">vehicle trunk storage</span>.
+            All in-game vehicle brands are parodies of real manufacturers and are the intellectual property of Rockstar Games / Take-Two Interactive.
+          </p>
+          <div className="flex flex-wrap gap-3 mt-4">
+            <a href="https://gta.fandom.com/wiki/Vehicles_in_GTA_VI" target="_blank" rel="noreferrer" className="btn-neon btn-neon-sm btn-neon-cyan">GTA WIKI</a>
+            <a href="https://gtaforums.com/" target="_blank" rel="noreferrer" className="btn-neon btn-neon-sm">GTA FORUMS</a>
+            <a href="https://www.gtabase.com/gta-6/vehicles/" target="_blank" rel="noreferrer" className="btn-neon btn-neon-sm">GTABASE.COM</a>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

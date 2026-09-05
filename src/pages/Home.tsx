@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { supa } from '../lib/SupabaseClient';
 import { Play, Flame, ExternalLink, Calendar, MapPin, MessageSquare, ChevronLeft, ChevronRight, Pencil, Trash2, Plus, X } from 'lucide-react';
 import YouTubePlayer from '../components/YouTubePlayer';
+import ViceArcadeGame from '../components/ViceArcadeGame';
 
 interface HomeProps {
   onOpenModal: (id: string, tab?: 'login' | 'register') => void;
@@ -777,60 +778,32 @@ export default function Home({ onOpenModal, session }: HomeProps) {
             </div>
           </div>
 
-          {/* Map Item 2 */}
-          <div className="glass-card overflow-hidden border border-white/5 hover:border-neonCyan shadow-2xl flex flex-col md:flex-row">
-            <div className="w-full md:w-[400px] h-[350px] md:h-auto relative overflow-hidden bg-black/80 border-r border-white/5 flex-shrink-0 cursor-pointer" onClick={() => window.open('https://www.reddit.com/r/GTA6/', '_blank')}>
-              <img src="https://lpglkglhjdqnktybksth.supabase.co/storage/v1/object/public/photos/gta_map.JPG" alt="Leonida Speculate Composite Map" className="w-full h-full object-cover object-center absolute inset-0 hover:scale-105 transition-transform duration-500 scroll-dynamic-img" />
+          {/* PLAY GTA VI RIGHT NOW - Arcade Game Block (replaces old composite map card) */}
+          <div className="glass-card overflow-hidden border border-neonPink/30 hover:border-neonPink shadow-2xl flex flex-col md:flex-row">
+            <div className="w-full md:w-[420px] flex-shrink-0 flex items-center justify-center p-6 bg-black/40 border-r border-white/5">
+              <ViceArcadeGame />
             </div>
-            <div className="p-8 flex flex-col justify-between flex-grow">
+            <div className="p-8 flex flex-col justify-center flex-grow">
               <div>
-                <span className="text-neonPink font-orbitron font-extrabold text-[10px] tracking-widest uppercase">Speculate Build · Reddit u/EliteFireBox</span>
-                <h3 className="font-bold text-2xl text-white font-orbitron tracking-wide mb-3 mt-1">Leonida Composite Map — v3.2</h3>
-                <p className="text-xs text-gray-400 leading-relaxed font-bold mb-6">
-                  Speculative topographical map stitched from over 400 frames of Trailer 1 and Trailer 2, with detailed locations: Mount Kalaga, Ambrosia farming blocks, Hamlet district, Watson Bay, Key Lento, and Port Gellhorn county zones.
+                <span className="text-neonPink font-orbitron font-extrabold text-[10px] tracking-widest uppercase flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-neonPink inline-block animate-pulse" />
+                  Playable Right Now
+                </span>
+                <h3 className="font-bold text-3xl text-white font-orbitron tracking-wide mb-3 mt-1 uppercase">Play <span className="text-neonPink">GTA6</span> Right Now!</h3>
+                <p className="text-xs text-gray-400 leading-relaxed font-bold mb-6 max-w-md">
+                  Can't wait until November? Dodge the LSPD, stack cash, and chase a high score in Vice City Hustle -- our browser-native arcade tribute while you wait for the real thing to drop.
                 </p>
+                <ul className="text-xs text-gray-500 font-bold space-y-1.5">
+                  <li className="flex items-center gap-2"><span className="text-neonCyan">-</span> Arrow keys or tap to dodge traffic</li>
+                  <li className="flex items-center gap-2"><span className="text-neonCyan">-</span> Collect cash for combo multipliers</li>
+                  <li className="flex items-center gap-2"><span className="text-neonCyan">-</span> Speed ramps up the longer you survive</li>
+                  <li className="flex items-center gap-2"><span className="text-neonCyan">-</span> High score saved locally on your device</li>
+                </ul>
               </div>
               <div className="flex flex-wrap items-center justify-between border-t border-white/5 pt-6 mt-6 gap-4">
-                <a href="https://www.reddit.com/r/GTA6/" target="_blank" rel="noopener noreferrer" className="border border-neonPink/30 text-neonPink text-xs font-bold font-orbitron uppercase tracking-widest px-6 py-2.5 rounded hover:bg-neonPink hover:text-black transition-all">View High-Res Reddit Threads ↗</a>
-                <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider font-orbitron">Stitched May 2025</span>
+                <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider font-orbitron">No download. No sign-up. Just vibes.</span>
               </div>
 
-              {/* Map Comments Block */}
-              <div className="mt-8 pt-6 border-t border-white/5">
-                <span className="text-[10px] text-gray-500 uppercase tracking-widest font-extrabold font-orbitron mb-4 block">Speculate Map Intelligence Comments</span>
-                <div className="flex flex-col gap-3 max-h-[220px] overflow-y-auto pr-2 no-scrollbar">
-                  {mapComments.map2?.length === 0 ? (
-                    <div className="text-[10px] text-gray-600 uppercase tracking-widest font-bold font-orbitron py-2">No dispatches logged on Speculate Map B.</div>
-                  ) : (
-                    mapComments.map2?.map((c: any) => (
-                      <div key={c.id} className="bg-[#050508]/60 p-3 rounded border border-white/5 text-xs">
-                        <div className="flex justify-between items-center mb-1 text-[9px] font-extrabold font-orbitron uppercase tracking-widest">
-                          <span className="text-neonCyan">{c.author_name}</span>
-                          <span className="text-gray-600">{new Date(c.created_at).toLocaleDateString()}</span>
-                        </div>
-                        <p className="text-gray-400 font-bold font-rajdhani">{c.body}</p>
-                      </div>
-                    ))
-                  )}
-                </div>
-                <div className="flex gap-2 mt-4">
-                  <input
-                    type="text"
-                    value={newCommentText.map2}
-                    onChange={e => setNewCommentText(prev => ({ ...prev, map2: e.target.value }))}
-                    placeholder={session ? "Transmit speculate intel..." : "Log in to transmit speculate intel dispatches"}
-                    disabled={!session}
-                    className="flex-grow bg-[#050508] border border-white/10 rounded px-4 py-2 text-xs font-bold text-white focus:border-neonCyan outline-none disabled:opacity-50"
-                  />
-                  <button
-                    onClick={() => handleMapCommentSubmit('map2')}
-                    disabled={!session || !newCommentText.map2.trim()}
-                    className="btn-neon btn-neon-cyan !py-2 !px-5 !text-[10px] font-orbitron tracking-widest font-bold uppercase disabled:opacity-50 disabled:hover:bg-transparent disabled:hover:text-neonCyan disabled:hover:shadow-none"
-                  >
-                    Send
-                  </button>
-                </div>
-              </div>
             </div>
           </div>
         </div>
