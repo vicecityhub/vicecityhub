@@ -1,23 +1,23 @@
 import React, { useRef, useEffect, useCallback, useState } from "react";
 
-const W = 320, H = 420, LANES = [72, 160, 248], PY = H - 100;
-const CW = 42, CH = 64, OW = 38, OH = 60, ROADW = 56, SWATW = 50;
+const W = 320, H = 420;
+const HORIZON_Y = 132, PY = H - 76;
+const ROAD_HW_BOTTOM = 116, ROAD_HW_TOP = 5;
+const CAM_DEPTH = 1.7, Z_SPAWN = 24, Z_SPEED_SCALE = 0.05;
+const CENTER_X = W / 2;
 
 type OType = "cop" | "money" | "road" | "swat" | "nitro" | "shield";
-interface Obs { x: number; y: number; lane: number; type: OType; }
+interface Obs3D { x: number; z: number; type: OType; hit: boolean; }
 
-interface LevelDef {
-  min: number; name: string; speedMul: number; spawnMul: number;
-  pool: OType[]; heli: boolean; dual: boolean;
-}
+interface LevelDef { min: number; name: string; speedMul: number; spawnMul: number; pool: OType[]; heli: boolean; dual: boolean; }
 
 const LEVELS: LevelDef[] = [
-  { min: 0,     name: "CRUISING",      speedMul: 1.00, spawnMul: 1.00, pool: ["cop", "money"],                         heli: false, dual: false },
-  { min: 500,   name: "HEAT RISING",   speedMul: 1.18, spawnMul: 1.15, pool: ["cop", "cop", "money"],                  heli: false, dual: false },
-  { min: 2000,  name: "ROADBLOCKS UP", speedMul: 1.35, spawnMul: 1.30, pool: ["cop", "cop", "money", "road"],          heli: false, dual: false },
-  { min: 5000,  name: "AIR SUPPORT",   speedMul: 1.55, spawnMul: 1.45, pool: ["cop", "money", "road"],                 heli: true,  dual: true  },
-  { min: 10000, name: "FULL PURSUIT",  speedMul: 1.75, spawnMul: 1.60, pool: ["cop", "cop", "money", "road", "swat"],  heli: true,  dual: true  },
-  { min: 25000, name: "MAX WANTED",    speedMul: 2.10, spawnMul: 1.80, pool: ["cop", "cop", "money", "road", "swat"],  heli: true,  dual: true  },
+  { min: 0,     name: "CRUISING",      speedMul: 1.00, spawnMul: 1.00, pool: ["cop", "money"],                        heli: false, dual: false },
+  { min: 500,   name: "HEAT RISING",   speedMul: 1.08, spawnMul: 1.06, pool: ["cop", "cop", "money"],                 heli: false, dual: false },
+  { min: 2000,  name: "ROADBLOCKS UP", speedMul: 1.18, spawnMul: 1.13, pool: ["cop", "cop", "money", "road"],         heli: false, dual: true  },
+  { min: 5000,  name: "AIR SUPPORT",   speedMul: 1.30, spawnMul: 1.20, pool: ["cop", "money", "road"],                heli: true,  dual: true  },
+  { min: 10000, name: "FULL PURSUIT",  speedMul: 1.42, spawnMul: 1.28, pool: ["cop", "cop", "money", "road", "swat"], heli: true,  dual: true  },
+  { min: 25000, name: "MAX WANTED",    speedMul: 1.55, spawnMul: 1.35, pool: ["cop", "cop", "money", "road", "swat"], heli: true,  dual: true  },
 ];
 
 function getLevelIdx(score: number): number {
@@ -26,185 +26,209 @@ function getLevelIdx(score: number): number {
   return idx;
 }
 
-const HELI_WARN_FRAMES = 75;
-const HELI_STRIKE_FRAMES = 14;
-const HELI_COOLDOWN_BASE = 420;
+const HELI_WARN_FRAMES = 78, HELI_STRIKE_FRAMES = 15, HELI_COOLDOWN_BASE = 440;
+const MIN_SPAWN_GAP = 46;
+const ZONE_X = [-0.68, 0, 0.68];
 
-function drawPlayerCar(ctx: CanvasRenderingContext2D, x: number, y: number, flash: number, invincible: boolean, shielded: boolean) {
-  const px = x - CW / 2;
+function persp(z: number): number { return CAM_DEPTH / (CAM_DEPTH + Math.max(0, z)); }
+function screenY(z: number): number { return HORIZON_Y + (PY - HORIZON_Y) * persp(z); }
+function roadHalfW(z: number): number { return ROAD_HW_TOP + (ROAD_HW_BOTTOM - ROAD_HW_TOP) * persp(z); }
+function screenX(objX: number, z: number): number { return CENTER_X + objX * roadHalfW(z); }
+function spriteScale(z: number): number { return 0.22 + persp(z) * 1.05; }
+
+function drawScene(ctx: CanvasRenderingContext2D, heat: number, stripeZ: number[], shakeX: number) {
+  const sky = ctx.createLinearGradient(0, 0, 0, HORIZON_Y);
+  sky.addColorStop(0, `rgb(${30+heat*20},${10},${45+heat*10})`);
+  sky.addColorStop(0.6, `rgb(${180+heat*30},${60+heat*20},${110})`);
+  sky.addColorStop(1, `rgb(255,${140+heat*20},${90})`);
+  ctx.fillStyle = sky; ctx.fillRect(0, 0, W, HORIZON_Y);
+
+  ctx.save(); ctx.shadowColor = "#FFAA55"; ctx.shadowBlur = 30;
+  ctx.fillStyle = "rgba(255,190,120,0.9)";
+  ctx.beginPath(); ctx.ellipse(CENTER_X, HORIZON_Y - 6, 34, 34, 0, Math.PI, 0); ctx.fill();
+  ctx.restore();
+
+  ctx.fillStyle = "rgba(20,10,30,0.85)";
+  const bH = [26, 40, 18, 55, 30, 44, 20, 36];
+  let bx = 0;
+  bH.forEach((h, i) => { const bw = W / bH.length + 2; ctx.fillRect(bx + shakeX*0.2, HORIZON_Y - h, bw, h); bx += bw; });
+
+  ctx.fillStyle = "#0a0a14"; ctx.fillRect(0, HORIZON_Y, W, H - HORIZON_Y);
+
+  ctx.beginPath();
+  ctx.moveTo(CENTER_X - ROAD_HW_TOP, HORIZON_Y); ctx.lineTo(CENTER_X + ROAD_HW_TOP, HORIZON_Y);
+  ctx.lineTo(CENTER_X + ROAD_HW_BOTTOM, PY + 30); ctx.lineTo(CENTER_X - ROAD_HW_BOTTOM, PY + 30);
+  ctx.closePath();
+  ctx.fillStyle = "#17171f"; ctx.fill();
+
+  [-1, 1].forEach(side => {
+    ctx.beginPath();
+    ctx.moveTo(CENTER_X + side*ROAD_HW_TOP, HORIZON_Y); ctx.lineTo(CENTER_X + side*(ROAD_HW_TOP+4), HORIZON_Y);
+    ctx.lineTo(CENTER_X + side*(ROAD_HW_BOTTOM+10), PY+30); ctx.lineTo(CENTER_X + side*ROAD_HW_BOTTOM, PY+30);
+    ctx.closePath();
+    ctx.fillStyle = "#FF2D78"; ctx.fill();
+  });
+
+  stripeZ.forEach(z => {
+    if (z <= 0 || z > Z_SPAWN) return;
+    const y = screenY(z); const w = 3 * spriteScale(z);
+    ctx.fillStyle = "rgba(255,255,255,0.55)";
+    ctx.fillRect(CENTER_X - w/2, y, w, Math.max(2, 10*persp(z)));
+  });
+}
+
+function drawPlayerCar(ctx: CanvasRenderingContext2D, sx: number, flash: number, invincible: boolean, shielded: boolean) {
+  const cw = 40, ch = 58, px = sx - cw/2, y = PY - ch + 10;
   ctx.save();
-  const glowColor = invincible ? "#00FFFF" : "#FF2D78";
-  ctx.shadowColor = glowColor; ctx.shadowBlur = invincible ? 24 : 16;
+  const glow = invincible ? "#00FFFF" : "#FF2D78";
+  ctx.shadowColor = glow; ctx.shadowBlur = invincible ? 22 : 15;
   ctx.fillStyle = flash > 0 ? "#fff" : invincible ? "#00CCCC" : "#CC0055";
-  ctx.beginPath(); ctx.roundRect(px+6,y+8,CW-12,CH-16,4); ctx.fill();
+  ctx.beginPath(); ctx.roundRect(px+5, y+6, cw-10, ch-14, 5); ctx.fill();
   ctx.fillStyle = flash > 0 ? "#fdd" : invincible ? "#00FFFF" : "#FF2D78";
-  ctx.beginPath(); ctx.roundRect(px+10,y+18,CW-20,CH-32,3); ctx.fill();
-  ctx.shadowBlur=0; ctx.fillStyle="#111";
-  ([[px+2,y+10],[px+CW-8,y+10],[px+2,y+CH-20],[px+CW-8,y+CH-20]] as number[][]).forEach(([wx,wy])=>ctx.fillRect(wx,wy,6,10));
-  ctx.fillStyle="#FFF176"; ctx.shadowColor="#FFF176"; ctx.shadowBlur=8;
-  ctx.fillRect(px+8,y+CH-12,8,6); ctx.fillRect(px+CW-16,y+CH-12,8,6);
+  ctx.beginPath(); ctx.roundRect(px+9, y+16, cw-18, ch-30, 4); ctx.fill();
+  ctx.shadowBlur = 0; ctx.fillStyle = "#FFF176"; ctx.shadowColor = "#FFF176"; ctx.shadowBlur = 8;
+  ctx.fillRect(px+7, y+ch-11, 7, 5); ctx.fillRect(px+cw-14, y+ch-11, 7, 5);
   if (shielded) {
-    ctx.strokeStyle = "rgba(0,200,255,0.85)"; ctx.lineWidth = 3; ctx.shadowColor="#00c8ff"; ctx.shadowBlur=14;
-    ctx.beginPath(); ctx.ellipse(x, y+CH/2, CW/2+9, CH/2+10, 0, 0, Math.PI*2); ctx.stroke();
+    ctx.strokeStyle = "rgba(0,200,255,0.85)"; ctx.lineWidth = 3; ctx.shadowColor = "#00c8ff"; ctx.shadowBlur = 14;
+    ctx.beginPath(); ctx.ellipse(sx, y+ch/2, cw/2+10, ch/2+11, 0, 0, Math.PI*2); ctx.stroke();
   }
   ctx.restore();
 }
 
-function drawCop(ctx: CanvasRenderingContext2D, x: number, y: number, frame: number) {
-  const px = x - OW/2;
+function drawCop(ctx: CanvasRenderingContext2D, sx: number, z: number, frame: number) {
+  const sc = spriteScale(z), sy = screenY(z);
+  const w = 34*sc, h = 52*sc, px = sx - w/2, y = sy - h;
   ctx.save();
-  ctx.shadowColor=frame%20<10?"#00f":"#f00"; ctx.shadowBlur=14;
-  ctx.fillStyle="#1a1aff"; ctx.beginPath(); ctx.roundRect(px+5,y+6,OW-10,OH-12,4); ctx.fill();
-  ctx.fillStyle="#fff"; ctx.beginPath(); ctx.roundRect(px+8,y+14,OW-16,OH-26,3); ctx.fill();
-  ctx.fillStyle=frame%20<10?"#FF0000":"#0000FF"; ctx.fillRect(px+8,y+6,OW-16,6);
-  ctx.shadowBlur=0; ctx.fillStyle="#111";
-  ([[px,y+8],[px+OW-6,y+8],[px,y+OH-18],[px+OW-6,y+OH-18]] as number[][]).forEach(([wx,wy])=>ctx.fillRect(wx,wy,6,10));
+  ctx.shadowColor = frame%20<10 ? "#00f" : "#f00"; ctx.shadowBlur = 12*sc;
+  ctx.fillStyle = "#1a1aff"; ctx.beginPath(); ctx.roundRect(px+w*0.13, y+h*0.1, w*0.74, h*0.8, 4*sc); ctx.fill();
+  ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.roundRect(px+w*0.22, y+h*0.24, w*0.56, h*0.52, 3*sc); ctx.fill();
+  ctx.fillStyle = frame%20<10 ? "#FF0000" : "#0000FF"; ctx.fillRect(px+w*0.22, y+h*0.1, w*0.56, h*0.1);
   ctx.restore();
 }
 
-function drawSwat(ctx: CanvasRenderingContext2D, x: number, y: number, frame: number) {
-  const px = x - SWATW/2;
+function drawSwat(ctx: CanvasRenderingContext2D, sx: number, z: number, frame: number) {
+  const sc = spriteScale(z), sy = screenY(z);
+  const w = 46*sc, h = 54*sc, px = sx - w/2, y = sy - h;
   ctx.save();
-  ctx.shadowColor = frame%16<8?"#ff3300":"#0033ff"; ctx.shadowBlur = 16;
-  ctx.fillStyle = "#1a2e1a";
-  ctx.beginPath(); ctx.roundRect(px+3,y+4,SWATW-6,OH-6,5); ctx.fill();
-  ctx.fillStyle = "#2a3e2a";
-  ctx.beginPath(); ctx.roundRect(px+6,y+12,SWATW-12,OH-24,3); ctx.fill();
-  ctx.fillStyle = frame%16<8 ? "#ff3300" : "#0033ff";
-  ctx.fillRect(px+6,y+4,SWATW-12,5);
-  ctx.shadowBlur=0; ctx.fillStyle="#fff176"; ctx.font="bold 9px monospace"; ctx.textAlign="center";
-  ctx.fillText("SWAT", x, y+OH/2+8);
-  ctx.fillStyle="#000";
-  ([[px,y+6],[px+SWATW-7,y+6],[px,y+OH-16],[px+SWATW-7,y+OH-16]] as number[][]).forEach(([wx,wy])=>ctx.fillRect(wx,wy,7,11));
+  ctx.shadowColor = frame%16<8 ? "#ff3300" : "#0033ff"; ctx.shadowBlur = 14*sc;
+  ctx.fillStyle = "#1a2e1a"; ctx.beginPath(); ctx.roundRect(px+w*0.06, y+h*0.06, w*0.88, h*0.86, 5*sc); ctx.fill();
+  ctx.fillStyle = "#2a3e2a"; ctx.beginPath(); ctx.roundRect(px+w*0.16, y+h*0.2, w*0.68, h*0.5, 3*sc); ctx.fill();
+  ctx.fillStyle = frame%16<8 ? "#ff3300" : "#0033ff"; ctx.fillRect(px+w*0.16, y+h*0.06, w*0.68, h*0.08);
+  if (sc > 0.5) { ctx.shadowBlur = 0; ctx.fillStyle = "#fff176"; ctx.font = `bold ${Math.round(9*sc)}px monospace`; ctx.textAlign = "center"; ctx.fillText("SWAT", sx, y+h*0.55); }
   ctx.restore();
 }
 
-function drawRoadblock(ctx: CanvasRenderingContext2D, x: number, y: number) {
-  const px = x - ROADW/2;
-  ctx.save();
-  ctx.shadowColor = "#FFD700"; ctx.shadowBlur = 10;
-  ctx.fillStyle = "#1a1a1a";
-  ctx.fillRect(px, y+14, ROADW, 16);
-  for (let i = 0; i < ROADW; i += 12) {
-    ctx.fillStyle = ((i/12)|0) % 2 === 0 ? "#FFD700" : "#111";
+function drawRoadblock(ctx: CanvasRenderingContext2D, z: number) {
+  const sc = spriteScale(z), sy = screenY(z), hw = roadHalfW(z) * 0.94;
+  const y = sy - 20*sc, h = 18*sc;
+  ctx.save(); ctx.shadowColor = "#FFD700"; ctx.shadowBlur = 8*sc;
+  ctx.fillStyle = "#1a1a1a"; ctx.fillRect(CENTER_X-hw, y, hw*2, h);
+  const seg = Math.max(6, 14*sc);
+  for (let i = -hw; i < hw; i += seg) {
+    ctx.fillStyle = (((i+hw)/seg)|0) % 2 === 0 ? "#FFD700" : "#111";
     ctx.beginPath();
-    ctx.moveTo(px+i, y+30); ctx.lineTo(px+i+8, y+14); ctx.lineTo(px+i+14, y+14); ctx.lineTo(px+i+6, y+30);
+    ctx.moveTo(CENTER_X+i, y+h); ctx.lineTo(CENTER_X+i+seg*0.55, y); ctx.lineTo(CENTER_X+i+seg*0.9, y); ctx.lineTo(CENTER_X+i+seg*0.35, y+h);
     ctx.closePath(); ctx.fill();
   }
   ctx.restore();
 }
 
-function drawMoney(ctx: CanvasRenderingContext2D, x: number, y: number) {
-  ctx.save(); ctx.shadowColor="#FFE135"; ctx.shadowBlur=10; ctx.fillStyle="#FFE135";
-  ctx.beginPath(); ctx.arc(x,y+16,14,0,Math.PI*2); ctx.fill();
-  ctx.fillStyle="#1a1a00"; ctx.font="bold 14px monospace"; ctx.textAlign="center"; ctx.fillText("$",x,y+21);
-  ctx.restore();
-}
-
-function drawNitro(ctx: CanvasRenderingContext2D, x: number, y: number, frame: number) {
+function drawPickup(ctx: CanvasRenderingContext2D, sx: number, z: number, kind: "money"|"nitro"|"shield", frame: number) {
+  const sc = spriteScale(z), sy = screenY(z), r = 13*sc;
   ctx.save();
-  const pulse = 1 + Math.sin(frame*0.3)*0.12;
-  ctx.shadowColor="#00FFFF"; ctx.shadowBlur=16;
-  ctx.fillStyle="#00CCCC";
-  ctx.beginPath(); ctx.arc(x,y+16,14*pulse,0,Math.PI*2); ctx.fill();
-  ctx.fillStyle="#00332e"; ctx.font="bold 16px monospace"; ctx.textAlign="center"; ctx.fillText("N",x,y+21);
-  ctx.restore();
-}
-
-function drawShieldPickup(ctx: CanvasRenderingContext2D, x: number, y: number) {
-  ctx.save();
-  ctx.shadowColor="#4488ff"; ctx.shadowBlur=14;
-  ctx.fillStyle="#2255cc";
-  ctx.beginPath(); ctx.arc(x,y+16,14,0,Math.PI*2); ctx.fill();
-  ctx.strokeStyle="#aaddff"; ctx.lineWidth=2;
-  ctx.beginPath(); ctx.ellipse(x,y+16,7,9,0,0,Math.PI*2); ctx.stroke();
+  const col = kind==="money" ? "#FFE135" : kind==="nitro" ? "#00CCCC" : "#2255cc";
+  ctx.shadowColor = col; ctx.shadowBlur = 10*sc;
+  const pulse = kind==="nitro" ? 1+Math.sin(frame*0.3)*0.12 : 1;
+  ctx.fillStyle = col;
+  ctx.beginPath(); ctx.arc(sx, sy-r, r*pulse, 0, Math.PI*2); ctx.fill();
+  if (sc > 0.35) {
+    ctx.fillStyle = kind==="money" ? "#1a1a00" : "#001a1a";
+    ctx.font = `bold ${Math.round(13*sc)}px monospace`; ctx.textAlign = "center";
+    ctx.fillText(kind==="money" ? "$" : kind==="nitro" ? "N" : "S", sx, sy-r+5*sc);
+  }
   ctx.restore();
 }
 
 export default function ViceArcadeGame() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const held = useRef({ left: false, right: false });
   const st = useRef({
-    lane: 1, targetLane: 1, laneX: LANES[1],
-    obs: [] as Obs[],
-    score: 0, lives: 3, speed: 2.8, frame: 0,
+    playerX: 0, obs: [] as Obs3D[],
+    score: 0, lives: 3, speed: 2.4, frame: 0,
     flashTimer: 0, gameOver: false, started: false,
     highScore: parseInt(typeof localStorage !== "undefined" ? localStorage.getItem("vch_hi") || "0" : "0"),
-    spawnTimer: 0, roadOffset: 0, combo: 0,
+    spawnTimer: 0, combo: 0,
     level: 0, levelBannerTimer: 0, graceTimer: 0,
     invincibleTimer: 0, shielded: false,
-    heliLane: -1, heliPhase: "idle" as "idle"|"warn"|"strike", heliTimer: 0, heliCooldown: HELI_COOLDOWN_BASE, heliHit: false,
+    heliZone: -1, heliPhase: "idle" as "idle"|"warn"|"strike", heliTimer: 0, heliCooldown: HELI_COOLDOWN_BASE, heliHit: false,
+    stripeZ: [3,6,9,12,15,18,21,24],
+    offRoad: 0,
   });
-  const [disp, setDisp] = useState({ score: 0, lives: 3, gameOver: false, started: false, combo: 0, levelName: "CRUISING", shielded: false, nitro: false });
+  const [disp, setDisp] = useState({ score: 0, lives: 3, gameOver: false, started: false, combo: 0, levelName: "CRUISING", shielded: false, nitro: false, mph: 0 });
   const rafRef = useRef<number>(0);
   const getStars = (s: number) => s>=25000?5:s>=10000?4:s>=5000?3:s>=2000?2:s>=500?1:0;
 
   const reset = useCallback(() => {
     const s = st.current;
     Object.assign(s, {
-      lane:1, targetLane:1, laneX:LANES[1], obs:[], score:0, lives:3, speed:2.8, frame:0,
-      flashTimer:0, gameOver:false, started:true, spawnTimer:0, combo:0,
-      level:0, levelBannerTimer:0, graceTimer:0, invincibleTimer:0, shielded:false,
-      heliLane:-1, heliPhase:"idle", heliTimer:0, heliCooldown:HELI_COOLDOWN_BASE, heliHit:false,
+      playerX: 0, obs: [], score: 0, lives: 3, speed: 2.4, frame: 0,
+      flashTimer: 0, gameOver: false, started: true, spawnTimer: 0, combo: 0,
+      level: 0, levelBannerTimer: 0, graceTimer: 0, invincibleTimer: 0, shielded: false,
+      heliZone: -1, heliPhase: "idle", heliTimer: 0, heliCooldown: HELI_COOLDOWN_BASE, heliHit: false,
+      offRoad: 0,
     });
-    setDisp({ score:0, lives:3, gameOver:false, started:true, combo:0, levelName:"CRUISING", shielded:false, nitro:false });
+    setDisp({ score:0, lives:3, gameOver:false, started:true, combo:0, levelName:"CRUISING", shielded:false, nitro:false, mph:0 });
   }, []);
 
-  const moveLeft  = useCallback(() => { const s=st.current; if (s.targetLane>0 && !s.gameOver && s.started) s.targetLane--; }, []);
-  const moveRight = useCallback(() => { const s=st.current; if (s.targetLane<2 && !s.gameOver && s.started) s.targetLane++; }, []);
-
-  const handleKey = useCallback((e: KeyboardEvent) => {
-    if (e.key==="ArrowLeft"||e.key==="a") { e.preventDefault(); moveLeft(); }
-    if (e.key==="ArrowRight"||e.key==="d") { e.preventDefault(); moveRight(); }
+  const handleKeyDown = useCallback((e: KeyboardEvent) => {
+    if (e.key==="ArrowLeft"||e.key==="a") { e.preventDefault(); held.current.left = true; }
+    if (e.key==="ArrowRight"||e.key==="d") { e.preventDefault(); held.current.right = true; }
     if ((e.key===" "||e.key==="Enter") && (st.current.gameOver||!st.current.started)) reset();
-  }, [moveLeft, moveRight, reset]);
-
-  const handleTouch = useCallback((e: TouchEvent) => {
+  }, [reset]);
+  const handleKeyUp = useCallback((e: KeyboardEvent) => {
+    if (e.key==="ArrowLeft"||e.key==="a") held.current.left = false;
+    if (e.key==="ArrowRight"||e.key==="d") held.current.right = false;
+  }, []);
+  const handleTouchStart = useCallback((e: TouchEvent) => {
     e.preventDefault();
-    const t = e.changedTouches[0];
-    const rect = canvasRef.current!.getBoundingClientRect();
     if (!st.current.started || st.current.gameOver) { reset(); return; }
-    (t.clientX - rect.left) < W/2 ? moveLeft() : moveRight();
-  }, [moveLeft, moveRight, reset]);
+    const t = e.changedTouches[0]; const rect = canvasRef.current!.getBoundingClientRect();
+    if ((t.clientX - rect.left) < W/2) held.current.left = true; else held.current.right = true;
+  }, [reset]);
+  const handleTouchEnd = useCallback((e: TouchEvent) => { e.preventDefault(); held.current.left = false; held.current.right = false; }, []);
 
   useEffect(() => {
     const canvas = canvasRef.current; if (!canvas) return;
     const ctx = canvas.getContext("2d")!;
-    window.addEventListener("keydown", handleKey);
-    canvas.addEventListener("touchstart", handleTouch, { passive: false });
+    window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("keyup", handleKeyUp);
+    canvas.addEventListener("touchstart", handleTouchStart, { passive: false });
+    canvas.addEventListener("touchend", handleTouchEnd, { passive: false });
 
     function loop() {
       const s = st.current;
       const lvl = LEVELS[s.level];
-      ctx.clearRect(0, 0, W, H);
-
       const heat = s.level / (LEVELS.length - 1);
-      ctx.fillStyle = `rgb(${10+heat*18},${10},${20+heat*6})`;
-      ctx.fillRect(0, 0, W, H);
-      ctx.fillStyle = "#111122"; ctx.fillRect(30, 0, W-60, H);
-      ctx.fillStyle = "#1a1a2e"; ctx.fillRect(0, 0, 30, H); ctx.fillRect(W-30, 0, 30, H);
-
-      if (s.started && !s.gameOver) s.roadOffset = (s.roadOffset + s.speed*0.8) % 60;
-      ctx.strokeStyle = "rgba(255,255,255,0.12)"; ctx.lineWidth = 2; ctx.setLineDash([30,30]);
-      ctx.lineDashOffset = -s.roadOffset;
-      [116,204].forEach(lx => { ctx.beginPath(); ctx.moveTo(lx,0); ctx.lineTo(lx,H); ctx.stroke(); });
-      ctx.setLineDash([]);
+      const shakeX = s.offRoad > 0 ? (Math.random()-0.5) * 4 : 0;
+      ctx.clearRect(0, 0, W, H);
+      drawScene(ctx, heat, s.stripeZ, shakeX);
 
       if (!s.started) {
-        ctx.fillStyle = "rgba(0,0,0,0.75)"; ctx.fillRect(0,0,W,H);
+        ctx.fillStyle = "rgba(0,0,0,0.72)"; ctx.fillRect(0,0,W,H);
         ctx.textAlign="center"; ctx.shadowColor="#FF2D78"; ctx.shadowBlur=20;
-        ctx.fillStyle="#FF2D78"; ctx.font="bold 20px monospace"; ctx.fillText("VICE CITY HUSTLE", W/2, H/2-60);
+        ctx.fillStyle="#FF2D78"; ctx.font="bold 19px monospace"; ctx.fillText("VICE CITY HUSTLE", W/2, H/2-64);
         ctx.shadowBlur=0; ctx.fillStyle="#aaa"; ctx.font="11px monospace";
-        ctx.fillText("ARROWS / TAP TO DODGE", W/2, H/2-30);
-        ctx.fillText("6 WANTED LEVELS. SURVIVE.", W/2, H/2-12);
+        ctx.fillText("HOLD ARROWS / TAP+HOLD TO STEER", W/2, H/2-34);
+        ctx.fillText("6 WANTED LEVELS - ALWAYS A WAY THROUGH", W/2, H/2-16);
         ctx.fillStyle="#00FFFF"; ctx.font="10px monospace";
-        ctx.fillText("N=NITRO  SHIELD=1 FREE HIT  CHOPPER=DODGE LANE", W/2, H/2+10);
-        ctx.fillStyle="#FFE135"; ctx.font="bold 12px monospace"; ctx.fillText("[ TAP OR PRESS SPACE TO START ]", W/2, H/2+42);
-        if (s.highScore>0) { ctx.fillStyle="#00FFFF"; ctx.font="11px monospace"; ctx.fillText("BEST: $"+s.highScore.toLocaleString(), W/2, H/2+65); }
+        ctx.fillText("N=NITRO  BLUE=SHIELD  RED LANE=CHOPPER STRIKE", W/2, H/2+6);
+        ctx.fillStyle="#FFE135"; ctx.font="bold 12px monospace"; ctx.fillText("[ TAP OR PRESS SPACE ]", W/2, H/2+36);
+        if (s.highScore>0) { ctx.fillStyle="#00FFFF"; ctx.font="11px monospace"; ctx.fillText("BEST: $"+s.highScore.toLocaleString(), W/2, H/2+58); }
         rafRef.current = requestAnimationFrame(loop); return;
       }
 
       if (s.gameOver) {
-        ctx.fillStyle="rgba(0,0,0,0.78)"; ctx.fillRect(0,0,W,H);
+        ctx.fillStyle="rgba(0,0,0,0.76)"; ctx.fillRect(0,0,W,H);
         ctx.textAlign="center"; ctx.shadowColor="#FF2D78"; ctx.shadowBlur=20;
         ctx.fillStyle="#FF2D78"; ctx.font="bold 22px monospace"; ctx.fillText("BUSTED!", W/2, H/2-58);
         ctx.shadowBlur=0; ctx.fillStyle="#fff"; ctx.font="bold 14px monospace"; ctx.fillText("$"+s.score.toLocaleString(), W/2, H/2-24);
@@ -218,131 +242,131 @@ export default function ViceArcadeGame() {
       }
 
       s.frame++;
-      if (s.frame % 480 === 0) s.speed = Math.min(s.speed + 0.45, 11);
-      const scoreGain = (s.invincibleTimer > 0 ? 2 : 1) * Math.floor(s.speed * 0.5 + 0.5);
+      if (s.frame % 600 === 0) s.speed = Math.min(s.speed + 0.16, 5.4);
+      const effSpeed = s.speed * lvl.speedMul;
+      const scoreGain = (s.invincibleTimer>0 ? 2 : 1) * Math.floor(effSpeed*0.5+0.5);
       s.score += scoreGain;
-      s.laneX += (LANES[s.targetLane] - s.laneX) * 0.18;
-      if (s.flashTimer > 0) s.flashTimer--;
-      if (s.graceTimer > 0) s.graceTimer--;
-      if (s.invincibleTimer > 0) s.invincibleTimer--;
+
+      const STEER = 0.048;
+      if (held.current.left) s.playerX -= STEER;
+      if (held.current.right) s.playerX += STEER;
+      s.playerX = Math.max(-1.35, Math.min(1.35, s.playerX));
+      s.offRoad = Math.abs(s.playerX) > 1 ? 1 : 0;
+      const effSpeedRoad = effSpeed * (s.offRoad ? 0.82 : 1);
+
+      if (s.flashTimer>0) s.flashTimer--;
+      if (s.graceTimer>0) s.graceTimer--;
+      if (s.invincibleTimer>0) s.invincibleTimer--;
 
       const newLevel = getLevelIdx(s.score);
-      if (newLevel > s.level) {
-        s.level = newLevel; s.levelBannerTimer = 90; s.graceTimer = 60;
-        setDisp(d => ({ ...d, levelName: LEVELS[newLevel].name }));
-      }
-      if (s.levelBannerTimer > 0) s.levelBannerTimer--;
+      if (newLevel > s.level) { s.level = newLevel; s.levelBannerTimer = 90; s.graceTimer = 70; setDisp(d=>({...d, levelName: LEVELS[newLevel].name})); }
+      if (s.levelBannerTimer>0) s.levelBannerTimer--;
 
-      const effSpeed = s.speed * lvl.speedMul;
+      s.stripeZ = s.stripeZ.map(z => { const nz = z - effSpeedRoad*Z_SPEED_SCALE*1.4; return nz <= 0 ? nz + Z_SPAWN : nz; });
+
       s.spawnTimer++;
-      const rate = Math.max(22, 90 - effSpeed * 7) / lvl.spawnMul;
+      const rawRate = Math.max(50, 105 - effSpeed*5.5);
+      const rate = Math.max(MIN_SPAWN_GAP, rawRate / lvl.spawnMul);
       if (s.spawnTimer >= rate) {
         s.spawnTimer = 0;
-        const wantDual = lvl.dual && Math.random() < 0.3;
-        const spawnCount = wantDual ? 2 : 1;
-        for (let n = 0; n < spawnCount; n++) {
-          const avail = [0,1,2].filter(l => !s.obs.some(o => o.lane===l && o.y<130));
-          if (avail.length === 0) continue;
-          const lane = avail[Math.floor(Math.random()*avail.length)];
+        const dual = lvl.dual && Math.random() < 0.22;
+        const zoneIdxs = [0,1,2].sort(() => Math.random()-0.5);
+        const useZones = dual ? zoneIdxs.slice(0,2) : zoneIdxs.slice(0,1);
+        useZones.forEach((zi, n) => {
           const roll = Math.random();
           let type: OType;
-          if (roll < 0.05) type = "nitro";
-          else if (roll < 0.09) type = "shield";
-          else if (roll < 0.30) type = "money";
-          else { const pool = lvl.pool.filter(t => t!=="money"); type = pool[Math.floor(Math.random()*pool.length)] || "cop"; }
-          s.obs.push({ x: LANES[lane], y: -80, lane, type });
-        }
+          if (roll < 0.055) type = "nitro";
+          else if (roll < 0.095) type = "shield";
+          else if (roll < 0.34) type = "money";
+          else if (dual && n===1) { type = Math.random()<0.6 ? "cop" : "money"; }
+          else { const pool = lvl.pool.filter(t=>t!=="money"); type = pool[Math.floor(Math.random()*pool.length)] || "cop"; }
+          s.obs.push({ x: ZONE_X[zi], z: Z_SPAWN, type, hit: false });
+        });
       }
 
       if (lvl.heli) {
         if (s.heliPhase === "idle") {
           s.heliCooldown--;
-          if (s.heliCooldown <= 0) { s.heliPhase="warn"; s.heliLane = Math.floor(Math.random()*3); s.heliTimer = HELI_WARN_FRAMES; s.heliHit=false; }
+          if (s.heliCooldown <= 0) { s.heliPhase="warn"; s.heliZone = Math.floor(Math.random()*3); s.heliTimer = HELI_WARN_FRAMES; s.heliHit = false; }
         } else if (s.heliPhase === "warn") {
           s.heliTimer--;
           if (s.heliTimer <= 0) { s.heliPhase="strike"; s.heliTimer = HELI_STRIKE_FRAMES; }
         } else if (s.heliPhase === "strike") {
           if (!s.heliHit) {
             s.heliHit = true;
+            const playerZone = s.playerX < -0.34 ? 0 : s.playerX > 0.34 ? 2 : 1;
             const invuln = s.invincibleTimer>0 || s.graceTimer>0;
-            if (s.targetLane === s.heliLane && !invuln) {
+            if (playerZone === s.heliZone && !invuln) {
               if (s.shielded) { s.shielded=false; s.flashTimer=20; setDisp(d=>({...d,shielded:false})); }
               else {
                 s.lives--; s.combo=0; s.flashTimer=45;
                 if (s.lives<=0) { s.gameOver=true; if (s.score>s.highScore){s.highScore=s.score;localStorage.setItem("vch_hi",String(s.score));} setDisp(d=>({...d,lives:0,gameOver:true})); }
                 else setDisp(d=>({...d,lives:s.lives}));
               }
-            } else if (s.targetLane !== s.heliLane) { s.score += 300; }
+            } else if (playerZone !== s.heliZone) { s.score += 300; }
           }
           s.heliTimer--;
-          if (s.heliTimer <= 0) { s.heliPhase="idle"; s.heliLane=-1; s.heliCooldown = Math.max(220, HELI_COOLDOWN_BASE - s.level*40); }
+          if (s.heliTimer <= 0) { s.heliPhase="idle"; s.heliZone=-1; s.heliCooldown = Math.max(260, HELI_COOLDOWN_BASE - s.level*30); }
         }
       }
 
+      const playerSX = screenX(s.playerX, 0) + shakeX;
+      s.obs.sort((a,b) => b.z - a.z);
       for (let i = s.obs.length - 1; i >= 0; i--) {
         const o = s.obs[i];
-        const mul = o.type==="money" ? 0.7 : o.type==="road" ? 0.85 : o.type==="swat" ? 0.9 : o.type==="nitro"||o.type==="shield" ? 0.75 : 1;
-        o.y += effSpeed * mul;
-        if (o.y > H + 80) { s.obs.splice(i,1); continue; }
+        const zSpeedMul = o.type==="money"||o.type==="nitro"||o.type==="shield" ? 0.82 : o.type==="road" ? 0.95 : 1;
+        o.z -= effSpeedRoad * Z_SPEED_SCALE * zSpeedMul;
 
-        const hitboxW = o.type==="road" ? ROADW : o.type==="swat" ? SWATW : OW;
-        const dx = Math.abs(o.x - s.laneX), dy = Math.abs(o.y+30 - PY-32);
-        const hit = dx < (hitboxW/2 + 12) && dy < 36;
-        if (!hit) {
-          if (o.type==="cop") drawCop(ctx, o.x, o.y, s.frame);
-          else if (o.type==="swat") drawSwat(ctx, o.x, o.y, s.frame);
-          else if (o.type==="road") drawRoadblock(ctx, o.x, o.y);
-          else if (o.type==="money") drawMoney(ctx, o.x, o.y);
-          else if (o.type==="nitro") drawNitro(ctx, o.x, o.y, s.frame);
-          else if (o.type==="shield") drawShieldPickup(ctx, o.x, o.y);
-          continue;
+        if (o.z <= 0.4 && !o.hit) {
+          o.hit = true;
+          const hitTol = o.type==="road" ? 0.46 : o.type==="swat" ? 0.42 : 0.32;
+          const dist = Math.abs(o.x - s.playerX);
+          const collided = dist < hitTol;
+          if (collided) {
+            if (o.type === "money") { s.score += 500 + s.combo*50; s.combo++; setDisp(d=>({...d,score:s.score,combo:s.combo})); }
+            else if (o.type === "nitro") { s.invincibleTimer = 200; s.score += 200; setDisp(d=>({...d,nitro:true})); }
+            else if (o.type === "shield") { s.shielded = true; s.score += 200; setDisp(d=>({...d,shielded:true})); }
+            else {
+              const invuln = s.invincibleTimer>0 || s.graceTimer>0;
+              if (invuln) { s.score += 150; }
+              else if (s.shielded) { s.shielded=false; s.flashTimer=20; setDisp(d=>({...d,shielded:false})); }
+              else {
+                s.lives--; s.combo=0; s.flashTimer = o.type==="swat"||o.type==="road" ? 55 : 40;
+                if (s.lives<=0) { s.gameOver=true; if (s.score>s.highScore){s.highScore=s.score;localStorage.setItem("vch_hi",String(s.score));} setDisp(d=>({...d,lives:0,gameOver:true})); }
+                else setDisp(d=>({...d,lives:s.lives}));
+              }
+            }
+          } else if (o.type !== "money" && o.type !== "nitro" && o.type !== "shield") { s.score += 40; }
         }
+        if (o.z < -1.5) { s.obs.splice(i,1); continue; }
 
-        if (o.type === "money") {
-          s.score += 500 + s.combo*50; s.combo++; s.obs.splice(i,1);
-          setDisp(d => ({ ...d, score: s.score, combo: s.combo })); continue;
-        }
-        if (o.type === "nitro") {
-          s.invincibleTimer = 210; s.obs.splice(i,1); s.score += 200;
-          setDisp(d => ({ ...d, nitro: true })); continue;
-        }
-        if (o.type === "shield") {
-          s.shielded = true; s.obs.splice(i,1); s.score += 200;
-          setDisp(d => ({ ...d, shielded: true })); continue;
-        }
-
-        const invuln = s.invincibleTimer>0 || s.graceTimer>0;
-        s.obs.splice(i,1);
-        if (invuln) { s.score += 150; continue; }
-        if (s.shielded) { s.shielded=false; s.flashTimer=20; setDisp(d=>({...d,shielded:false})); continue; }
-        s.lives--; s.combo=0; s.flashTimer = o.type==="swat"||o.type==="road" ? 55 : 40;
-        if (s.lives<=0) {
-          s.gameOver=true;
-          if (s.score>s.highScore){s.highScore=s.score;localStorage.setItem("vch_hi",String(s.score));}
-          setDisp(d=>({...d,lives:0,gameOver:true}));
-        } else setDisp(d=>({...d,lives:s.lives}));
+        const sx = screenX(o.x, o.z) + shakeX*persp(o.z);
+        if (o.type==="cop") drawCop(ctx, sx, o.z, s.frame);
+        else if (o.type==="swat") drawSwat(ctx, sx, o.z, s.frame);
+        else if (o.type==="road") drawRoadblock(ctx, o.z);
+        else drawPickup(ctx, sx, o.z, o.type, s.frame);
       }
       if (s.invincibleTimer <= 0) setDisp(d => d.nitro ? {...d, nitro:false} : d);
 
-      if (s.heliPhase === "warn" && s.heliLane >= 0) {
-        const lx = LANES[s.heliLane];
+      if (s.heliPhase === "warn" && s.heliZone >= 0) {
+        const zx = ZONE_X[s.heliZone]; const bx = screenX(zx, 0.4);
         const pulse = Math.abs(Math.sin(s.frame*0.25));
-        ctx.fillStyle = `rgba(255,50,50,${0.15+pulse*0.2})`;
-        ctx.fillRect(lx-32, 30, 64, PY+40);
-        ctx.strokeStyle = `rgba(255,60,60,${0.5+pulse*0.4})`; ctx.lineWidth=2; ctx.setLineDash([6,4]);
-        ctx.strokeRect(lx-32, 30, 64, PY+40); ctx.setLineDash([]);
-        ctx.save(); ctx.shadowColor="#ff3333"; ctx.shadowBlur=12;
-        ctx.fillStyle="#222"; ctx.beginPath(); ctx.ellipse(lx, 20, 20, 8, 0, 0, Math.PI*2); ctx.fill();
-        ctx.strokeStyle="#ff3333"; ctx.lineWidth=2;
-        ctx.beginPath(); ctx.moveTo(lx-26,20); ctx.lineTo(lx+26,20); ctx.stroke();
+        ctx.fillStyle = `rgba(255,50,50,${0.15+pulse*0.22})`;
+        ctx.beginPath();
+        ctx.moveTo(CENTER_X+(zx-0.32)*ROAD_HW_TOP*0.6, HORIZON_Y+4); ctx.lineTo(CENTER_X+(zx+0.32)*ROAD_HW_TOP*0.6, HORIZON_Y+4);
+        ctx.lineTo(bx+34, PY+26); ctx.lineTo(bx-34, PY+26); ctx.closePath(); ctx.fill();
+        ctx.save(); ctx.shadowColor="#ff3333"; ctx.shadowBlur=10;
+        ctx.fillStyle="#222"; ctx.beginPath(); ctx.ellipse(CENTER_X+zx*30, 18, 18, 7, 0, 0, Math.PI*2); ctx.fill();
+        ctx.strokeStyle="#ff3333"; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(CENTER_X+zx*30-24,18); ctx.lineTo(CENTER_X+zx*30+24,18); ctx.stroke();
         ctx.restore();
-      } else if (s.heliPhase === "strike" && s.heliLane >= 0) {
-        const lx = LANES[s.heliLane];
-        ctx.fillStyle = "rgba(255,255,255,0.55)";
-        ctx.fillRect(lx-32, 0, 64, H);
+      } else if (s.heliPhase === "strike" && s.heliZone >= 0) {
+        const zx = ZONE_X[s.heliZone]; const bx = screenX(zx, 0.4);
+        ctx.fillStyle = "rgba(255,255,255,0.5)";
+        ctx.beginPath(); ctx.moveTo(CENTER_X+zx*8, HORIZON_Y); ctx.lineTo(bx+34, PY+26); ctx.lineTo(bx-34, PY+26); ctx.closePath(); ctx.fill();
       }
 
-      drawPlayerCar(ctx, s.laneX, PY, s.flashTimer, s.invincibleTimer>0, s.shielded);
+      drawPlayerCar(ctx, playerSX, s.flashTimer, s.invincibleTimer>0, s.shielded);
+      if (s.offRoad) { ctx.fillStyle="rgba(255,255,255,0.06)"; ctx.fillRect(0,0,W,H); }
 
       ctx.fillStyle="rgba(0,0,0,0.55)"; ctx.fillRect(0,0,W,28);
       ctx.fillStyle="#FFE135"; ctx.font="bold 12px monospace"; ctx.textAlign="left"; ctx.fillText("$"+s.score.toLocaleString(),8,18);
@@ -351,24 +375,26 @@ export default function ViceArcadeGame() {
       ctx.textAlign="right";
       for (let i=0;i<3;i++){ ctx.fillStyle = i<s.lives ? "#FF2D78" : "#333"; ctx.fillText("v", W-8-i*18, 18); }
 
+      const mph = Math.round(28 + effSpeed*13);
+      ctx.textAlign="left"; ctx.fillStyle="rgba(0,0,0,0.5)"; ctx.fillRect(0,H-22,70,22);
+      ctx.fillStyle="#00FFFF"; ctx.font="bold 11px monospace"; ctx.fillText(mph+" MPH", 6, H-7);
+
       if (s.levelBannerTimer > 0) {
         const a = Math.min(1, s.levelBannerTimer/25);
         ctx.fillStyle = `rgba(0,0,0,${0.5*a})`; ctx.fillRect(0,H/2-30,W,60);
         ctx.textAlign="center"; ctx.shadowColor="#FF2D78"; ctx.shadowBlur=16*a;
-        ctx.fillStyle=`rgba(255,45,120,${a})`; ctx.font="bold 16px monospace";
-        ctx.fillText("WANTED LEVEL UP", W/2, H/2-6);
-        ctx.fillStyle=`rgba(255,255,255,${a})`; ctx.font="bold 12px monospace";
-        ctx.fillText(lvl.name, W/2, H/2+14);
+        ctx.fillStyle=`rgba(255,45,120,${a})`; ctx.font="bold 16px monospace"; ctx.fillText("WANTED LEVEL UP", W/2, H/2-6);
+        ctx.fillStyle=`rgba(255,255,255,${a})`; ctx.font="bold 12px monospace"; ctx.fillText(lvl.name, W/2, H/2+14);
         ctx.shadowBlur=0;
       }
 
-      setDisp(d => d.score !== s.score ? { ...d, score: s.score } : d);
+      setDisp(d => (d.score!==s.score||d.mph!==mph) ? {...d, score:s.score, mph} : d);
       rafRef.current = requestAnimationFrame(loop);
     }
 
     rafRef.current = requestAnimationFrame(loop);
-    return () => { cancelAnimationFrame(rafRef.current); window.removeEventListener("keydown", handleKey); canvas.removeEventListener("touchstart", handleTouch); };
-  }, [handleKey, handleTouch, reset]);
+    return () => { cancelAnimationFrame(rafRef.current); window.removeEventListener("keydown", handleKeyDown); window.removeEventListener("keyup", handleKeyUp); canvas.removeEventListener("touchstart", handleTouchStart); canvas.removeEventListener("touchend", handleTouchEnd); };
+  }, [handleKeyDown, handleKeyUp, handleTouchStart, handleTouchEnd, reset]);
 
   return (
     <div className="relative flex flex-col items-center justify-center w-full h-full select-none"
