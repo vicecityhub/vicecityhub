@@ -268,7 +268,7 @@ export default function Home({ onOpenModal, session }: HomeProps) {
 
       <div className="gradient-line" />
 
-      {/* PRE-ORDER BANNER */}
+      {/* GIFT SET BANNER */}
       <section className="py-4 px-6 max-w-[1280px] mx-auto">
         {/* Desktop: flex-row | Mobile: flex-col */}
         <div className="flex flex-col sm:flex-row rounded-xl overflow-hidden border border-neonOrange/50 shadow-[0_0_40px_rgba(255,107,53,0.2)] bg-black">
@@ -277,19 +277,17 @@ export default function Home({ onOpenModal, session }: HomeProps) {
             style={{borderBottom: '1px solid rgba(255,107,53,0.2)'}}>
             <p className="text-[9px] font-orbitron font-bold text-neonOrange uppercase tracking-[0.25em] mb-2 flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-neonOrange inline-block animate-pulse" />
-              PRE-ORDERS LIVE NOW
+              LIMITED DROP
             </p>
             <h2 className="font-orbitron font-extrabold text-xl sm:text-2xl text-white uppercase leading-tight mb-3">
-              Grand Theft<br />
-              Auto <span className="text-neonOrange">VI</span>
+              Vice City<br />
+              Gift <span className="text-neonOrange">Set</span>
             </h2>
             <p className="text-[10px] text-white/50 leading-relaxed mb-4">
-              Pre-orders for Grand Theft Auto VI are now live. Learn more about the Ultimate Edition and pre-order bonuses at Rockstar Games.
+              A Vice City-themed gift set has landed in the Hub store. Grab it while it's around — check the storefront for what's inside.
             </p>
             <a
-              href="https://www.rockstargames.com/VI"
-              target="_blank"
-              rel="noreferrer"
+              href="/market.html"
               className="font-orbitron text-xs w-fit px-4 py-2 rounded transition-all duration-200"
               style={{
                 border: '1px solid var(--neon-orange)',
@@ -309,14 +307,17 @@ export default function Home({ onOpenModal, session }: HomeProps) {
                 (e.currentTarget as HTMLAnchorElement).style.boxShadow = 'none';
               }}
             >
-              PRE-ORDER NOW →
+              SEE THE GIFT SET →
             </a>
           </div>
-          {/* GIF side — оригинальные пропорции, без растяжения */}
+          {/* Video side — original proportions, no stretching */}
           <div className="flex-1 bg-black flex items-center justify-center p-0" style={{minHeight: '180px'}}>
-            <img
-              src="https://lpglkglhjdqnktybksth.supabase.co/storage/v1/object/public/promos/promo2.gif"
-              alt="GTA VI Pre-orders are live"
+            <video
+              src="https://lpglkglhjdqnktybksth.supabase.co/storage/v1/object/public/post_news/pozor.webm"
+              autoPlay
+              loop
+              muted
+              playsInline
               className="block"
               style={{width: '100%', height: '100%', objectFit: 'contain', maxHeight: '320px'}}
             />

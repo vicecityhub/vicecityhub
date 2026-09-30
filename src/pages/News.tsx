@@ -149,16 +149,18 @@ export default function News() {
     const srcUrl = item.source_url || '';
     const important = !!item.is_featured;
     let stars = 0;
+    let images: string[] = [];
 
     if (item.meta) {
       try {
         const parsed = typeof item.meta === 'string' ? JSON.parse(item.meta) : item.meta;
         if (parsed.stars) stars = Number(parsed.stars) || 0;
         if (parsed.importance) stars = Number(parsed.importance) || stars;
+        if (Array.isArray(parsed.images)) images = parsed.images.filter((u: any) => typeof u === 'string');
       } catch (e) {}
     }
 
-    return { tag, srcUrl, stars, important };
+    return { tag, srcUrl, stars, important, images };
   };
 
   // Apply filters
@@ -310,7 +312,7 @@ export default function News() {
           >
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5 items-start" style={{ paddingTop: '4px' }}>
               {sortedNews.map(item => {
-                const { tag, srcUrl, stars, important } = getMeta(item);
+                const { tag, srcUrl, stars, important, images } = getMeta(item);
                 const isExpanded = expandedIds.has(item.id);
                 const previewText = item.summary && item.summary.trim() ? item.summary : item.body;
 
@@ -363,6 +365,26 @@ export default function News() {
                       <h3 className="font-orbitron font-bold text-lg text-white tracking-wide leading-snug group-hover:text-neonCyan transition-colors mb-3">
                         {item.title}
                       </h3>
+
+                      {images.length > 0 && (
+                        <div
+                          className={`grid gap-1.5 mb-4 rounded-lg overflow-hidden ${images.length === 1 ? 'grid-cols-1' : images.length === 2 ? 'grid-cols-2' : 'grid-cols-3'}`}
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          {(isExpanded ? images : images.slice(0, 3)).map((src, i) => (
+                            <a
+                              key={i}
+                              href={src}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="block overflow-hidden bg-black/40 border border-white/5 hover:border-neonCyan/50 transition-colors"
+                              style={{ aspectRatio: '1 / 1' }}
+                            >
+                              <img src={src} alt="" className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" loading="lazy" />
+                            </a>
+                          ))}
+                        </div>
+                      )}
 
                       <p
                         className={`text-sm text-gray-300 leading-loose font-bold font-rajdhani mb-4 ${isExpanded ? '' : 'line-clamp-4 md:line-clamp-6'}`}
