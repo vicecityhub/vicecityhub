@@ -287,7 +287,7 @@ export default function Home({ onOpenModal, session }: HomeProps) {
               A Vice City-themed gift set has landed in the Hub store. Grab it while it's around — check the storefront for what's inside.
             </p>
             <a
-              href="/market.html"
+              href="./market.html"
               className="font-orbitron text-xs w-fit px-4 py-2 rounded transition-all duration-200"
               style={{
                 border: '1px solid var(--neon-orange)',
