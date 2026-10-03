@@ -284,10 +284,12 @@ export default function Home({ onOpenModal, session }: HomeProps) {
               Gift <span className="text-neonOrange">Set</span>
             </h2>
             <p className="text-[10px] text-white/50 leading-relaxed mb-4">
-              A Vice City-themed gift set has landed in the Hub store. Grab it while it's around — check the storefront for what's inside.
+              Rockstar's official Goodtime State Vice City Collection just dropped. Limited merch, straight from the source — check it out before it's gone.
             </p>
             <a
-              href="./market.html"
+              href="https://store.rockstargames.com/ru/merchandise/gtavi-goodtime-state-vice-city-collection"
+              target="_blank"
+              rel="noreferrer"
               className="font-orbitron text-xs w-fit px-4 py-2 rounded transition-all duration-200"
               style={{
                 border: '1px solid var(--neon-orange)',
