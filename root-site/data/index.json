@@ -1,0 +1,49 @@
+{
+  "name": "Vice City Hub",
+  "version": "12.0.0",
+  "generated_at": "2026-10-18T09:58:15.764Z",
+  "note": "Static snapshots refreshed on every deploy (~6h). For real-time data and purchases use the live Agent API.",
+  "feeds": {
+    "news": {
+      "url": "https://vicecityhub.github.io/vicecityhub/data/news.json",
+      "count": 17,
+      "live": "https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/v1/news"
+    },
+    "catalog": {
+      "url": "https://vicecityhub.github.io/vicecityhub/data/catalog.json",
+      "count": 53,
+      "live": "https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/v1/catalog"
+    },
+    "rp_servers": {
+      "url": "https://vicecityhub.github.io/vicecityhub/data/rp-servers.json",
+      "count": 9,
+      "live": "https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/v1/rp/servers"
+    },
+    "rp_factions": {
+      "url": "https://vicecityhub.github.io/vicecityhub/data/rp-factions.json",
+      "count": 15,
+      "live": "https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/v1/rp/factions"
+    },
+    "rp_jobs": {
+      "url": "https://vicecityhub.github.io/vicecityhub/data/rp-jobs.json",
+      "count": 6,
+      "live": "https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/v1/rp/jobs"
+    },
+    "rp_mods": {
+      "url": "https://vicecityhub.github.io/vicecityhub/data/rp-mods.json",
+      "count": 8,
+      "live": "https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/v1/rp/mods"
+    }
+  },
+  "agent_api": {
+    "base": "https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api",
+    "index": "https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/v1",
+    "openapi": "https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/v1/openapi.json",
+    "mcp": "https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/mcp"
+  },
+  "docs": {
+    "llms_txt": "https://vicecityhub.github.io/vicecityhub/llms.txt",
+    "llms_full_txt": "https://vicecityhub.github.io/vicecityhub/llms-full.txt",
+    "human_console": "https://vicecityhub.github.io/vicecityhub/agents.html"
+  }
+}

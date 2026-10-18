@@ -1,0 +1,115 @@
+{
+  "schemaVersion": "2025-06-18",
+  "serverInfo": {
+    "name": "vice-city-hub",
+    "title": "Vice City Hub",
+    "version": "12.0.0"
+  },
+  "description": "The GTA VI fan hub: live news, Leonida intel, GTA RP servers, Web3 domains and merch — open to humans and AI agents.",
+  "transport": {
+    "type": "streamable-http",
+    "url": "https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/mcp",
+    "stateless": true
+  },
+  "authentication": {
+    "required": false,
+    "schemes": [
+      "bearer"
+    ],
+    "note": "Read tools are anonymous. Order tools need `Authorization: Bearer vch_live_…` (call register_agent first)."
+  },
+  "capabilities": {
+    "tools": {
+      "listChanged": false
+    }
+  },
+  "instructions": "Browse freely (search_catalog, list_news, list_rp). To buy: register_agent once, then create_quote → create_order → pay → poll get_order_status. Never claim a purchase succeeded until status is paid/fulfilling/completed.",
+  "documentation": "https://vicecityhub.github.io/vicecityhub/llms-full.txt",
+  "tools": [
+    {
+      "name": "search_catalog",
+      "title": "Search catalog",
+      "description": "Search merch, store plans, Web3 domains, partner products and servers for sale. Returns SKUs, USD prices and how each can be bought."
+    },
+    {
+      "name": "get_item",
+      "title": "Get catalog item",
+      "description": "Full details for one SKU including variants (merch) and purchase instructions."
+    },
+    {
+      "name": "list_news",
+      "title": "GTA VI news",
+      "description": "Latest curated GTA VI / Rockstar news from The Wire, newest first."
+    },
+    {
+      "name": "get_news",
+      "title": "Get news article",
+      "description": "Full article body by numeric id."
+    },
+    {
+      "name": "list_rp",
+      "title": "RP Hub data",
+      "description": "GTA RP data: servers, open faction slots, jobs, or mods."
+    },
+    {
+      "name": "search_site",
+      "title": "Search everything",
+      "description": "Cross-search news, catalog and RP servers."
+    },
+    {
+      "name": "register_agent",
+      "title": "Register this agent",
+      "description": "Get a self-service API key (limits: $100/order, $250/day). Shown once."
+    },
+    {
+      "name": "whoami",
+      "title": "My key & limits",
+      "description": "Scopes, spend limits and 24h spend of the current key."
+    },
+    {
+      "name": "create_quote",
+      "title": "Create price-locked quote",
+      "description": "Validate items and lock the price for 15 minutes. Merch must use variant SKUs (merchv:…)."
+    },
+    {
+      "name": "create_order",
+      "title": "Create order",
+      "description": "Create an order from a quote or items. PayPal rail returns an approve_url; crypto rail returns stablecoin wallet options. Merch needs `shipping`, domains need `delivery.wallet_address`, store plans need `details`. Safe to retry with the same idempotency_key."
+    },
+    {
+      "name": "get_order",
+      "title": "Get order",
+      "description": "Full order incl. next_action."
+    },
+    {
+      "name": "get_order_status",
+      "title": "Order status",
+      "description": "Cheap status poll (no key needed)."
+    },
+    {
+      "name": "capture_paypal_order",
+      "title": "Capture PayPal payment",
+      "description": "Call after the payer approved payment.approve_url. Idempotent."
+    },
+    {
+      "name": "submit_crypto_payment_proof",
+      "title": "Submit crypto tx",
+      "description": "After sending EXACTLY next_action.amount_due in stablecoins, submit chain (tron|evm|solana), tx_hash and, for evm, network (polygon|ethereum). The tx is verified on-chain automatically: status becomes paid when final, or payment_review while confirmations accumulate (then call verify_crypto_payment)."
+    },
+    {
+      "name": "verify_crypto_payment",
+      "title": "Re-check crypto payment",
+      "description": "Re-run on-chain verification for an order whose payment proof is pending confirmations. Idempotent; poll about once a minute."
+    },
+    {
+      "name": "cancel_order",
+      "title": "Cancel unpaid order",
+      "description": "Cancel an order that is still awaiting_payment."
+    },
+    {
+      "name": "create_purchase_intent",
+      "title": "Purchase intent",
+      "description": "For peer listings without on-site checkout (partner products, community servers, domains without a price). Records interest and returns how to complete the purchase."
+    }
+  ]
+}

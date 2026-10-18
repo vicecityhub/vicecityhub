@@ -1,0 +1,135 @@
+{
+  "generated_at": "2026-10-18T09:58:15.764Z",
+  "source": "https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/v1/rp/mods",
+  "count": 8,
+  "items": [
+    {
+      "id": "4477b6b3-1019-4f90-9d87-ad2ae207a279",
+      "title": "Leonida Highway Patrol Pack",
+      "author": "VCMODS_Dev",
+      "category": "VEHICLES",
+      "description": "Full police vehicle fleet adapted for GTA 6 engine. Includes liveries, interior props, and custom handling lines based on leaked vehicle physics.",
+      "progress_pct": 72,
+      "votes": 1847,
+      "tags": [
+        "Police",
+        "Vehicles",
+        "GTA6 Ready"
+      ],
+      "download_url": null,
+      "is_featured": false
+    },
+    {
+      "id": "52686d72-3fa7-4713-b8ff-0930e7319598",
+      "title": "Vice City Weather System",
+      "author": "AtmosphericCrew",
+      "category": "GRAPHICS",
+      "description": "Dynamic hurricane season, tropical storms, and 80s haze filter. Built on leaked weather data tables from GTA 6 build. Makes the map feel genuinely alive.",
+      "progress_pct": 58,
+      "votes": 2341,
+      "tags": [
+        "Weather",
+        "Visual",
+        "Atmosphere"
+      ],
+      "download_url": null,
+      "is_featured": true
+    },
+    {
+      "id": "804a1554-11b1-418c-bb66-cd2f66ee3652",
+      "title": "FiveM Economy Framework v3",
+      "author": "ESX_Reborn_Team",
+      "category": "SCRIPTS",
+      "description": "Complete economy rewrite for FiveM with GTA6-style property ownership, stock markets, and business systems. 600+ scripts, fully documented.",
+      "progress_pct": 89,
+      "votes": 4102,
+      "tags": [
+        "Economy",
+        "Scripts",
+        "Framework"
+      ],
+      "download_url": null,
+      "is_featured": true
+    },
+    {
+      "id": "97d55fc7-5dd8-4fc0-a4cc-e11cc2d1b700",
+      "title": "Ocean Drive Interior Pack",
+      "author": "VC_Architecture",
+      "category": "INTERIORS",
+      "description": "40 unique business interiors: clubs, hotels, restaurants, pawn shops. Authentic Vice City aesthetic with functional props and lighting.",
+      "progress_pct": 45,
+      "votes": 987,
+      "tags": [
+        "Interiors",
+        "Vice City",
+        "Business"
+      ],
+      "download_url": null,
+      "is_featured": false
+    },
+    {
+      "id": "ce88523e-dddc-4234-99f5-2d5a5f9a6d3d",
+      "title": "LSPD FIB Tactical Arsenal",
+      "author": "LawEnforcement_Mods",
+      "category": "WEAPONS",
+      "description": "Law enforcement weapon pack with GTA6-style animations. Includes tasers, non-lethals, breach charges, and surveillance equipment for RP servers.",
+      "progress_pct": 66,
+      "votes": 1523,
+      "tags": [
+        "Weapons",
+        "Police",
+        "RP Tools"
+      ],
+      "download_url": null,
+      "is_featured": false
+    },
+    {
+      "id": "07b1a278-73a5-45b2-80f2-3d2dc283f2b9",
+      "title": "Leonida Freeroam Map Expansion",
+      "author": "MAP_BUILDERS_VC",
+      "category": "MAPS",
+      "description": "Custom Leonida state map zones: bayou areas, hidden coves, underground tunnels based on GTA6 leak data. Still in active development.",
+      "progress_pct": 31,
+      "votes": 3789,
+      "tags": [
+        "Map",
+        "Leonida",
+        "GTA6"
+      ],
+      "download_url": null,
+      "is_featured": false
+    },
+    {
+      "id": "09ae1bae-0b9d-4d28-b2cf-38e6a775f393",
+      "title": "Vice City Neon Sign Pack",
+      "author": "StreetArtVC",
+      "category": "GRAPHICS",
+      "description": "Over 200 animated neon signs for storefronts, motels, and clubs. Authentic 80s Vice City aesthetic. Drag-and-drop placement via Simple Trainer.",
+      "progress_pct": 82,
+      "votes": 1204,
+      "tags": [
+        "Graphics",
+        "Decor",
+        "Vice City"
+      ],
+      "download_url": null,
+      "is_featured": false
+    },
+    {
+      "id": "18bb840e-3475-4ced-a32b-4ed1fceba1bc",
+      "title": "GTA6 Ambient NPC Overhaul",
+      "author": "NPC_LAB",
+      "category": "SCRIPTS",
+      "description": "Rewrites NPC behavior routines to match leaked GTA 6 AI patterns. Pedestrians react to weather, crime events, and player reputation dynamically.",
+      "progress_pct": 44,
+      "votes": 2890,
+      "tags": [
+        "NPC",
+        "AI",
+        "Immersion"
+      ],
+      "download_url": null,
+      "is_featured": false
+    }
+  ]
+}

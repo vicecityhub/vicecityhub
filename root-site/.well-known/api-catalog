@@ -1,0 +1,47 @@
+{
+  "linkset": [
+    {
+      "anchor": "https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/v1",
+      "service-desc": [
+        {
+          "href": "https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/v1/openapi.json",
+          "type": "application/openapi+json"
+        }
+      ],
+      "service-doc": [
+        {
+          "href": "https://vicecityhub.github.io/vicecityhub/llms-full.txt",
+          "type": "text/plain"
+        },
+        {
+          "href": "https://vicecityhub.github.io/vicecityhub/agents.html",
+          "type": "text/html"
+        }
+      ]
+    },
+    {
+      "anchor": "https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/mcp",
+      "service-desc": [
+        {
+          "href": "https://vicecityhub.github.io/vicecityhub/.well-known/mcp.json",
+          "type": "application/json"
+        }
+      ],
+      "service-doc": [
+        {
+          "href": "https://vicecityhub.github.io/vicecityhub/llms.txt",
+          "type": "text/plain"
+        }
+      ]
+    },
+    {
+      "anchor": "https://vicecityhub.github.io/vicecityhub/data/index.json",
+      "service-doc": [
+        {
+          "href": "https://vicecityhub.github.io/vicecityhub/llms.txt",
+          "type": "text/plain"
+        }
+      ]
+    }
+  ]
+}

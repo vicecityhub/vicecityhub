@@ -1,0 +1,258 @@
+{
+  "generated_at": "2026-10-18T09:58:15.764Z",
+  "source": "https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/v1/rp/factions",
+  "count": 15,
+  "items": [
+    {
+      "id": "3b1ea03f-465e-49d6-9efc-cc98979c4332",
+      "server_name": "SRTG RP",
+      "faction_name": "LSPD",
+      "faction_type": "LSPD",
+      "slots_total": 10,
+      "slots_filled": 7,
+      "requirements": [
+        "Mic required",
+        "18+",
+        "Vocal interview"
+      ],
+      "description": "Protect and serve. Or just collect bribes. Fair-play enforced.",
+      "discord_url": null,
+      "is_available": true,
+      "is_lore_friendly": true
+    },
+    {
+      "id": "8f79f92d-7d0b-4b8f-97f8-a18cafa4c142",
+      "server_name": "Vision RP",
+      "faction_name": "Spanish Lords",
+      "faction_type": "GANG",
+      "slots_total": 1,
+      "slots_filled": 0,
+      "requirements": [
+        "5 members min",
+        "Full dossier (G-Slide/Canva)",
+        "Active & motivated",
+        "Submit to government IG"
+      ],
+      "description": "Classic street gang. Claim your territory, run your operation, impose your name.",
+      "discord_url": null,
+      "is_available": true,
+      "is_lore_friendly": true
+    },
+    {
+      "id": "74261dde-332b-4b76-93ee-2434036c590d",
+      "server_name": "SRTG RP",
+      "faction_name": "EMS",
+      "faction_type": "EMS",
+      "slots_total": 8,
+      "slots_filled": 5,
+      "requirements": [
+        "Mic required",
+        "Serious profile"
+      ],
+      "description": "Save lives. Show up. The city needs you more than it admits.",
+      "discord_url": null,
+      "is_available": true,
+      "is_lore_friendly": true
+    },
+    {
+      "id": "76d734cd-d393-45e9-9884-c1472d135e0c",
+      "server_name": "Vision RP",
+      "faction_name": "O'Neils",
+      "faction_type": "GANG",
+      "slots_total": 1,
+      "slots_filled": 0,
+      "requirements": [
+        "5 members min",
+        "Full dossier",
+        "Active & motivated"
+      ],
+      "description": "Rural criminal enterprise. Old grudges, old money, new enemies.",
+      "discord_url": null,
+      "is_available": true,
+      "is_lore_friendly": true
+    },
+    {
+      "id": "6f11254b-22b0-485b-ad41-5f8003fb912b",
+      "server_name": "Vision RP",
+      "faction_name": "Los Vagos",
+      "faction_type": "GANG",
+      "slots_total": 1,
+      "slots_filled": 0,
+      "requirements": [
+        "5 members min",
+        "Full dossier",
+        "Active & motivated"
+      ],
+      "description": "The yellow empire. Street presence, numbers, loyalty. Respect the color.",
+      "discord_url": null,
+      "is_available": true,
+      "is_lore_friendly": true
+    },
+    {
+      "id": "4cd357c8-d1a6-4f11-a431-78afe3eaae2e",
+      "server_name": "SRTG RP",
+      "faction_name": "Open Gang Slot",
+      "faction_type": "GANG",
+      "slots_total": 1,
+      "slots_filled": 0,
+      "requirements": [
+        "5 members",
+        "RP dossier",
+        "In-game integration"
+      ],
+      "description": "No name yet. Yours to build. Yours to lose.",
+      "discord_url": null,
+      "is_available": true,
+      "is_lore_friendly": true
+    },
+    {
+      "id": "7243079a-41a2-4ba8-a6a3-19f79043c75a",
+      "server_name": "SRTG RP",
+      "faction_name": "Open Cartel Slot",
+      "faction_type": "CARTEL",
+      "slots_total": 1,
+      "slots_filled": 0,
+      "requirements": [
+        "6 members",
+        "Proven RP track record"
+      ],
+      "description": "Distribution networks, territory wars, federal consequences.",
+      "discord_url": null,
+      "is_available": true,
+      "is_lore_friendly": true
+    },
+    {
+      "id": "366383b2-cab2-4039-8111-6a1b4758c0cb",
+      "server_name": "Vision RP",
+      "faction_name": "Families",
+      "faction_type": "GANG",
+      "slots_total": 1,
+      "slots_filled": 0,
+      "requirements": [
+        "5 members min",
+        "Full dossier",
+        "Active & motivated"
+      ],
+      "description": "Grove Street roots. Community, code, consequences.",
+      "discord_url": null,
+      "is_available": true,
+      "is_lore_friendly": true
+    },
+    {
+      "id": "518d6e81-769b-44dc-a33b-4a174fb57e18",
+      "server_name": "Vision RP",
+      "faction_name": "Aztecas",
+      "faction_type": "GANG",
+      "slots_total": 1,
+      "slots_filled": 0,
+      "requirements": [
+        "5 members min",
+        "Full dossier",
+        "Active & motivated"
+      ],
+      "description": "East Side pride. Honor above everything. The streets remember.",
+      "discord_url": null,
+      "is_available": true,
+      "is_lore_friendly": true
+    },
+    {
+      "id": "ce45378a-cf6d-4611-a307-6ee6376c6984",
+      "server_name": "Vision RP",
+      "faction_name": "Lost MC",
+      "faction_type": "MC",
+      "slots_total": 1,
+      "slots_filled": 0,
+      "requirements": [
+        "5 members min",
+        "Full dossier",
+        "Biker background preferred"
+      ],
+      "description": "Ride or die. Sons of Anarchy energy. The road is law.",
+      "discord_url": null,
+      "is_available": true,
+      "is_lore_friendly": true
+    },
+    {
+      "id": "1d5afdc4-4d7b-44f4-9968-5811b89e705a",
+      "server_name": "Vision RP",
+      "faction_name": "AOD MC",
+      "faction_type": "MC",
+      "slots_total": 1,
+      "slots_filled": 0,
+      "requirements": [
+        "5 members min",
+        "Full dossier",
+        "1% MC culture knowledge"
+      ],
+      "description": "Angels of Death MC. Old school club culture. Earn your patch or walk.",
+      "discord_url": null,
+      "is_available": true,
+      "is_lore_friendly": true
+    },
+    {
+      "id": "265fa9f2-56cf-41b1-a1f6-1de559dd1f80",
+      "server_name": "Vision RP",
+      "faction_name": "Tequilala",
+      "faction_type": "LEGAL_BIZ",
+      "slots_total": 1,
+      "slots_filled": 0,
+      "requirements": [
+        "5 members min",
+        "Business dossier",
+        "Active & motivated"
+      ],
+      "description": "Iconic Vice City nightclub. You run the nights, you own the city.",
+      "discord_url": null,
+      "is_available": true,
+      "is_lore_friendly": true
+    },
+    {
+      "id": "314a57d5-7de4-4a11-a801-6612c4421def",
+      "server_name": "Vision RP",
+      "faction_name": "Rockford Records",
+      "faction_type": "LEGAL_BIZ",
+      "slots_total": 1,
+      "slots_filled": 0,
+      "requirements": [
+        "5 members min",
+        "Business dossier"
+      ],
+      "description": "Music label with real influence. Sign artists, produce, flex on everyone.",
+      "discord_url": null,
+      "is_available": true,
+      "is_lore_friendly": true
+    },
+    {
+      "id": "31bc5f7b-ab49-47f4-8d77-941de14bf027",
+      "server_name": "Vision RP",
+      "faction_name": "Pizza This",
+      "faction_type": "LEGAL_BIZ",
+      "slots_total": 1,
+      "slots_filled": 0,
+      "requirements": [
+        "5 members min",
+        "Business dossier"
+      ],
+      "description": "Delivery is just the cover story. Everyone needs pizza.",
+      "discord_url": null,
+      "is_available": true,
+      "is_lore_friendly": true
+    },
+    {
+      "id": "8d25f520-eee3-49e4-8192-d11b3c0d6b21",
+      "server_name": "Vision RP",
+      "faction_name": "Pawnshop",
+      "faction_type": "LEGAL_BIZ",
+      "slots_total": 1,
+      "slots_filled": 0,
+      "requirements": [
+        "5 members min",
+        "Business dossier"
+      ],
+      "description": "Everything is for sale here. No questions asked. Ever.",
+      "discord_url": null,
+      "is_available": true,
+      "is_lore_friendly": true
+    }
+  ]
+}

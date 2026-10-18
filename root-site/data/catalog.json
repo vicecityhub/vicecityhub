@@ -1,0 +1,3544 @@
+{
+  "generated_at": "2026-10-18T09:58:15.764Z",
+  "source": "https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/v1/catalog",
+  "count": 53,
+  "items": [
+    {
+      "sku": "merch:445021895",
+      "url": "https://vicecityhub.github.io/vicecityhub/market.html",
+      "kind": "merch",
+      "image": "https://files.cdn.printful.com/files/825/825246a89ae0b5251f37094dc6f578b9_preview.png",
+      "title": "VCH be Vice Unisex oversized hoodie",
+      "seller": "Vice City Hub",
+      "currency": "USD",
+      "purchase": {
+        "mode": "order",
+        "rails": [
+          "paypal"
+        ],
+        "requires": [
+          "shipping"
+        ]
+      },
+      "price_usd": 52,
+      "attributes": {
+        "fulfillment": "Printful print-on-demand"
+      },
+      "price_note": "from (lowest variant)",
+      "description": "Official Vice City Hub merch, printed on demand by Printful. Order by variant SKU.",
+      "availability": "in_stock",
+      "variants_count": 66,
+      "variants_hint": "GET https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/v1/catalog/merch:445021895 for variant SKUs",
+      "variants": [
+        {
+          "sku": "merchv:5383033825",
+          "name": "VCH be Vice Unisex oversized hoodie / Black / S",
+          "size": "S",
+          "color": "Black",
+          "price_usd": 52,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383033826",
+          "name": "VCH be Vice Unisex oversized hoodie / Black / M",
+          "size": "M",
+          "color": "Black",
+          "price_usd": 52,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383033827",
+          "name": "VCH be Vice Unisex oversized hoodie / Black / L",
+          "size": "L",
+          "color": "Black",
+          "price_usd": 52,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383033828",
+          "name": "VCH be Vice Unisex oversized hoodie / Black / XL",
+          "size": "XL",
+          "color": "Black",
+          "price_usd": 52,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383033829",
+          "name": "VCH be Vice Unisex oversized hoodie / Black / 2XL",
+          "size": "2XL",
+          "color": "Black",
+          "price_usd": 54,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383033830",
+          "name": "VCH be Vice Unisex oversized hoodie / Black / 3XL",
+          "size": "3XL",
+          "color": "Black",
+          "price_usd": 56.5,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383033831",
+          "name": "VCH be Vice Unisex oversized hoodie / Pine Green / S",
+          "size": "S",
+          "color": "Pine Green",
+          "price_usd": 52,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383033832",
+          "name": "VCH be Vice Unisex oversized hoodie / Pine Green / M",
+          "size": "M",
+          "color": "Pine Green",
+          "price_usd": 52,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383033833",
+          "name": "VCH be Vice Unisex oversized hoodie / Pine Green / L",
+          "size": "L",
+          "color": "Pine Green",
+          "price_usd": 52,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383033834",
+          "name": "VCH be Vice Unisex oversized hoodie / Pine Green / XL",
+          "size": "XL",
+          "color": "Pine Green",
+          "price_usd": 52,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383033835",
+          "name": "VCH be Vice Unisex oversized hoodie / Pine Green / 2XL",
+          "size": "2XL",
+          "color": "Pine Green",
+          "price_usd": 54,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383033836",
+          "name": "VCH be Vice Unisex oversized hoodie / Pine Green / 3XL",
+          "size": "3XL",
+          "color": "Pine Green",
+          "price_usd": 56.5,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383033837",
+          "name": "VCH be Vice Unisex oversized hoodie / Cobalt / S",
+          "size": "S",
+          "color": "Cobalt",
+          "price_usd": 52,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383033838",
+          "name": "VCH be Vice Unisex oversized hoodie / Cobalt / M",
+          "size": "M",
+          "color": "Cobalt",
+          "price_usd": 52,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383033839",
+          "name": "VCH be Vice Unisex oversized hoodie / Cobalt / L",
+          "size": "L",
+          "color": "Cobalt",
+          "price_usd": 52,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383033840",
+          "name": "VCH be Vice Unisex oversized hoodie / Cobalt / XL",
+          "size": "XL",
+          "color": "Cobalt",
+          "price_usd": 52,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383033841",
+          "name": "VCH be Vice Unisex oversized hoodie / Cobalt / 2XL",
+          "size": "2XL",
+          "color": "Cobalt",
+          "price_usd": 54,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383033842",
+          "name": "VCH be Vice Unisex oversized hoodie / Cobalt / 3XL",
+          "size": "3XL",
+          "color": "Cobalt",
+          "price_usd": 56.5,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383033843",
+          "name": "VCH be Vice Unisex oversized hoodie / Chestnut / S",
+          "size": "S",
+          "color": "Chestnut",
+          "price_usd": 52,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383033844",
+          "name": "VCH be Vice Unisex oversized hoodie / Chestnut / M",
+          "size": "M",
+          "color": "Chestnut",
+          "price_usd": 52,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383033845",
+          "name": "VCH be Vice Unisex oversized hoodie / Chestnut / L",
+          "size": "L",
+          "color": "Chestnut",
+          "price_usd": 52,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383033846",
+          "name": "VCH be Vice Unisex oversized hoodie / Chestnut / XL",
+          "size": "XL",
+          "color": "Chestnut",
+          "price_usd": 52,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383033847",
+          "name": "VCH be Vice Unisex oversized hoodie / Chestnut / 2XL",
+          "size": "2XL",
+          "color": "Chestnut",
+          "price_usd": 54,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383033848",
+          "name": "VCH be Vice Unisex oversized hoodie / Chestnut / 3XL",
+          "size": "3XL",
+          "color": "Chestnut",
+          "price_usd": 56.5,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383033849",
+          "name": "VCH be Vice Unisex oversized hoodie / Clay / S",
+          "size": "S",
+          "color": "Clay",
+          "price_usd": 52,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383033850",
+          "name": "VCH be Vice Unisex oversized hoodie / Clay / M",
+          "size": "M",
+          "color": "Clay",
+          "price_usd": 52,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383033851",
+          "name": "VCH be Vice Unisex oversized hoodie / Clay / L",
+          "size": "L",
+          "color": "Clay",
+          "price_usd": 52,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383033852",
+          "name": "VCH be Vice Unisex oversized hoodie / Clay / XL",
+          "size": "XL",
+          "color": "Clay",
+          "price_usd": 52,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383033853",
+          "name": "VCH be Vice Unisex oversized hoodie / Clay / 2XL",
+          "size": "2XL",
+          "color": "Clay",
+          "price_usd": 54,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383033854",
+          "name": "VCH be Vice Unisex oversized hoodie / Clay / 3XL",
+          "size": "3XL",
+          "color": "Clay",
+          "price_usd": 56.5,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383033855",
+          "name": "VCH be Vice Unisex oversized hoodie / Cypress / S",
+          "size": "S",
+          "color": "Cypress",
+          "price_usd": 52,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383033856",
+          "name": "VCH be Vice Unisex oversized hoodie / Cypress / M",
+          "size": "M",
+          "color": "Cypress",
+          "price_usd": 52,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383033857",
+          "name": "VCH be Vice Unisex oversized hoodie / Cypress / L",
+          "size": "L",
+          "color": "Cypress",
+          "price_usd": 52,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383033858",
+          "name": "VCH be Vice Unisex oversized hoodie / Cypress / XL",
+          "size": "XL",
+          "color": "Cypress",
+          "price_usd": 52,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383033859",
+          "name": "VCH be Vice Unisex oversized hoodie / Cypress / 2XL",
+          "size": "2XL",
+          "color": "Cypress",
+          "price_usd": 54,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383033860",
+          "name": "VCH be Vice Unisex oversized hoodie / Cypress / 3XL",
+          "size": "3XL",
+          "color": "Cypress",
+          "price_usd": 56.5,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383033861",
+          "name": "VCH be Vice Unisex oversized hoodie / Sand / S",
+          "size": "S",
+          "color": "Sand",
+          "price_usd": 52,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383033862",
+          "name": "VCH be Vice Unisex oversized hoodie / Sand / M",
+          "size": "M",
+          "color": "Sand",
+          "price_usd": 52,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383033863",
+          "name": "VCH be Vice Unisex oversized hoodie / Sand / L",
+          "size": "L",
+          "color": "Sand",
+          "price_usd": 52,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383033864",
+          "name": "VCH be Vice Unisex oversized hoodie / Sand / XL",
+          "size": "XL",
+          "color": "Sand",
+          "price_usd": 52,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383033865",
+          "name": "VCH be Vice Unisex oversized hoodie / Sand / 2XL",
+          "size": "2XL",
+          "color": "Sand",
+          "price_usd": 54,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383033866",
+          "name": "VCH be Vice Unisex oversized hoodie / Sand / 3XL",
+          "size": "3XL",
+          "color": "Sand",
+          "price_usd": 56.5,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383033867",
+          "name": "VCH be Vice Unisex oversized hoodie / Carolina Blue / S",
+          "size": "S",
+          "color": "Carolina Blue",
+          "price_usd": 52,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383033868",
+          "name": "VCH be Vice Unisex oversized hoodie / Carolina Blue / M",
+          "size": "M",
+          "color": "Carolina Blue",
+          "price_usd": 52,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383033869",
+          "name": "VCH be Vice Unisex oversized hoodie / Carolina Blue / L",
+          "size": "L",
+          "color": "Carolina Blue",
+          "price_usd": 52,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383033870",
+          "name": "VCH be Vice Unisex oversized hoodie / Carolina Blue / XL",
+          "size": "XL",
+          "color": "Carolina Blue",
+          "price_usd": 52,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383033871",
+          "name": "VCH be Vice Unisex oversized hoodie / Carolina Blue / 2XL",
+          "size": "2XL",
+          "color": "Carolina Blue",
+          "price_usd": 54,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383033872",
+          "name": "VCH be Vice Unisex oversized hoodie / Carolina Blue / 3XL",
+          "size": "3XL",
+          "color": "Carolina Blue",
+          "price_usd": 56.5,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383033873",
+          "name": "VCH be Vice Unisex oversized hoodie / Athletic Heather / S",
+          "size": "S",
+          "color": "Athletic Heather",
+          "price_usd": 52,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383033874",
+          "name": "VCH be Vice Unisex oversized hoodie / Athletic Heather / M",
+          "size": "M",
+          "color": "Athletic Heather",
+          "price_usd": 52,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383033875",
+          "name": "VCH be Vice Unisex oversized hoodie / Athletic Heather / L",
+          "size": "L",
+          "color": "Athletic Heather",
+          "price_usd": 52,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383033876",
+          "name": "VCH be Vice Unisex oversized hoodie / Athletic Heather / XL",
+          "size": "XL",
+          "color": "Athletic Heather",
+          "price_usd": 52,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383033877",
+          "name": "VCH be Vice Unisex oversized hoodie / Athletic Heather / 2XL",
+          "size": "2XL",
+          "color": "Athletic Heather",
+          "price_usd": 54,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383033878",
+          "name": "VCH be Vice Unisex oversized hoodie / Athletic Heather / 3XL",
+          "size": "3XL",
+          "color": "Athletic Heather",
+          "price_usd": 56.5,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383033879",
+          "name": "VCH be Vice Unisex oversized hoodie / White Heather / S",
+          "size": "S",
+          "color": "White Heather",
+          "price_usd": 52,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383033880",
+          "name": "VCH be Vice Unisex oversized hoodie / White Heather / M",
+          "size": "M",
+          "color": "White Heather",
+          "price_usd": 52,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383033881",
+          "name": "VCH be Vice Unisex oversized hoodie / White Heather / L",
+          "size": "L",
+          "color": "White Heather",
+          "price_usd": 52,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383033882",
+          "name": "VCH be Vice Unisex oversized hoodie / White Heather / XL",
+          "size": "XL",
+          "color": "White Heather",
+          "price_usd": 52,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383033883",
+          "name": "VCH be Vice Unisex oversized hoodie / White Heather / 2XL",
+          "size": "2XL",
+          "color": "White Heather",
+          "price_usd": 54,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383033884",
+          "name": "VCH be Vice Unisex oversized hoodie / White Heather / 3XL",
+          "size": "3XL",
+          "color": "White Heather",
+          "price_usd": 56.5,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383033885",
+          "name": "VCH be Vice Unisex oversized hoodie / White / S",
+          "size": "S",
+          "color": "White",
+          "price_usd": 52,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383033886",
+          "name": "VCH be Vice Unisex oversized hoodie / White / M",
+          "size": "M",
+          "color": "White",
+          "price_usd": 52,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383033887",
+          "name": "VCH be Vice Unisex oversized hoodie / White / L",
+          "size": "L",
+          "color": "White",
+          "price_usd": 52,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383033888",
+          "name": "VCH be Vice Unisex oversized hoodie / White / XL",
+          "size": "XL",
+          "color": "White",
+          "price_usd": 52,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383033889",
+          "name": "VCH be Vice Unisex oversized hoodie / White / 2XL",
+          "size": "2XL",
+          "color": "White",
+          "price_usd": 54,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383033890",
+          "name": "VCH be Vice Unisex oversized hoodie / White / 3XL",
+          "size": "3XL",
+          "color": "White",
+          "price_usd": 56.5,
+          "availability": "in_stock"
+        }
+      ]
+    },
+    {
+      "sku": "merch:445021656",
+      "url": "https://vicecityhub.github.io/vicecityhub/market.html",
+      "kind": "merch",
+      "image": "https://files.cdn.printful.com/files/41d/41dafa6f40c82554171f1c86b5474d7b_preview.png",
+      "title": "VCH be Vice Crop Hoodie",
+      "seller": "Vice City Hub",
+      "currency": "USD",
+      "purchase": {
+        "mode": "order",
+        "rails": [
+          "paypal"
+        ],
+        "requires": [
+          "shipping"
+        ]
+      },
+      "price_usd": 47,
+      "attributes": {
+        "fulfillment": "Printful print-on-demand"
+      },
+      "price_note": "from (lowest variant)",
+      "description": "Official Vice City Hub merch, printed on demand by Printful. Order by variant SKU.",
+      "availability": "in_stock",
+      "variants_count": 15,
+      "variants_hint": "GET https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/v1/catalog/merch:445021656 for variant SKUs",
+      "variants": [
+        {
+          "sku": "merchv:5383032714",
+          "name": "VCH be Vice Crop Hoodie / Black / S",
+          "size": "S",
+          "color": "Black",
+          "price_usd": 52,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383032715",
+          "name": "VCH be Vice Crop Hoodie / Black / M",
+          "size": "M",
+          "color": "Black",
+          "price_usd": 52,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383032716",
+          "name": "VCH be Vice Crop Hoodie / Black / L",
+          "size": "L",
+          "color": "Black",
+          "price_usd": 52,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383032717",
+          "name": "VCH be Vice Crop Hoodie / Black / XL",
+          "size": "XL",
+          "color": "Black",
+          "price_usd": 52,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383032718",
+          "name": "VCH be Vice Crop Hoodie / Black / 2XL",
+          "size": "2XL",
+          "color": "Black",
+          "price_usd": 47,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383032719",
+          "name": "VCH be Vice Crop Hoodie / Military Green / S",
+          "size": "S",
+          "color": "Military Green",
+          "price_usd": 52,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383032720",
+          "name": "VCH be Vice Crop Hoodie / Military Green / M",
+          "size": "M",
+          "color": "Military Green",
+          "price_usd": 52,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383032721",
+          "name": "VCH be Vice Crop Hoodie / Military Green / L",
+          "size": "L",
+          "color": "Military Green",
+          "price_usd": 52,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383032722",
+          "name": "VCH be Vice Crop Hoodie / Military Green / XL",
+          "size": "XL",
+          "color": "Military Green",
+          "price_usd": 52,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383032723",
+          "name": "VCH be Vice Crop Hoodie / Military Green / 2XL",
+          "size": "2XL",
+          "color": "Military Green",
+          "price_usd": 47,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383032724",
+          "name": "VCH be Vice Crop Hoodie / Storm / S",
+          "size": "S",
+          "color": "Storm",
+          "price_usd": 52,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383032725",
+          "name": "VCH be Vice Crop Hoodie / Storm / M",
+          "size": "M",
+          "color": "Storm",
+          "price_usd": 52,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383032726",
+          "name": "VCH be Vice Crop Hoodie / Storm / L",
+          "size": "L",
+          "color": "Storm",
+          "price_usd": 52,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383032727",
+          "name": "VCH be Vice Crop Hoodie / Storm / XL",
+          "size": "XL",
+          "color": "Storm",
+          "price_usd": 52,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383032728",
+          "name": "VCH be Vice Crop Hoodie / Storm / 2XL",
+          "size": "2XL",
+          "color": "Storm",
+          "price_usd": 47,
+          "availability": "in_stock"
+        }
+      ]
+    },
+    {
+      "sku": "merch:445021472",
+      "url": "https://vicecityhub.github.io/vicecityhub/market.html",
+      "kind": "merch",
+      "image": "https://files.cdn.printful.com/files/54d/54d1041ce9255192352ff90d08e20f59_preview.png",
+      "title": "VCH be Vice Men’s premium heavyweight tee",
+      "seller": "Vice City Hub",
+      "currency": "USD",
+      "purchase": {
+        "mode": "order",
+        "rails": [
+          "paypal"
+        ],
+        "requires": [
+          "shipping"
+        ]
+      },
+      "price_usd": 23.5,
+      "attributes": {
+        "fulfillment": "Printful print-on-demand"
+      },
+      "price_note": "from (lowest variant)",
+      "description": "Official Vice City Hub merch, printed on demand by Printful. Order by variant SKU.",
+      "availability": "in_stock",
+      "variants_count": 49,
+      "variants_hint": "GET https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/v1/catalog/merch:445021472 for variant SKUs",
+      "variants": [
+        {
+          "sku": "merchv:5383031773",
+          "name": "VCH be Vice Men’s premium heavyweight tee / Black / S",
+          "size": "S",
+          "color": "Black",
+          "price_usd": 23.5,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383031774",
+          "name": "VCH be Vice Men’s premium heavyweight tee / Black / M",
+          "size": "M",
+          "color": "Black",
+          "price_usd": 23.5,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383031775",
+          "name": "VCH be Vice Men’s premium heavyweight tee / Black / L",
+          "size": "L",
+          "color": "Black",
+          "price_usd": 23.5,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383031776",
+          "name": "VCH be Vice Men’s premium heavyweight tee / Black / XL",
+          "size": "XL",
+          "color": "Black",
+          "price_usd": 23.5,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383031777",
+          "name": "VCH be Vice Men’s premium heavyweight tee / Black / 2XL",
+          "size": "2XL",
+          "color": "Black",
+          "price_usd": 26,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383031778",
+          "name": "VCH be Vice Men’s premium heavyweight tee / Black / 3XL",
+          "size": "3XL",
+          "color": "Black",
+          "price_usd": 29,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383031779",
+          "name": "VCH be Vice Men’s premium heavyweight tee / Black / 4XL",
+          "size": "4XL",
+          "color": "Black",
+          "price_usd": 31.5,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383031780",
+          "name": "VCH be Vice Men’s premium heavyweight tee / Charcoal Heather / S",
+          "size": "S",
+          "color": "Charcoal Heather",
+          "price_usd": 23.5,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383031781",
+          "name": "VCH be Vice Men’s premium heavyweight tee / Charcoal Heather / M",
+          "size": "M",
+          "color": "Charcoal Heather",
+          "price_usd": 23.5,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383031782",
+          "name": "VCH be Vice Men’s premium heavyweight tee / Charcoal Heather / L",
+          "size": "L",
+          "color": "Charcoal Heather",
+          "price_usd": 23.5,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383031783",
+          "name": "VCH be Vice Men’s premium heavyweight tee / Charcoal Heather / XL",
+          "size": "XL",
+          "color": "Charcoal Heather",
+          "price_usd": 23.5,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383031784",
+          "name": "VCH be Vice Men’s premium heavyweight tee / Charcoal Heather / 2XL",
+          "size": "2XL",
+          "color": "Charcoal Heather",
+          "price_usd": 26,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383031785",
+          "name": "VCH be Vice Men’s premium heavyweight tee / Charcoal Heather / 3XL",
+          "size": "3XL",
+          "color": "Charcoal Heather",
+          "price_usd": 29,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383031786",
+          "name": "VCH be Vice Men’s premium heavyweight tee / Charcoal Heather / 4XL",
+          "size": "4XL",
+          "color": "Charcoal Heather",
+          "price_usd": 31.5,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383031787",
+          "name": "VCH be Vice Men’s premium heavyweight tee / Brick Red / S",
+          "size": "S",
+          "color": "Brick Red",
+          "price_usd": 23.5,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383031788",
+          "name": "VCH be Vice Men’s premium heavyweight tee / Brick Red / M",
+          "size": "M",
+          "color": "Brick Red",
+          "price_usd": 23.5,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383031789",
+          "name": "VCH be Vice Men’s premium heavyweight tee / Brick Red / L",
+          "size": "L",
+          "color": "Brick Red",
+          "price_usd": 23.5,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383031790",
+          "name": "VCH be Vice Men’s premium heavyweight tee / Brick Red / XL",
+          "size": "XL",
+          "color": "Brick Red",
+          "price_usd": 23.5,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383031791",
+          "name": "VCH be Vice Men’s premium heavyweight tee / Brick Red / 2XL",
+          "size": "2XL",
+          "color": "Brick Red",
+          "price_usd": 26,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383031792",
+          "name": "VCH be Vice Men’s premium heavyweight tee / Brick Red / 3XL",
+          "size": "3XL",
+          "color": "Brick Red",
+          "price_usd": 29,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383031793",
+          "name": "VCH be Vice Men’s premium heavyweight tee / Brick Red / 4XL",
+          "size": "4XL",
+          "color": "Brick Red",
+          "price_usd": 31.5,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383031794",
+          "name": "VCH be Vice Men’s premium heavyweight tee / Carbon Grey / S",
+          "size": "S",
+          "color": "Carbon Grey",
+          "price_usd": 23.5,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383031795",
+          "name": "VCH be Vice Men’s premium heavyweight tee / Carbon Grey / M",
+          "size": "M",
+          "color": "Carbon Grey",
+          "price_usd": 23.5,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383031796",
+          "name": "VCH be Vice Men’s premium heavyweight tee / Carbon Grey / L",
+          "size": "L",
+          "color": "Carbon Grey",
+          "price_usd": 23.5,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383031797",
+          "name": "VCH be Vice Men’s premium heavyweight tee / Carbon Grey / XL",
+          "size": "XL",
+          "color": "Carbon Grey",
+          "price_usd": 23.5,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383031798",
+          "name": "VCH be Vice Men’s premium heavyweight tee / Carbon Grey / 2XL",
+          "size": "2XL",
+          "color": "Carbon Grey",
+          "price_usd": 26,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383031799",
+          "name": "VCH be Vice Men’s premium heavyweight tee / Carbon Grey / 3XL",
+          "size": "3XL",
+          "color": "Carbon Grey",
+          "price_usd": 29,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383031800",
+          "name": "VCH be Vice Men’s premium heavyweight tee / Carbon Grey / 4XL",
+          "size": "4XL",
+          "color": "Carbon Grey",
+          "price_usd": 31.5,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383031801",
+          "name": "VCH be Vice Men’s premium heavyweight tee / Agave / S",
+          "size": "S",
+          "color": "Agave",
+          "price_usd": 23.5,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383031802",
+          "name": "VCH be Vice Men’s premium heavyweight tee / Agave / M",
+          "size": "M",
+          "color": "Agave",
+          "price_usd": 23.5,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383031803",
+          "name": "VCH be Vice Men’s premium heavyweight tee / Agave / L",
+          "size": "L",
+          "color": "Agave",
+          "price_usd": 23.5,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383031804",
+          "name": "VCH be Vice Men’s premium heavyweight tee / Agave / XL",
+          "size": "XL",
+          "color": "Agave",
+          "price_usd": 23.5,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383031805",
+          "name": "VCH be Vice Men’s premium heavyweight tee / Agave / 2XL",
+          "size": "2XL",
+          "color": "Agave",
+          "price_usd": 26,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383031806",
+          "name": "VCH be Vice Men’s premium heavyweight tee / Agave / 3XL",
+          "size": "3XL",
+          "color": "Agave",
+          "price_usd": 29,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383031807",
+          "name": "VCH be Vice Men’s premium heavyweight tee / Agave / 4XL",
+          "size": "4XL",
+          "color": "Agave",
+          "price_usd": 31.5,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383031808",
+          "name": "VCH be Vice Men’s premium heavyweight tee / Vintage Gold / S",
+          "size": "S",
+          "color": "Vintage Gold",
+          "price_usd": 23.5,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383031809",
+          "name": "VCH be Vice Men’s premium heavyweight tee / Vintage Gold / M",
+          "size": "M",
+          "color": "Vintage Gold",
+          "price_usd": 23.5,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383031810",
+          "name": "VCH be Vice Men’s premium heavyweight tee / Vintage Gold / L",
+          "size": "L",
+          "color": "Vintage Gold",
+          "price_usd": 23.5,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383031811",
+          "name": "VCH be Vice Men’s premium heavyweight tee / Vintage Gold / XL",
+          "size": "XL",
+          "color": "Vintage Gold",
+          "price_usd": 23.5,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383031812",
+          "name": "VCH be Vice Men’s premium heavyweight tee / Vintage Gold / 2XL",
+          "size": "2XL",
+          "color": "Vintage Gold",
+          "price_usd": 26,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383031813",
+          "name": "VCH be Vice Men’s premium heavyweight tee / Vintage Gold / 3XL",
+          "size": "3XL",
+          "color": "Vintage Gold",
+          "price_usd": 29,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383031814",
+          "name": "VCH be Vice Men’s premium heavyweight tee / Vintage Gold / 4XL",
+          "size": "4XL",
+          "color": "Vintage Gold",
+          "price_usd": 31.5,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383031815",
+          "name": "VCH be Vice Men’s premium heavyweight tee / White / S",
+          "size": "S",
+          "color": "White",
+          "price_usd": 23.5,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383031816",
+          "name": "VCH be Vice Men’s premium heavyweight tee / White / M",
+          "size": "M",
+          "color": "White",
+          "price_usd": 23.5,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383031817",
+          "name": "VCH be Vice Men’s premium heavyweight tee / White / L",
+          "size": "L",
+          "color": "White",
+          "price_usd": 23.5,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383031818",
+          "name": "VCH be Vice Men’s premium heavyweight tee / White / XL",
+          "size": "XL",
+          "color": "White",
+          "price_usd": 23.5,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383031819",
+          "name": "VCH be Vice Men’s premium heavyweight tee / White / 2XL",
+          "size": "2XL",
+          "color": "White",
+          "price_usd": 26,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383031820",
+          "name": "VCH be Vice Men’s premium heavyweight tee / White / 3XL",
+          "size": "3XL",
+          "color": "White",
+          "price_usd": 29,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383031821",
+          "name": "VCH be Vice Men’s premium heavyweight tee / White / 4XL",
+          "size": "4XL",
+          "color": "White",
+          "price_usd": 31.5,
+          "availability": "in_stock"
+        }
+      ]
+    },
+    {
+      "sku": "merch:445021179",
+      "url": "https://vicecityhub.github.io/vicecityhub/market.html",
+      "kind": "merch",
+      "image": "https://files.cdn.printful.com/files/541/5417d6fd490b651cce7e9312bb100532_preview.png",
+      "title": "VCH be Vice Unisex Hoodie",
+      "seller": "Vice City Hub",
+      "currency": "USD",
+      "purchase": {
+        "mode": "order",
+        "rails": [
+          "paypal"
+        ],
+        "requires": [
+          "shipping"
+        ]
+      },
+      "price_usd": 43.5,
+      "attributes": {
+        "fulfillment": "Printful print-on-demand"
+      },
+      "price_note": "from (lowest variant)",
+      "description": "Official Vice City Hub merch, printed on demand by Printful. Order by variant SKU.",
+      "availability": "in_stock",
+      "variants_count": 30,
+      "variants_hint": "GET https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/v1/catalog/merch:445021179 for variant SKUs",
+      "variants": [
+        {
+          "sku": "merchv:5383030144",
+          "name": "VCH be Vice Unisex Hoodie / Black / S",
+          "size": "S",
+          "color": "Black",
+          "price_usd": 43.5,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383030145",
+          "name": "VCH be Vice Unisex Hoodie / Black / M",
+          "size": "M",
+          "color": "Black",
+          "price_usd": 43.5,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383030146",
+          "name": "VCH be Vice Unisex Hoodie / Black / L",
+          "size": "L",
+          "color": "Black",
+          "price_usd": 43.5,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383030147",
+          "name": "VCH be Vice Unisex Hoodie / Black / XL",
+          "size": "XL",
+          "color": "Black",
+          "price_usd": 43.5,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383030148",
+          "name": "VCH be Vice Unisex Hoodie / Black / 2XL",
+          "size": "2XL",
+          "color": "Black",
+          "price_usd": 45,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383030149",
+          "name": "VCH be Vice Unisex Hoodie / Black / 3XL",
+          "size": "3XL",
+          "color": "Black",
+          "price_usd": 47.5,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383030150",
+          "name": "VCH be Vice Unisex Hoodie / Maroon / S",
+          "size": "S",
+          "color": "Maroon",
+          "price_usd": 43.5,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383030151",
+          "name": "VCH be Vice Unisex Hoodie / Maroon / M",
+          "size": "M",
+          "color": "Maroon",
+          "price_usd": 43.5,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383030152",
+          "name": "VCH be Vice Unisex Hoodie / Maroon / L",
+          "size": "L",
+          "color": "Maroon",
+          "price_usd": 43.5,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383030153",
+          "name": "VCH be Vice Unisex Hoodie / Maroon / XL",
+          "size": "XL",
+          "color": "Maroon",
+          "price_usd": 43.5,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383030154",
+          "name": "VCH be Vice Unisex Hoodie / Maroon / 2XL",
+          "size": "2XL",
+          "color": "Maroon",
+          "price_usd": 45,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383030155",
+          "name": "VCH be Vice Unisex Hoodie / Maroon / 3XL",
+          "size": "3XL",
+          "color": "Maroon",
+          "price_usd": 47.5,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383030156",
+          "name": "VCH be Vice Unisex Hoodie / Forest Green / S",
+          "size": "S",
+          "color": "Forest Green",
+          "price_usd": 43.5,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383030157",
+          "name": "VCH be Vice Unisex Hoodie / Forest Green / M",
+          "size": "M",
+          "color": "Forest Green",
+          "price_usd": 43.5,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383030158",
+          "name": "VCH be Vice Unisex Hoodie / Forest Green / L",
+          "size": "L",
+          "color": "Forest Green",
+          "price_usd": 43.5,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383030159",
+          "name": "VCH be Vice Unisex Hoodie / Forest Green / XL",
+          "size": "XL",
+          "color": "Forest Green",
+          "price_usd": 43.5,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383030160",
+          "name": "VCH be Vice Unisex Hoodie / Forest Green / 2XL",
+          "size": "2XL",
+          "color": "Forest Green",
+          "price_usd": 45,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383030161",
+          "name": "VCH be Vice Unisex Hoodie / Forest Green / 3XL",
+          "size": "3XL",
+          "color": "Forest Green",
+          "price_usd": 47.5,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383030162",
+          "name": "VCH be Vice Unisex Hoodie / Military Green / S",
+          "size": "S",
+          "color": "Military Green",
+          "price_usd": 43.5,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383030163",
+          "name": "VCH be Vice Unisex Hoodie / Military Green / M",
+          "size": "M",
+          "color": "Military Green",
+          "price_usd": 43.5,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383030164",
+          "name": "VCH be Vice Unisex Hoodie / Military Green / L",
+          "size": "L",
+          "color": "Military Green",
+          "price_usd": 43.5,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383030165",
+          "name": "VCH be Vice Unisex Hoodie / Military Green / XL",
+          "size": "XL",
+          "color": "Military Green",
+          "price_usd": 43.5,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383030166",
+          "name": "VCH be Vice Unisex Hoodie / Military Green / 2XL",
+          "size": "2XL",
+          "color": "Military Green",
+          "price_usd": 45,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383030167",
+          "name": "VCH be Vice Unisex Hoodie / Military Green / 3XL",
+          "size": "3XL",
+          "color": "Military Green",
+          "price_usd": 47.5,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383030168",
+          "name": "VCH be Vice Unisex Hoodie / Light Pink / S",
+          "size": "S",
+          "color": "Light Pink",
+          "price_usd": 43.5,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383030169",
+          "name": "VCH be Vice Unisex Hoodie / Light Pink / M",
+          "size": "M",
+          "color": "Light Pink",
+          "price_usd": 43.5,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383030170",
+          "name": "VCH be Vice Unisex Hoodie / Light Pink / L",
+          "size": "L",
+          "color": "Light Pink",
+          "price_usd": 43.5,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383030171",
+          "name": "VCH be Vice Unisex Hoodie / Light Pink / XL",
+          "size": "XL",
+          "color": "Light Pink",
+          "price_usd": 43.5,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383030172",
+          "name": "VCH be Vice Unisex Hoodie / Light Pink / 2XL",
+          "size": "2XL",
+          "color": "Light Pink",
+          "price_usd": 45,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5383030173",
+          "name": "VCH be Vice Unisex Hoodie / Light Pink / 3XL",
+          "size": "3XL",
+          "color": "Light Pink",
+          "price_usd": 47.5,
+          "availability": "in_stock"
+        }
+      ]
+    },
+    {
+      "sku": "merch:444141796",
+      "url": "https://vicecityhub.github.io/vicecityhub/market.html",
+      "kind": "merch",
+      "image": "https://files.cdn.printful.com/files/03e/03ee01fee79fe9589ed2157c75cead60_preview.png",
+      "title": "VCH Macca 3/4 sleeve raglan shirt",
+      "seller": "Vice City Hub",
+      "currency": "USD",
+      "purchase": {
+        "mode": "order",
+        "rails": [
+          "paypal"
+        ],
+        "requires": [
+          "shipping"
+        ]
+      },
+      "price_usd": 34.95,
+      "attributes": {
+        "fulfillment": "Printful print-on-demand"
+      },
+      "price_note": "from (lowest variant)",
+      "description": "Official Vice City Hub merch, printed on demand by Printful. Order by variant SKU.",
+      "availability": "in_stock",
+      "variants_count": 34,
+      "variants_hint": "GET https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/v1/catalog/merch:444141796 for variant SKUs",
+      "variants": [
+        {
+          "sku": "merchv:5377306830",
+          "name": "VCH Macca 3/4 sleeve raglan shirt / White/Black / XS",
+          "size": "XS",
+          "color": "White/Black",
+          "price_usd": 34.95,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5377306831",
+          "name": "VCH Macca 3/4 sleeve raglan shirt / White/Black / S",
+          "size": "S",
+          "color": "White/Black",
+          "price_usd": 34.95,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5377306832",
+          "name": "VCH Macca 3/4 sleeve raglan shirt / White/Black / M",
+          "size": "M",
+          "color": "White/Black",
+          "price_usd": 34.95,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5377306833",
+          "name": "VCH Macca 3/4 sleeve raglan shirt / White/Black / L",
+          "size": "L",
+          "color": "White/Black",
+          "price_usd": 34.95,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5377306834",
+          "name": "VCH Macca 3/4 sleeve raglan shirt / White/Black / XL",
+          "size": "XL",
+          "color": "White/Black",
+          "price_usd": 34.95,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5377306835",
+          "name": "VCH Macca 3/4 sleeve raglan shirt / White/Black / 2XL",
+          "size": "2XL",
+          "color": "White/Black",
+          "price_usd": 36.75,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5377306836",
+          "name": "VCH Macca 3/4 sleeve raglan shirt / White/Navy / S",
+          "size": "S",
+          "color": "White/Navy",
+          "price_usd": 34.95,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5377306837",
+          "name": "VCH Macca 3/4 sleeve raglan shirt / White/Navy / M",
+          "size": "M",
+          "color": "White/Navy",
+          "price_usd": 34.95,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5377306838",
+          "name": "VCH Macca 3/4 sleeve raglan shirt / White/Navy / L",
+          "size": "L",
+          "color": "White/Navy",
+          "price_usd": 34.95,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5377306839",
+          "name": "VCH Macca 3/4 sleeve raglan shirt / White/Navy / XL",
+          "size": "XL",
+          "color": "White/Navy",
+          "price_usd": 34.95,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5377306840",
+          "name": "VCH Macca 3/4 sleeve raglan shirt / White/Navy / 2XL",
+          "size": "2XL",
+          "color": "White/Navy",
+          "price_usd": 36.75,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5377306841",
+          "name": "VCH Macca 3/4 sleeve raglan shirt / White/Royal / XS",
+          "size": "XS",
+          "color": "White/Royal",
+          "price_usd": 34.95,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5377306842",
+          "name": "VCH Macca 3/4 sleeve raglan shirt / White/Royal / S",
+          "size": "S",
+          "color": "White/Royal",
+          "price_usd": 34.95,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5377306843",
+          "name": "VCH Macca 3/4 sleeve raglan shirt / White/Royal / M",
+          "size": "M",
+          "color": "White/Royal",
+          "price_usd": 34.95,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5377306844",
+          "name": "VCH Macca 3/4 sleeve raglan shirt / White/Royal / L",
+          "size": "L",
+          "color": "White/Royal",
+          "price_usd": 34.95,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5377306845",
+          "name": "VCH Macca 3/4 sleeve raglan shirt / White/Royal / XL",
+          "size": "XL",
+          "color": "White/Royal",
+          "price_usd": 34.95,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5377306846",
+          "name": "VCH Macca 3/4 sleeve raglan shirt / White/Royal / 2XL",
+          "size": "2XL",
+          "color": "White/Royal",
+          "price_usd": 36.75,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5377306847",
+          "name": "VCH Macca 3/4 sleeve raglan shirt / White/Red / XS",
+          "size": "XS",
+          "color": "White/Red",
+          "price_usd": 34.95,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5377306848",
+          "name": "VCH Macca 3/4 sleeve raglan shirt / White/Red / S",
+          "size": "S",
+          "color": "White/Red",
+          "price_usd": 34.95,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5377306849",
+          "name": "VCH Macca 3/4 sleeve raglan shirt / White/Red / M",
+          "size": "M",
+          "color": "White/Red",
+          "price_usd": 34.95,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5377306850",
+          "name": "VCH Macca 3/4 sleeve raglan shirt / White/Red / L",
+          "size": "L",
+          "color": "White/Red",
+          "price_usd": 34.95,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5377306851",
+          "name": "VCH Macca 3/4 sleeve raglan shirt / White/Red / XL",
+          "size": "XL",
+          "color": "White/Red",
+          "price_usd": 34.95,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5377306852",
+          "name": "VCH Macca 3/4 sleeve raglan shirt / White/Red / 2XL",
+          "size": "2XL",
+          "color": "White/Red",
+          "price_usd": 36.75,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5377306853",
+          "name": "VCH Macca 3/4 sleeve raglan shirt / White/Heather Charcoal / S",
+          "size": "S",
+          "color": "White/Heather Charcoal",
+          "price_usd": 34.95,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5377306854",
+          "name": "VCH Macca 3/4 sleeve raglan shirt / White/Heather Charcoal / M",
+          "size": "M",
+          "color": "White/Heather Charcoal",
+          "price_usd": 34.95,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5377306855",
+          "name": "VCH Macca 3/4 sleeve raglan shirt / White/Heather Charcoal / L",
+          "size": "L",
+          "color": "White/Heather Charcoal",
+          "price_usd": 34.95,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5377306856",
+          "name": "VCH Macca 3/4 sleeve raglan shirt / White/Heather Charcoal / XL",
+          "size": "XL",
+          "color": "White/Heather Charcoal",
+          "price_usd": 34.95,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5377306857",
+          "name": "VCH Macca 3/4 sleeve raglan shirt / White/Heather Charcoal / 2XL",
+          "size": "2XL",
+          "color": "White/Heather Charcoal",
+          "price_usd": 36.75,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5377306858",
+          "name": "VCH Macca 3/4 sleeve raglan shirt / White/Kelly / XS",
+          "size": "XS",
+          "color": "White/Kelly",
+          "price_usd": 34.95,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5377306859",
+          "name": "VCH Macca 3/4 sleeve raglan shirt / White/Kelly / S",
+          "size": "S",
+          "color": "White/Kelly",
+          "price_usd": 34.95,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5377306860",
+          "name": "VCH Macca 3/4 sleeve raglan shirt / White/Kelly / M",
+          "size": "M",
+          "color": "White/Kelly",
+          "price_usd": 34.95,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5377306861",
+          "name": "VCH Macca 3/4 sleeve raglan shirt / White/Kelly / L",
+          "size": "L",
+          "color": "White/Kelly",
+          "price_usd": 34.95,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5377306862",
+          "name": "VCH Macca 3/4 sleeve raglan shirt / White/Kelly / XL",
+          "size": "XL",
+          "color": "White/Kelly",
+          "price_usd": 34.95,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5377306863",
+          "name": "VCH Macca 3/4 sleeve raglan shirt / White/Kelly / 2XL",
+          "size": "2XL",
+          "color": "White/Kelly",
+          "price_usd": 36.75,
+          "availability": "in_stock"
+        }
+      ]
+    },
+    {
+      "sku": "merch:443138617",
+      "url": "https://vicecityhub.github.io/vicecityhub/market.html",
+      "kind": "merch",
+      "image": "https://files.cdn.printful.com/files/f97/f97b4d897abeb6f75344d8534aeeb5eb_preview.png",
+      "title": "VCH Macca Men’s premium tank top",
+      "seller": "Vice City Hub",
+      "currency": "USD",
+      "purchase": {
+        "mode": "order",
+        "rails": [
+          "paypal"
+        ],
+        "requires": [
+          "shipping"
+        ]
+      },
+      "price_usd": 34.5,
+      "attributes": {
+        "fulfillment": "Printful print-on-demand"
+      },
+      "price_note": "from (lowest variant)",
+      "description": "Official Vice City Hub merch, printed on demand by Printful. Order by variant SKU.",
+      "availability": "in_stock",
+      "variants_count": 6,
+      "variants_hint": "GET https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/v1/catalog/merch:443138617 for variant SKUs",
+      "variants": [
+        {
+          "sku": "merchv:5373367406",
+          "name": "VCH Macca Men’s premium tank top / S",
+          "size": "S",
+          "color": "White",
+          "price_usd": 34.5,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5373367407",
+          "name": "VCH Macca Men’s premium tank top / M",
+          "size": "M",
+          "color": "White",
+          "price_usd": 34.5,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5373367408",
+          "name": "VCH Macca Men’s premium tank top / L",
+          "size": "L",
+          "color": "White",
+          "price_usd": 34.5,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5373367409",
+          "name": "VCH Macca Men’s premium tank top / XL",
+          "size": "XL",
+          "color": "White",
+          "price_usd": 34.5,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5373367410",
+          "name": "VCH Macca Men’s premium tank top / 2XL",
+          "size": "2XL",
+          "color": "White",
+          "price_usd": 34.5,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5373367411",
+          "name": "VCH Macca Men’s premium tank top / 3XL",
+          "size": "3XL",
+          "color": "White",
+          "price_usd": 34.5,
+          "availability": "in_stock"
+        }
+      ]
+    },
+    {
+      "sku": "merch:443036590",
+      "url": "https://vicecityhub.github.io/vicecityhub/market.html",
+      "kind": "merch",
+      "image": "https://files.cdn.printful.com/files/0ad/0ad4e85fbf33b7e628f62eccd80238cc_preview.png",
+      "title": "VCH Macca Dad hat",
+      "seller": "Vice City Hub",
+      "currency": "USD",
+      "purchase": {
+        "mode": "order",
+        "rails": [
+          "paypal"
+        ],
+        "requires": [
+          "shipping"
+        ]
+      },
+      "price_usd": 28.99,
+      "attributes": {
+        "fulfillment": "Printful print-on-demand"
+      },
+      "description": "Official Vice City Hub merch, printed on demand by Printful. Order by variant SKU.",
+      "availability": "in_stock",
+      "variants_count": 1,
+      "variants_hint": "GET https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/v1/catalog/merch:443036590 for variant SKUs",
+      "variants": [
+        {
+          "sku": "merchv:5372687769",
+          "name": "VCH Macca Dad hat",
+          "size": "One size",
+          "color": "White",
+          "price_usd": 28.99,
+          "availability": "in_stock"
+        }
+      ]
+    },
+    {
+      "sku": "merch:443025464",
+      "url": "https://vicecityhub.github.io/vicecityhub/market.html",
+      "kind": "merch",
+      "image": "https://files.cdn.printful.com/files/a02/a026b8064ae778931f79b42d3f5aacd9_preview.png",
+      "title": "VCH Macca Unisex eco raglan hoodie",
+      "seller": "Vice City Hub",
+      "currency": "USD",
+      "purchase": {
+        "mode": "order",
+        "rails": [
+          "paypal"
+        ],
+        "requires": [
+          "shipping"
+        ]
+      },
+      "price_usd": 58.95,
+      "attributes": {
+        "fulfillment": "Printful print-on-demand"
+      },
+      "price_note": "from (lowest variant)",
+      "description": "Official Vice City Hub merch, printed on demand by Printful. Order by variant SKU.",
+      "availability": "in_stock",
+      "variants_count": 7,
+      "variants_hint": "GET https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/v1/catalog/merch:443025464 for variant SKUs",
+      "variants": [
+        {
+          "sku": "merchv:5372618618",
+          "name": "VCH Macca Unisex eco raglan hoodie / XS",
+          "size": "XS",
+          "color": "White",
+          "price_usd": 58.95,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5372618619",
+          "name": "VCH Macca Unisex eco raglan hoodie / S",
+          "size": "S",
+          "color": "White",
+          "price_usd": 58.95,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5372618620",
+          "name": "VCH Macca Unisex eco raglan hoodie / M",
+          "size": "M",
+          "color": "White",
+          "price_usd": 58.95,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5372618621",
+          "name": "VCH Macca Unisex eco raglan hoodie / L",
+          "size": "L",
+          "color": "White",
+          "price_usd": 58.95,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5372618622",
+          "name": "VCH Macca Unisex eco raglan hoodie / XL",
+          "size": "XL",
+          "color": "White",
+          "price_usd": 58.95,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5372618624",
+          "name": "VCH Macca Unisex eco raglan hoodie / 2XL",
+          "size": "2XL",
+          "color": "White",
+          "price_usd": 60.25,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5372618625",
+          "name": "VCH Macca Unisex eco raglan hoodie / 3XL",
+          "size": "3XL",
+          "color": "White",
+          "price_usd": 61.55,
+          "availability": "in_stock"
+        }
+      ]
+    },
+    {
+      "sku": "merch:443023417",
+      "url": "https://vicecityhub.github.io/vicecityhub/market.html",
+      "kind": "merch",
+      "image": "https://files.cdn.printful.com/files/9cd/9cd985c01a37f93bd50fe0814a91394c_preview.png",
+      "title": "VCH Macca MagSafe® tough case for iPhone®",
+      "seller": "Vice City Hub",
+      "currency": "USD",
+      "purchase": {
+        "mode": "order",
+        "rails": [
+          "paypal"
+        ],
+        "requires": [
+          "shipping"
+        ]
+      },
+      "price_usd": 34.61,
+      "attributes": {
+        "fulfillment": "Printful print-on-demand"
+      },
+      "price_note": "from (lowest variant)",
+      "description": "Official Vice City Hub merch, printed on demand by Printful. Order by variant SKU.",
+      "availability": "in_stock",
+      "variants_count": 16,
+      "variants_hint": "GET https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/v1/catalog/merch:443023417 for variant SKUs",
+      "variants": [
+        {
+          "sku": "merchv:5372610267",
+          "name": "VCH Macca MagSafe® tough case for iPhone® / iPhone 14",
+          "size": "iPhone 14",
+          "color": "Matte",
+          "price_usd": 34.61,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5372610268",
+          "name": "VCH Macca MagSafe® tough case for iPhone® / iPhone 14 Plus",
+          "size": "iPhone 14 Plus",
+          "color": "Matte",
+          "price_usd": 34.61,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5372610269",
+          "name": "VCH Macca MagSafe® tough case for iPhone® / iPhone 14 Pro",
+          "size": "iPhone 14 Pro",
+          "color": "Matte",
+          "price_usd": 34.61,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5372610270",
+          "name": "VCH Macca MagSafe® tough case for iPhone® / iPhone 14 Pro Max",
+          "size": "iPhone 14 Pro Max",
+          "color": "Matte",
+          "price_usd": 34.61,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5372610271",
+          "name": "VCH Macca MagSafe® tough case for iPhone® / iPhone 15",
+          "size": "iPhone 15",
+          "color": "Matte",
+          "price_usd": 34.61,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5372610272",
+          "name": "VCH Macca MagSafe® tough case for iPhone® / iPhone 15 Plus",
+          "size": "iPhone 15 Plus",
+          "color": "Matte",
+          "price_usd": 34.61,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5372610273",
+          "name": "VCH Macca MagSafe® tough case for iPhone® / iPhone 15 Pro",
+          "size": "iPhone 15 Pro",
+          "color": "Matte",
+          "price_usd": 34.61,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5372610274",
+          "name": "VCH Macca MagSafe® tough case for iPhone® / iPhone 15 Pro Max",
+          "size": "iPhone 15 Pro Max",
+          "color": "Matte",
+          "price_usd": 34.61,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5372610275",
+          "name": "VCH Macca MagSafe® tough case for iPhone® / iPhone 16",
+          "size": "iPhone 16",
+          "color": "Matte",
+          "price_usd": 34.61,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5372610276",
+          "name": "VCH Macca MagSafe® tough case for iPhone® / iPhone 16 Plus",
+          "size": "iPhone 16 Plus",
+          "color": "Matte",
+          "price_usd": 34.61,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5372610277",
+          "name": "VCH Macca MagSafe® tough case for iPhone® / iPhone 16 Pro",
+          "size": "iPhone 16 Pro",
+          "color": "Matte",
+          "price_usd": 34.61,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5372610278",
+          "name": "VCH Macca MagSafe® tough case for iPhone® / iPhone 16 Pro Max",
+          "size": "iPhone 16 Pro Max",
+          "color": "Matte",
+          "price_usd": 34.61,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5372610279",
+          "name": "VCH Macca MagSafe® tough case for iPhone® / iPhone 17",
+          "size": "iPhone 17",
+          "color": "Matte",
+          "price_usd": 34.61,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5372610280",
+          "name": "VCH Macca MagSafe® tough case for iPhone® / iPhone 17 Air",
+          "size": "iPhone 17 Air",
+          "color": "Matte",
+          "price_usd": 34.61,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5372610281",
+          "name": "VCH Macca MagSafe® tough case for iPhone® / iPhone 17 Pro",
+          "size": "iPhone 17 Pro",
+          "color": "Matte",
+          "price_usd": 34.61,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5372610282",
+          "name": "VCH Macca MagSafe® tough case for iPhone® / iPhone 17 Pro Max",
+          "size": "iPhone 17 Pro Max",
+          "color": "Matte",
+          "price_usd": 34.61,
+          "availability": "in_stock"
+        }
+      ]
+    },
+    {
+      "sku": "merch:443022436",
+      "url": "https://vicecityhub.github.io/vicecityhub/market.html",
+      "kind": "merch",
+      "image": "https://files.cdn.printful.com/files/ffe/ffe8a28be318acbe938c4187c9170a43_preview.png",
+      "title": "VCH Macca Premium basketball jersey",
+      "seller": "Vice City Hub",
+      "currency": "USD",
+      "purchase": {
+        "mode": "order",
+        "rails": [
+          "paypal"
+        ],
+        "requires": [
+          "shipping"
+        ]
+      },
+      "price_usd": 46.5,
+      "attributes": {
+        "fulfillment": "Printful print-on-demand"
+      },
+      "price_note": "from (lowest variant)",
+      "description": "Official Vice City Hub merch, printed on demand by Printful. Order by variant SKU.",
+      "availability": "in_stock",
+      "variants_count": 11,
+      "variants_hint": "GET https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/v1/catalog/merch:443022436 for variant SKUs",
+      "variants": [
+        {
+          "sku": "merchv:5372603399",
+          "name": "VCH Macca Premium basketball jersey / 2XS",
+          "size": "2XS",
+          "color": "White",
+          "price_usd": 46.5,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5372603400",
+          "name": "VCH Macca Premium basketball jersey / XS",
+          "size": "XS",
+          "color": "White",
+          "price_usd": 46.5,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5372603401",
+          "name": "VCH Macca Premium basketball jersey / S",
+          "size": "S",
+          "color": "White",
+          "price_usd": 46.5,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5372603402",
+          "name": "VCH Macca Premium basketball jersey / M",
+          "size": "M",
+          "color": "White",
+          "price_usd": 46.5,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5372603403",
+          "name": "VCH Macca Premium basketball jersey / L",
+          "size": "L",
+          "color": "White",
+          "price_usd": 46.5,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5372603404",
+          "name": "VCH Macca Premium basketball jersey / XL",
+          "size": "XL",
+          "color": "White",
+          "price_usd": 46.5,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5372603405",
+          "name": "VCH Macca Premium basketball jersey / 2XL",
+          "size": "2XL",
+          "color": "White",
+          "price_usd": 48.25,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5372603406",
+          "name": "VCH Macca Premium basketball jersey / 3XL",
+          "size": "3XL",
+          "color": "White",
+          "price_usd": 49.95,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5372603407",
+          "name": "VCH Macca Premium basketball jersey / 4XL",
+          "size": "4XL",
+          "color": "White",
+          "price_usd": 51.75,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5372603408",
+          "name": "VCH Macca Premium basketball jersey / 5XL",
+          "size": "5XL",
+          "color": "White",
+          "price_usd": 53.5,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5372603409",
+          "name": "VCH Macca Premium basketball jersey / 6XL",
+          "size": "6XL",
+          "color": "White",
+          "price_usd": 55.25,
+          "availability": "in_stock"
+        }
+      ]
+    },
+    {
+      "sku": "merch:443019869",
+      "url": "https://vicecityhub.github.io/vicecityhub/market.html",
+      "kind": "merch",
+      "image": "https://files.cdn.printful.com/files/819/819cdacb3f2793ee18708d4d10bfd651_preview.png",
+      "title": "VCH Macca Mug with Color Inside",
+      "seller": "Vice City Hub",
+      "currency": "USD",
+      "purchase": {
+        "mode": "order",
+        "rails": [
+          "paypal"
+        ],
+        "requires": [
+          "shipping"
+        ]
+      },
+      "price_usd": 19.49,
+      "attributes": {
+        "fulfillment": "Printful print-on-demand"
+      },
+      "price_note": "from (lowest variant)",
+      "description": "Official Vice City Hub merch, printed on demand by Printful. Order by variant SKU.",
+      "availability": "in_stock",
+      "variants_count": 16,
+      "variants_hint": "GET https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/v1/catalog/merch:443019869 for variant SKUs",
+      "variants": [
+        {
+          "sku": "merchv:5372587038",
+          "name": "VCH Macca Mug with Color Inside / Black / 11 oz",
+          "size": "11 oz",
+          "color": "Black",
+          "price_usd": 19.49,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5372587039",
+          "name": "VCH Macca Mug with Color Inside / Black / 15 oz",
+          "size": "15 oz",
+          "color": "Black",
+          "price_usd": 20.49,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5372587040",
+          "name": "VCH Macca Mug with Color Inside / Dark Blue / 11 oz",
+          "size": "11 oz",
+          "color": "Dark Blue",
+          "price_usd": 19.49,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5372587041",
+          "name": "VCH Macca Mug with Color Inside / Dark Blue / 15 oz",
+          "size": "15 oz",
+          "color": "Dark Blue",
+          "price_usd": 20.49,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5372587042",
+          "name": "VCH Macca Mug with Color Inside / Red / 11 oz",
+          "size": "11 oz",
+          "color": "Red",
+          "price_usd": 19.49,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5372587043",
+          "name": "VCH Macca Mug with Color Inside / Red / 15 oz",
+          "size": "15 oz",
+          "color": "Red",
+          "price_usd": 20.49,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5372587044",
+          "name": "VCH Macca Mug with Color Inside / Dark Green / 11 oz",
+          "size": "11 oz",
+          "color": "Dark Green",
+          "price_usd": 19.49,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5372587045",
+          "name": "VCH Macca Mug with Color Inside / Dark Green / 15 oz",
+          "size": "15 oz",
+          "color": "Dark Green",
+          "price_usd": 20.49,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5372587046",
+          "name": "VCH Macca Mug with Color Inside / Orange / 11 oz",
+          "size": "11 oz",
+          "color": "Orange",
+          "price_usd": 19.49,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5372587047",
+          "name": "VCH Macca Mug with Color Inside / Blue / 11 oz",
+          "size": "11 oz",
+          "color": "Blue",
+          "price_usd": 19.49,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5372587048",
+          "name": "VCH Macca Mug with Color Inside / Blue / 15 oz",
+          "size": "15 oz",
+          "color": "Blue",
+          "price_usd": 20.49,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5372587049",
+          "name": "VCH Macca Mug with Color Inside / Pink / 11 oz",
+          "size": "11 oz",
+          "color": "Pink",
+          "price_usd": 19.49,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5372587050",
+          "name": "VCH Macca Mug with Color Inside / Pink / 15 oz",
+          "size": "15 oz",
+          "color": "Pink",
+          "price_usd": 20.49,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5372587051",
+          "name": "VCH Macca Mug with Color Inside / Golden Yellow / 11 oz",
+          "size": "11 oz",
+          "color": "Golden Yellow",
+          "price_usd": 19.49,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5372587052",
+          "name": "VCH Macca Mug with Color Inside / Green / 11 oz",
+          "size": "11 oz",
+          "color": "Green",
+          "price_usd": 19.49,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5372587053",
+          "name": "VCH Macca Mug with Color Inside / Yellow / 11 oz",
+          "size": "11 oz",
+          "color": "Yellow",
+          "price_usd": 19.49,
+          "availability": "in_stock"
+        }
+      ]
+    },
+    {
+      "sku": "merch:443017667",
+      "url": "https://vicecityhub.github.io/vicecityhub/market.html",
+      "kind": "merch",
+      "image": "https://files.cdn.printful.com/files/04a/04ae17c6611a0db59952439959debd28_preview.png",
+      "title": "VCH Macca Unisex classic tee",
+      "seller": "Vice City Hub",
+      "currency": "USD",
+      "purchase": {
+        "mode": "order",
+        "rails": [
+          "paypal"
+        ],
+        "requires": [
+          "shipping"
+        ]
+      },
+      "price_usd": 38.25,
+      "attributes": {
+        "fulfillment": "Printful print-on-demand"
+      },
+      "price_note": "from (lowest variant)",
+      "description": "Official Vice City Hub merch, printed on demand by Printful. Order by variant SKU.",
+      "availability": "in_stock",
+      "variants_count": 8,
+      "variants_hint": "GET https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/v1/catalog/merch:443017667 for variant SKUs",
+      "variants": [
+        {
+          "sku": "merchv:5372556278",
+          "name": "VCH Macca Unisex classic tee / S",
+          "size": "S",
+          "color": "White",
+          "price_usd": 38.25,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5372556279",
+          "name": "VCH Macca Unisex classic tee / M",
+          "size": "M",
+          "color": "White",
+          "price_usd": 38.25,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5372556280",
+          "name": "VCH Macca Unisex classic tee / L",
+          "size": "L",
+          "color": "White",
+          "price_usd": 38.25,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5372556281",
+          "name": "VCH Macca Unisex classic tee / XL",
+          "size": "XL",
+          "color": "White",
+          "price_usd": 38.25,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5372556282",
+          "name": "VCH Macca Unisex classic tee / 2XL",
+          "size": "2XL",
+          "color": "White",
+          "price_usd": 39.75,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5372556283",
+          "name": "VCH Macca Unisex classic tee / 3XL",
+          "size": "3XL",
+          "color": "White",
+          "price_usd": 41.5,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5372556284",
+          "name": "VCH Macca Unisex classic tee / 4XL",
+          "size": "4XL",
+          "color": "White",
+          "price_usd": 43.25,
+          "availability": "in_stock"
+        },
+        {
+          "sku": "merchv:5372556285",
+          "name": "VCH Macca Unisex classic tee / 5XL",
+          "size": "5XL",
+          "color": "White",
+          "price_usd": 44.95,
+          "availability": "in_stock"
+        }
+      ]
+    },
+    {
+      "sku": "plan:60c0f4cb-4fbc-41ab-9b87-74a89af5f4f6",
+      "kind": "plan",
+      "title": "Store slot — STARTER",
+      "description": "Vice City Hub RP store listing plan. 1 slot(s). 1 store card in the directory · Basic logo + link · Category tag · Monthly stats report",
+      "price_usd": 19,
+      "currency": "USD",
+      "seller": "Vice City Hub",
+      "availability": "available",
+      "purchase": {
+        "mode": "order",
+        "rails": [
+          "paypal",
+          "crypto"
+        ],
+        "requires": [
+          "details.store_name",
+          "details.contact_email"
+        ]
+      },
+      "url": "https://vicecityhub.github.io/vicecityhub/rp.html",
+      "attributes": {
+        "slots": 1,
+        "features": [
+          "1 store card in the directory",
+          "Basic logo + link",
+          "Category tag",
+          "Monthly stats report"
+        ],
+        "badge": null
+      }
+    },
+    {
+      "sku": "plan:7c2ad812-37f5-4387-854f-6a1b063c0046",
+      "kind": "plan",
+      "title": "Store slot — FEATURED",
+      "description": "Vice City Hub RP store listing plan. 4 slot(s). Up to 4 product cards · Featured badge on store card · Top placement in category · Click & visit analytics · Discord link + banner image · Priority in search",
+      "price_usd": 49,
+      "currency": "USD",
+      "seller": "Vice City Hub",
+      "availability": "available",
+      "purchase": {
+        "mode": "order",
+        "rails": [
+          "paypal",
+          "crypto"
+        ],
+        "requires": [
+          "details.store_name",
+          "details.contact_email"
+        ]
+      },
+      "url": "https://vicecityhub.github.io/vicecityhub/rp.html",
+      "attributes": {
+        "slots": 4,
+        "features": [
+          "Up to 4 product cards",
+          "Featured badge on store card",
+          "Top placement in category",
+          "Click & visit analytics",
+          "Discord link + banner image",
+          "Priority in search"
+        ],
+        "badge": "BEST VALUE"
+      }
+    },
+    {
+      "sku": "plan:8bf76bd4-1072-4ef5-a3af-cd6bd994ece3",
+      "kind": "plan",
+      "title": "Store slot — PREMIUM",
+      "description": "Vice City Hub RP store listing plan. 12 slot(s). Up to 12 product cards · VERIFIED store badge · Homepage banner slot (rotating) · Pinned in Store District header · Full analytics dashboard · Dedicated contact in VCH Discord · Custom accent color on card",
+      "price_usd": 99,
+      "currency": "USD",
+      "seller": "Vice City Hub",
+      "availability": "available",
+      "purchase": {
+        "mode": "order",
+        "rails": [
+          "paypal",
+          "crypto"
+        ],
+        "requires": [
+          "details.store_name",
+          "details.contact_email"
+        ]
+      },
+      "url": "https://vicecityhub.github.io/vicecityhub/rp.html",
+      "attributes": {
+        "slots": 12,
+        "features": [
+          "Up to 12 product cards",
+          "VERIFIED store badge",
+          "Homepage banner slot (rotating)",
+          "Pinned in Store District header",
+          "Full analytics dashboard",
+          "Dedicated contact in VCH Discord",
+          "Custom accent color on card"
+        ],
+        "badge": "MAX EXPOSURE"
+      }
+    },
+    {
+      "sku": "domain:110",
+      "kind": "domain",
+      "title": "gta6.dream",
+      "description": "Dream of GTA 6 premium domain.",
+      "price_usd": 29999,
+      "currency": "USD",
+      "seller": "VCH",
+      "availability": "available",
+      "purchase": {
+        "mode": "order",
+        "rails": [
+          "crypto"
+        ],
+        "requires": [
+          "delivery.wallet_address"
+        ]
+      },
+      "url": "https://vicecityhub.github.io/vicecityhub/market.html",
+      "attributes": {
+        "tld": "dream",
+        "blockchain": "MATIC",
+        "tag": "GTA6",
+        "listed_at": "2026-04-26T00:16:40.348719+00:00"
+      }
+    },
+    {
+      "sku": "domain:111",
+      "kind": "domain",
+      "title": "gta6.grow",
+      "description": "Growth and community for GTA 6.",
+      "price_usd": 29999,
+      "currency": "USD",
+      "seller": "VCH",
+      "availability": "available",
+      "purchase": {
+        "mode": "order",
+        "rails": [
+          "crypto"
+        ],
+        "requires": [
+          "delivery.wallet_address"
+        ]
+      },
+      "url": "https://vicecityhub.github.io/vicecityhub/market.html",
+      "attributes": {
+        "tld": "grow",
+        "blockchain": "MATIC",
+        "tag": "GTA6",
+        "listed_at": "2026-04-26T00:16:40.348719+00:00"
+      }
+    },
+    {
+      "sku": "domain:113",
+      "kind": "domain",
+      "title": "gta6mastermind.x",
+      "description": "The mastermind hub for GTA 6 leaks and news.",
+      "price_usd": 29999,
+      "currency": "USD",
+      "seller": "VCH",
+      "availability": "available",
+      "purchase": {
+        "mode": "order",
+        "rails": [
+          "crypto"
+        ],
+        "requires": [
+          "delivery.wallet_address"
+        ]
+      },
+      "url": "https://vicecityhub.github.io/vicecityhub/market.html",
+      "attributes": {
+        "tld": "x",
+        "blockchain": "MATIC",
+        "tag": "GTA6",
+        "listed_at": "2026-04-26T00:16:40.348719+00:00"
+      }
+    },
+    {
+      "sku": "domain:115",
+      "kind": "domain",
+      "title": "gta6.pack",
+      "description": "The ultimate GTA 6 asset pack domain.",
+      "price_usd": 79999,
+      "currency": "USD",
+      "seller": "VCH",
+      "availability": "available",
+      "purchase": {
+        "mode": "order",
+        "rails": [
+          "crypto"
+        ],
+        "requires": [
+          "delivery.wallet_address"
+        ]
+      },
+      "url": "https://vicecityhub.github.io/vicecityhub/market.html",
+      "attributes": {
+        "tld": "pack",
+        "blockchain": "MATIC",
+        "tag": "GTA6",
+        "listed_at": "2026-04-26T00:16:40.348719+00:00"
+      }
+    },
+    {
+      "sku": "domain:116",
+      "kind": "domain",
+      "title": "gta6prime.go",
+      "description": "Prime access to GTA 6 updates.",
+      "price_usd": 66666,
+      "currency": "USD",
+      "seller": "VCH",
+      "availability": "available",
+      "purchase": {
+        "mode": "order",
+        "rails": [
+          "crypto"
+        ],
+        "requires": [
+          "delivery.wallet_address"
+        ]
+      },
+      "url": "https://vicecityhub.github.io/vicecityhub/market.html",
+      "attributes": {
+        "tld": "go",
+        "blockchain": "MATIC",
+        "tag": "GTA6",
+        "listed_at": "2026-04-26T00:16:40.348719+00:00"
+      }
+    },
+    {
+      "sku": "domain:117",
+      "kind": "domain",
+      "title": "gta6prime.nft",
+      "description": "Digital assets for GTA 6 Prime.",
+      "price_usd": 66666,
+      "currency": "USD",
+      "seller": "VCH",
+      "availability": "available",
+      "purchase": {
+        "mode": "order",
+        "rails": [
+          "crypto"
+        ],
+        "requires": [
+          "delivery.wallet_address"
+        ]
+      },
+      "url": "https://vicecityhub.github.io/vicecityhub/market.html",
+      "attributes": {
+        "tld": "nft",
+        "blockchain": "MATIC",
+        "tag": "GTA6",
+        "listed_at": "2026-04-26T00:16:40.348719+00:00"
+      }
+    },
+    {
+      "sku": "domain:118",
+      "kind": "domain",
+      "title": "gta6prime.x",
+      "description": "Exclusive X-domain for GTA 6 Prime.",
+      "price_usd": 66666,
+      "currency": "USD",
+      "seller": "VCH",
+      "availability": "available",
+      "purchase": {
+        "mode": "order",
+        "rails": [
+          "crypto"
+        ],
+        "requires": [
+          "delivery.wallet_address"
+        ]
+      },
+      "url": "https://vicecityhub.github.io/vicecityhub/market.html",
+      "attributes": {
+        "tld": "x",
+        "blockchain": "MATIC",
+        "tag": "GTA6",
+        "listed_at": "2026-04-26T00:16:40.348719+00:00"
+      }
+    },
+    {
+      "sku": "domain:120",
+      "kind": "domain",
+      "title": "gta6online.888",
+      "description": "Lucky domain for GTA 6 Online.",
+      "price_usd": 19999,
+      "currency": "USD",
+      "seller": "VCH",
+      "availability": "available",
+      "purchase": {
+        "mode": "order",
+        "rails": [
+          "crypto"
+        ],
+        "requires": [
+          "delivery.wallet_address"
+        ]
+      },
+      "url": "https://vicecityhub.github.io/vicecityhub/market.html",
+      "attributes": {
+        "tld": "888",
+        "blockchain": "MATIC",
+        "tag": "GTA Online",
+        "listed_at": "2026-04-26T00:16:40.348719+00:00"
+      }
+    },
+    {
+      "sku": "domain:121",
+      "kind": "domain",
+      "title": "gta6online.blockchain",
+      "description": "Web3 integration for GTA 6 Online.",
+      "price_usd": 56555,
+      "currency": "USD",
+      "seller": "VCH",
+      "availability": "available",
+      "purchase": {
+        "mode": "order",
+        "rails": [
+          "crypto"
+        ],
+        "requires": [
+          "delivery.wallet_address"
+        ]
+      },
+      "url": "https://vicecityhub.github.io/vicecityhub/market.html",
+      "attributes": {
+        "tld": "blockchain",
+        "blockchain": "MATIC",
+        "tag": "GTA Online",
+        "listed_at": "2026-04-26T00:16:40.348719+00:00"
+      }
+    },
+    {
+      "sku": "domain:122",
+      "kind": "domain",
+      "title": "gta6online.dream",
+      "description": "The dream space for GTA Online players.",
+      "price_usd": 54555,
+      "currency": "USD",
+      "seller": "VCH",
+      "availability": "available",
+      "purchase": {
+        "mode": "order",
+        "rails": [
+          "crypto"
+        ],
+        "requires": [
+          "delivery.wallet_address"
+        ]
+      },
+      "url": "https://vicecityhub.github.io/vicecityhub/market.html",
+      "attributes": {
+        "tld": "dream",
+        "blockchain": "MATIC",
+        "tag": "GTA Online",
+        "listed_at": "2026-04-26T00:16:40.348719+00:00"
+      }
+    },
+    {
+      "sku": "domain:123",
+      "kind": "domain",
+      "title": "gta6online.go",
+      "description": "Go-to hub for GTA 6 Online action.",
+      "price_usd": 65555,
+      "currency": "USD",
+      "seller": "VCH",
+      "availability": "available",
+      "purchase": {
+        "mode": "order",
+        "rails": [
+          "crypto"
+        ],
+        "requires": [
+          "delivery.wallet_address"
+        ]
+      },
+      "url": "https://vicecityhub.github.io/vicecityhub/market.html",
+      "attributes": {
+        "tld": "go",
+        "blockchain": "MATIC",
+        "tag": "GTA Online",
+        "listed_at": "2026-04-26T00:16:40.348719+00:00"
+      }
+    },
+    {
+      "sku": "domain:124",
+      "kind": "domain",
+      "title": "gta6online.grow",
+      "description": "Community growth for GTA Online.",
+      "price_usd": 45555,
+      "currency": "USD",
+      "seller": "VCH",
+      "availability": "available",
+      "purchase": {
+        "mode": "order",
+        "rails": [
+          "crypto"
+        ],
+        "requires": [
+          "delivery.wallet_address"
+        ]
+      },
+      "url": "https://vicecityhub.github.io/vicecityhub/market.html",
+      "attributes": {
+        "tld": "grow",
+        "blockchain": "MATIC",
+        "tag": "GTA Online",
+        "listed_at": "2026-04-26T00:16:40.348719+00:00"
+      }
+    },
+    {
+      "sku": "domain:126",
+      "kind": "domain",
+      "title": "gta6online.secret",
+      "description": "Hidden tips and secrets for GTA Online.",
+      "price_usd": 44555,
+      "currency": "USD",
+      "seller": "VCH",
+      "availability": "available",
+      "purchase": {
+        "mode": "order",
+        "rails": [
+          "crypto"
+        ],
+        "requires": [
+          "delivery.wallet_address"
+        ]
+      },
+      "url": "https://vicecityhub.github.io/vicecityhub/market.html",
+      "attributes": {
+        "tld": "secret",
+        "blockchain": "MATIC",
+        "tag": "GTA Online",
+        "listed_at": "2026-04-26T00:16:40.348719+00:00"
+      }
+    },
+    {
+      "sku": "domain:127",
+      "kind": "domain",
+      "title": "gta6online.unstoppable",
+      "description": "Be unstoppable in the new GTA Online world.",
+      "price_usd": 85555,
+      "currency": "USD",
+      "seller": "VCH",
+      "availability": "available",
+      "purchase": {
+        "mode": "order",
+        "rails": [
+          "crypto"
+        ],
+        "requires": [
+          "delivery.wallet_address"
+        ]
+      },
+      "url": "https://vicecityhub.github.io/vicecityhub/market.html",
+      "attributes": {
+        "tld": "unstoppable",
+        "blockchain": "MATIC",
+        "tag": "GTA Online",
+        "listed_at": "2026-04-26T00:16:40.348719+00:00"
+      }
+    },
+    {
+      "sku": "domain:128",
+      "kind": "domain",
+      "title": "gta6online.wallet",
+      "description": "Crypto wallet for GTA 6 Online transactions.",
+      "price_usd": 66666,
+      "currency": "USD",
+      "seller": "VCH",
+      "availability": "available",
+      "purchase": {
+        "mode": "order",
+        "rails": [
+          "crypto"
+        ],
+        "requires": [
+          "delivery.wallet_address"
+        ]
+      },
+      "url": "https://vicecityhub.github.io/vicecityhub/market.html",
+      "attributes": {
+        "tld": "wallet",
+        "blockchain": "MATIC",
+        "tag": "GTA Online",
+        "listed_at": "2026-04-26T00:16:40.348719+00:00"
+      }
+    },
+    {
+      "sku": "domain:129",
+      "kind": "domain",
+      "title": "gta6online.x",
+      "description": "Premium X-hub for GTA 6 Online.",
+      "price_usd": 56666,
+      "currency": "USD",
+      "seller": "VCH",
+      "availability": "available",
+      "purchase": {
+        "mode": "order",
+        "rails": [
+          "crypto"
+        ],
+        "requires": [
+          "delivery.wallet_address"
+        ]
+      },
+      "url": "https://vicecityhub.github.io/vicecityhub/market.html",
+      "attributes": {
+        "tld": "x",
+        "blockchain": "MATIC",
+        "tag": "GTA Online",
+        "listed_at": "2026-04-26T00:16:40.348719+00:00"
+      }
+    },
+    {
+      "sku": "domain:130",
+      "kind": "domain",
+      "title": "gtaonline.dream",
+      "description": "The classic GTA Online dream domain.",
+      "price_usd": 77777,
+      "currency": "USD",
+      "seller": "VCH",
+      "availability": "available",
+      "purchase": {
+        "mode": "order",
+        "rails": [
+          "crypto"
+        ],
+        "requires": [
+          "delivery.wallet_address"
+        ]
+      },
+      "url": "https://vicecityhub.github.io/vicecityhub/market.html",
+      "attributes": {
+        "tld": "dream",
+        "blockchain": "MATIC",
+        "tag": "GTA Online",
+        "listed_at": "2026-04-26T00:16:40.348719+00:00"
+      }
+    },
+    {
+      "sku": "domain:131",
+      "kind": "domain",
+      "title": "gtaonline.hi",
+      "description": "The greeting hub for GTA Online enthusiasts.",
+      "price_usd": 88555,
+      "currency": "USD",
+      "seller": "VCH",
+      "availability": "available",
+      "purchase": {
+        "mode": "order",
+        "rails": [
+          "crypto"
+        ],
+        "requires": [
+          "delivery.wallet_address"
+        ]
+      },
+      "url": "https://vicecityhub.github.io/vicecityhub/market.html",
+      "attributes": {
+        "tld": "hi",
+        "blockchain": "MATIC",
+        "tag": "GTA Online",
+        "listed_at": "2026-04-26T00:16:40.348719+00:00"
+      }
+    },
+    {
+      "sku": "domain:132",
+      "kind": "domain",
+      "title": "vicecity.hub",
+      "description": "The official hub for all things Vice City.",
+      "price_usd": 79999,
+      "currency": "USD",
+      "seller": "VCH",
+      "availability": "available",
+      "purchase": {
+        "mode": "order",
+        "rails": [
+          "crypto"
+        ],
+        "requires": [
+          "delivery.wallet_address"
+        ]
+      },
+      "url": "https://vicecityhub.github.io/vicecityhub/market.html",
+      "attributes": {
+        "tld": "hub",
+        "blockchain": "MATIC",
+        "tag": "Vice City",
+        "listed_at": "2026-04-26T00:16:40.348719+00:00"
+      }
+    },
+    {
+      "sku": "domain:135",
+      "kind": "domain",
+      "title": "take2web3games.bitcoin",
+      "description": "Take2 Interactive gaming on Bitcoin.",
+      "price_usd": 25666,
+      "currency": "USD",
+      "seller": "VCH",
+      "availability": "available",
+      "purchase": {
+        "mode": "order",
+        "rails": [
+          "crypto"
+        ],
+        "requires": [
+          "delivery.wallet_address"
+        ]
+      },
+      "url": "https://vicecityhub.github.io/vicecityhub/market.html",
+      "attributes": {
+        "tld": "bitcoin",
+        "blockchain": "MATIC",
+        "tag": "Take2",
+        "listed_at": "2026-04-26T00:16:40.348719+00:00"
+      }
+    },
+    {
+      "sku": "domain:136",
+      "kind": "domain",
+      "title": "take2web3games.blockchain",
+      "description": "Take2 web3 blockchain gaming hub.",
+      "price_usd": 66666,
+      "currency": "USD",
+      "seller": "VCH",
+      "availability": "available",
+      "purchase": {
+        "mode": "order",
+        "rails": [
+          "crypto"
+        ],
+        "requires": [
+          "delivery.wallet_address"
+        ]
+      },
+      "url": "https://vicecityhub.github.io/vicecityhub/market.html",
+      "attributes": {
+        "tld": "blockchain",
+        "blockchain": "MATIC",
+        "tag": "Take2",
+        "listed_at": "2026-04-26T00:16:40.348719+00:00"
+      }
+    },
+    {
+      "sku": "domain:137",
+      "kind": "domain",
+      "title": "take2web3games.crypto",
+      "description": "Crypto assets for Take2 web3 games.",
+      "price_usd": 66666,
+      "currency": "USD",
+      "seller": "VCH",
+      "availability": "available",
+      "purchase": {
+        "mode": "order",
+        "rails": [
+          "crypto"
+        ],
+        "requires": [
+          "delivery.wallet_address"
+        ]
+      },
+      "url": "https://vicecityhub.github.io/vicecityhub/market.html",
+      "attributes": {
+        "tld": "crypto",
+        "blockchain": "MATIC",
+        "tag": "Take2",
+        "listed_at": "2026-04-26T00:16:40.348719+00:00"
+      }
+    },
+    {
+      "sku": "domain:138",
+      "kind": "domain",
+      "title": "take2web3games.dao",
+      "description": "Decentralized organization for Take2 gaming.",
+      "price_usd": 24555,
+      "currency": "USD",
+      "seller": "VCH",
+      "availability": "available",
+      "purchase": {
+        "mode": "order",
+        "rails": [
+          "crypto"
+        ],
+        "requires": [
+          "delivery.wallet_address"
+        ]
+      },
+      "url": "https://vicecityhub.github.io/vicecityhub/market.html",
+      "attributes": {
+        "tld": "dao",
+        "blockchain": "MATIC",
+        "tag": "Take2",
+        "listed_at": "2026-04-26T00:16:40.348719+00:00"
+      }
+    },
+    {
+      "sku": "domain:139",
+      "kind": "domain",
+      "title": "take2web3games.nft",
+      "description": "NFT marketplace for Take2 web3 titles.",
+      "price_usd": 55666,
+      "currency": "USD",
+      "seller": "VCH",
+      "availability": "available",
+      "purchase": {
+        "mode": "order",
+        "rails": [
+          "crypto"
+        ],
+        "requires": [
+          "delivery.wallet_address"
+        ]
+      },
+      "url": "https://vicecityhub.github.io/vicecityhub/market.html",
+      "attributes": {
+        "tld": "nft",
+        "blockchain": "MATIC",
+        "tag": "Take2",
+        "listed_at": "2026-04-26T00:16:40.348719+00:00"
+      }
+    },
+    {
+      "sku": "domain:140",
+      "kind": "domain",
+      "title": "take2web3games.polygon",
+      "description": "Take2 gaming ecosystem on Polygon.",
+      "price_usd": 24555,
+      "currency": "USD",
+      "seller": "VCH",
+      "availability": "available",
+      "purchase": {
+        "mode": "order",
+        "rails": [
+          "crypto"
+        ],
+        "requires": [
+          "delivery.wallet_address"
+        ]
+      },
+      "url": "https://vicecityhub.github.io/vicecityhub/market.html",
+      "attributes": {
+        "tld": "polygon",
+        "blockchain": "MATIC",
+        "tag": "Take2",
+        "listed_at": "2026-04-26T00:16:40.348719+00:00"
+      }
+    },
+    {
+      "sku": "domain:141",
+      "kind": "domain",
+      "title": "take2web3games.wallet",
+      "description": "The official wallet domain for Take2 web3 games.",
+      "price_usd": 77554,
+      "currency": "USD",
+      "seller": "VCH",
+      "availability": "available",
+      "purchase": {
+        "mode": "order",
+        "rails": [
+          "crypto"
+        ],
+        "requires": [
+          "delivery.wallet_address"
+        ]
+      },
+      "url": "https://vicecityhub.github.io/vicecityhub/market.html",
+      "attributes": {
+        "tld": "wallet",
+        "blockchain": "MATIC",
+        "tag": "Take2",
+        "listed_at": "2026-04-26T00:16:40.348719+00:00"
+      }
+    },
+    {
+      "sku": "domain:109",
+      "kind": "domain",
+      "title": "gta6.agi",
+      "description": "AI and GTA 6 integration domain.",
+      "price_usd": 15555,
+      "currency": "USD",
+      "seller": "VCH",
+      "availability": "available",
+      "purchase": {
+        "mode": "order",
+        "rails": [
+          "crypto"
+        ],
+        "requires": [
+          "delivery.wallet_address"
+        ]
+      },
+      "url": "https://vicecityhub.github.io/vicecityhub/market.html",
+      "attributes": {
+        "tld": "agi",
+        "blockchain": "N/A",
+        "tag": "GTA6",
+        "listed_at": "2026-04-26T00:16:40.348719+00:00"
+      }
+    },
+    {
+      "sku": "domain:112",
+      "kind": "domain",
+      "title": "gta6hype.podcast",
+      "description": "Hype channel for the next GTA.",
+      "price_usd": 14770,
+      "currency": "USD",
+      "seller": "VCH",
+      "availability": "available",
+      "purchase": {
+        "mode": "order",
+        "rails": [
+          "crypto"
+        ],
+        "requires": [
+          "delivery.wallet_address"
+        ]
+      },
+      "url": "https://vicecityhub.github.io/vicecityhub/market.html",
+      "attributes": {
+        "tld": "podcast",
+        "blockchain": "BASE",
+        "tag": "Podcast",
+        "listed_at": "2026-04-26T00:16:40.348719+00:00"
+      }
+    },
+    {
+      "sku": "domain:114",
+      "kind": "domain",
+      "title": "gta6oclock.podcast",
+      "description": "It is GTA 6 o clock podcast domain.",
+      "price_usd": 18888,
+      "currency": "USD",
+      "seller": "VCH",
+      "availability": "available",
+      "purchase": {
+        "mode": "order",
+        "rails": [
+          "crypto"
+        ],
+        "requires": [
+          "delivery.wallet_address"
+        ]
+      },
+      "url": "https://vicecityhub.github.io/vicecityhub/market.html",
+      "attributes": {
+        "tld": "podcast",
+        "blockchain": "BASE",
+        "tag": "Podcast",
+        "listed_at": "2026-04-26T00:16:40.348719+00:00"
+      }
+    },
+    {
+      "sku": "domain:119",
+      "kind": "domain",
+      "title": "gta6talks.podcast",
+      "description": "Discussion and talks about the new GTA.",
+      "price_usd": 19990,
+      "currency": "USD",
+      "seller": "VCH",
+      "availability": "available",
+      "purchase": {
+        "mode": "order",
+        "rails": [
+          "crypto"
+        ],
+        "requires": [
+          "delivery.wallet_address"
+        ]
+      },
+      "url": "https://vicecityhub.github.io/vicecityhub/market.html",
+      "attributes": {
+        "tld": "podcast",
+        "blockchain": "BASE",
+        "tag": "Podcast",
+        "listed_at": "2026-04-26T00:16:40.348719+00:00"
+      }
+    },
+    {
+      "sku": "domain:125",
+      "kind": "domain",
+      "title": "gta6online.podcast",
+      "description": "Broadcasting the latest GTA Online news.",
+      "price_usd": 14555,
+      "currency": "USD",
+      "seller": "VCH",
+      "availability": "available",
+      "purchase": {
+        "mode": "order",
+        "rails": [
+          "crypto"
+        ],
+        "requires": [
+          "delivery.wallet_address"
+        ]
+      },
+      "url": "https://vicecityhub.github.io/vicecityhub/market.html",
+      "attributes": {
+        "tld": "podcast",
+        "blockchain": "BASE",
+        "tag": "Podcast",
+        "listed_at": "2026-04-26T00:16:40.348719+00:00"
+      }
+    },
+    {
+      "sku": "domain:133",
+      "kind": "domain",
+      "title": "vicecityvibes.podcast",
+      "description": "Capturing the atmosphere of Vice City.",
+      "price_usd": 14555,
+      "currency": "USD",
+      "seller": "VCH",
+      "availability": "available",
+      "purchase": {
+        "mode": "order",
+        "rails": [
+          "crypto"
+        ],
+        "requires": [
+          "delivery.wallet_address"
+        ]
+      },
+      "url": "https://vicecityhub.github.io/vicecityhub/market.html",
+      "attributes": {
+        "tld": "podcast",
+        "blockchain": "BASE",
+        "tag": "Podcast",
+        "listed_at": "2026-04-26T00:16:40.348719+00:00"
+      }
+    },
+    {
+      "sku": "domain:134",
+      "kind": "domain",
+      "title": "welcometovice.podcast",
+      "description": "Welcome to Vice City podcast channel.",
+      "price_usd": 15555,
+      "currency": "USD",
+      "seller": "VCH",
+      "availability": "available",
+      "purchase": {
+        "mode": "order",
+        "rails": [
+          "crypto"
+        ],
+        "requires": [
+          "delivery.wallet_address"
+        ]
+      },
+      "url": "https://vicecityhub.github.io/vicecityhub/market.html",
+      "attributes": {
+        "tld": "podcast",
+        "blockchain": "BASE",
+        "tag": "Podcast",
+        "listed_at": "2026-04-26T00:16:40.348719+00:00"
+      }
+    },
+    {
+      "sku": "product:8aeef121-d732-428c-8f58-6841aecef4f0",
+      "kind": "product",
+      "title": "Smartphone 3.0",
+      "description": "50+ apps, Dynamic Island, Aura AI. The most advanced FiveM phone ever built.",
+      "price_usd": null,
+      "price_note": "FROM $34",
+      "currency": "USD",
+      "seller": "Quasar Store",
+      "availability": "available",
+      "purchase": {
+        "mode": "intent",
+        "rails": [],
+        "requires": [],
+        "external_url": "https://www.quasar-store.com/product/smartphone"
+      },
+      "url": "https://vicecityhub.github.io/vicecityhub/rp.html",
+      "image": null,
+      "attributes": {
+        "category": "Phone",
+        "tags": [
+          "Phone",
+          "UI",
+          "Social"
+        ],
+        "frameworks": [
+          "ESX",
+          "QB",
+          "Qbox"
+        ]
+      }
+    },
+    {
+      "sku": "product:c905db1a-2be9-49fa-b0bc-985e17709cfc",
+      "kind": "product",
+      "title": "Housing Creator",
+      "description": "Next-gen housing with decoration tools, RGB lighting, stashes and premium shells.",
+      "price_usd": null,
+      "price_note": "$89",
+      "currency": "USD",
+      "seller": "Quasar Store",
+      "availability": "available",
+      "purchase": {
+        "mode": "intent",
+        "rails": [],
+        "requires": [],
+        "external_url": "https://www.quasar-store.com/product/housing-creator"
+      },
+      "url": "https://vicecityhub.github.io/vicecityhub/rp.html",
+      "image": null,
+      "attributes": {
+        "category": "Housing",
+        "tags": [
+          "Housing",
+          "MLO",
+          "Decor"
+        ],
+        "frameworks": [
+          "ESX",
+          "QB",
+          "Qbox"
+        ]
+      }
+    },
+    {
+      "sku": "product:498fc961-0de7-40ab-9ba9-d085b85395f5",
+      "kind": "product",
+      "title": "Police Creator",
+      "description": "Complete LEO system: CAD, MDT, dispatch, K9, CCTV and real-time unit tracking.",
+      "price_usd": null,
+      "price_note": "$59",
+      "currency": "USD",
+      "seller": "Quasar Store",
+      "availability": "available",
+      "purchase": {
+        "mode": "intent",
+        "rails": [],
+        "requires": [],
+        "external_url": "https://www.quasar-store.com/product/police-creator"
+      },
+      "url": "https://vicecityhub.github.io/vicecityhub/rp.html",
+      "image": null,
+      "attributes": {
+        "category": "Police",
+        "tags": [
+          "Police",
+          "CAD",
+          "MDT"
+        ],
+        "frameworks": [
+          "ESX",
+          "QB",
+          "Qbox"
+        ]
+      }
+    },
+    {
+      "sku": "product:72f0b304-fd11-479c-bccc-08f0b46baad3",
+      "kind": "product",
+      "title": "Advanced Inventory",
+      "description": "AAA-level inventory UI with drop system, trunks, gloveboxes and mission rewards.",
+      "price_usd": null,
+      "price_note": "$29",
+      "currency": "USD",
+      "seller": "Quasar Store",
+      "availability": "available",
+      "purchase": {
+        "mode": "intent",
+        "rails": [],
+        "requires": [],
+        "external_url": "https://www.quasar-store.com/product/advanced-inventory"
+      },
+      "url": "https://vicecityhub.github.io/vicecityhub/rp.html",
+      "image": null,
+      "attributes": {
+        "category": "Inventory",
+        "tags": [
+          "Inventory",
+          "UI"
+        ],
+        "frameworks": [
+          "ESX",
+          "QB",
+          "Qbox"
+        ]
+      }
+    },
+    {
+      "sku": "server:f871bfa9-681e-4bd7-9ed6-4a4d1e0103f7",
+      "kind": "server",
+      "title": "Complete FiveM WL Server — 7781 Discord Members",
+      "description": "Selling a fully configured FiveM whitelist server. Owner no longer has time — real life projects take priority. Ready to use out of the box with unique features. Includes full custom script base plus all Tebex-purchased scripts. CFX key included. Full access to all Discords including the 1000-member illegal Discord.",
+      "price_usd": null,
+      "price_note": "1500 EUR (seller-quoted)",
+      "currency": "EUR",
+      "seller": "Community seller",
+      "availability": "available",
+      "purchase": {
+        "mode": "intent",
+        "rails": [],
+        "requires": []
+      },
+      "url": "https://vicecityhub.github.io/vicecityhub/rp.html",
+      "attributes": {
+        "price_eur": 1500,
+        "framework": "Custom",
+        "discord_members": 7781,
+        "player_slots": 128,
+        "includes": [
+          "Full CFX key",
+          "Custom scripts (all original)",
+          "All purchased Tebex scripts",
+          "Main Discord access (7781 members)",
+          "Illegal Discord access (1000 members)",
+          "Complete A-Z server config"
+        ],
+        "whitelisted": true
+      }
+    }
+  ]
+}

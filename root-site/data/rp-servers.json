@@ -1,0 +1,170 @@
+{
+  "generated_at": "2026-10-18T09:58:15.764Z",
+  "source": "https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/v1/rp/servers",
+  "count": 9,
+  "items": [
+    {
+      "id": "4dda1ab2-6298-4064-88d7-e94e76acb83e",
+      "name": "NoPixel 4.0",
+      "status": "ONLINE",
+      "online_count": 247,
+      "max_players": 300,
+      "tags": [
+        "Hard RP",
+        "Whitelisted",
+        "Custom UI",
+        "NoPixel Style"
+      ],
+      "description": "The legendary whitelist server. Home of the biggest streamers. Zero tolerance for fail RP.",
+      "connect_url": "fivem://connect/cfx.re/join/nopixel",
+      "discord_url": "https://discord.gg/nopixel",
+      "is_featured": true,
+      "logo_url": null
+    },
+    {
+      "id": "067ee63f-3b8b-4bda-9fc7-f3cffa9eedbc",
+      "name": "Eclipse RP",
+      "status": "ONLINE",
+      "online_count": 891,
+      "max_players": 1000,
+      "tags": [
+        "Voice Only",
+        "Public",
+        "FiveM",
+        "Economy Sim"
+      ],
+      "description": "Biggest public RP server in North America. Serious rules, serious economy, serious drama.",
+      "connect_url": "fivem://connect/cfx.re/join/eclipse",
+      "discord_url": "https://discord.gg/eclipserp",
+      "is_featured": true,
+      "logo_url": null
+    },
+    {
+      "id": "e12404b0-56f6-4fef-8fd3-65c30ceb2ea2",
+      "name": "Mafia City RP",
+      "status": "WHITELIST_OPEN",
+      "online_count": 0,
+      "max_players": 200,
+      "tags": [
+        "Hard RP",
+        "Voice Only",
+        "Whitelisted",
+        "Custom UI"
+      ],
+      "description": "Applications open now. Dedicated to organized crime RP. If you spit wrong, you're out.",
+      "connect_url": null,
+      "discord_url": "https://discord.gg/mafiacityrp",
+      "is_featured": false,
+      "logo_url": null
+    },
+    {
+      "id": "234814f1-6410-4293-abe7-b075ea8a857f",
+      "name": "Vice City Online",
+      "status": "IN_DEVELOPMENT",
+      "online_count": 0,
+      "max_players": 500,
+      "tags": [
+        "FiveM",
+        "Custom UI",
+        "Economy Sim",
+        "Hard RP"
+      ],
+      "description": "Set in Vice City map. 80s aesthetics, drug trade mechanics, Scarface energy. Q2 2025 launch.",
+      "connect_url": null,
+      "discord_url": null,
+      "is_featured": false,
+      "logo_url": null
+    },
+    {
+      "id": "5018f6bb-d3d1-44c3-8607-7688c3691692",
+      "name": "Badlands RP",
+      "status": "ONLINE",
+      "online_count": 134,
+      "max_players": 200,
+      "tags": [
+        "Public",
+        "FiveM",
+        "Voice Only"
+      ],
+      "description": "Mid-tier public server with solid economy scripts. Good for learning RP before going whitelist.",
+      "connect_url": "fivem://connect/cfx.re/join/badlands",
+      "discord_url": null,
+      "is_featured": false,
+      "logo_url": null
+    },
+    {
+      "id": "bf6b3f40-4e22-4716-bf92-e037f2854f1d",
+      "name": "Leonida State RP",
+      "status": "IN_DEVELOPMENT",
+      "online_count": 0,
+      "max_players": 400,
+      "tags": [
+        "Hard RP",
+        "Custom UI",
+        "Economy Sim",
+        "Whitelisted"
+      ],
+      "description": "GTA 6 Leonida map when it drops. Building the framework now. Whitelist applications pre-open.",
+      "connect_url": null,
+      "discord_url": "https://discord.gg/leonida",
+      "is_featured": false,
+      "logo_url": null
+    },
+    {
+      "id": "56e10813-6d7a-47c6-b0e9-e2b54aac2279",
+      "name": "SRTG RP",
+      "status": "ONLINE",
+      "online_count": 67,
+      "max_players": 128,
+      "tags": [
+        "Hard RP",
+        "Voice Only",
+        "Custom UI",
+        "Economy Sim",
+        "Public"
+      ],
+      "description": "Free Access. No pay to win. Custom scripts built in-house. Gang, LSPD, EMS, Civilian — every role shapes the city. Your story starts small and ends at the top.",
+      "connect_url": null,
+      "discord_url": "https://discord.gg/srtg",
+      "is_featured": false,
+      "logo_url": null
+    },
+    {
+      "id": "7033864f-26a6-4a13-b7d6-1ae59c04f25c",
+      "name": "Vision RP",
+      "status": "WHITELIST_OPEN",
+      "online_count": 0,
+      "max_players": 128,
+      "tags": [
+        "Hard RP",
+        "Whitelisted",
+        "Custom UI",
+        "Economy Sim",
+        "NoPixel Style"
+      ],
+      "description": "Quality over quantity. Gang and MC slots open. Legal businesses available for takeover. Whitelist sessions Mon–Fri 18h–20h. Every scene leaves a mark.",
+      "connect_url": null,
+      "discord_url": "https://discord.gg/visionrp",
+      "is_featured": false,
+      "logo_url": null
+    },
+    {
+      "id": "65d6fad3-2b05-4c5d-8e77-daf75c2d60ab",
+      "name": "American Dream RP",
+      "status": "ONLINE",
+      "online_count": 35,
+      "max_players": 64,
+      "tags": [
+        "Hard RP",
+        "Whitelisted",
+        "Economy Sim",
+        "Voice Only"
+      ],
+      "description": "Serious US-style RP. WL server. Custom businesses, exclusive features, reactive staff. Legal and illegal recruitment open. 30–40 active players nightly. Beginners welcome.",
+      "connect_url": null,
+      "discord_url": "https://discord.gg/fsFdNeunTp",
+      "is_featured": false,
+      "logo_url": null
+    }
+  ]
+}

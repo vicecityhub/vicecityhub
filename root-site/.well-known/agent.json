@@ -1,0 +1,152 @@
+{
+  "schemaVersion": "vch-agent-card/1",
+  "name": "Vice City Hub",
+  "description": "The GTA VI fan hub: live news, Leonida intel, GTA RP servers, Web3 domains and merch — open to humans and AI agents.",
+  "version": "12.0.0",
+  "url": "https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/v1",
+  "provider": {
+    "organization": "Vice City Hub",
+    "url": "https://vicecityhub.github.io/vicecityhub",
+    "contact": "vicecityhub@proton.me"
+  },
+  "documentationUrl": "https://vicecityhub.github.io/vicecityhub/llms-full.txt",
+  "interfaces": [
+    {
+      "protocol": "mcp",
+      "transport": "streamable-http",
+      "url": "https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/mcp",
+      "card": "https://vicecityhub.github.io/vicecityhub/.well-known/mcp.json"
+    },
+    {
+      "protocol": "openapi",
+      "version": "3.1",
+      "url": "https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/v1/openapi.json"
+    },
+    {
+      "protocol": "http-json",
+      "url": "https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/v1"
+    },
+    {
+      "protocol": "static-json",
+      "url": "https://vicecityhub.github.io/vicecityhub/data/index.json"
+    }
+  ],
+  "authentication": {
+    "required": false,
+    "note": "Reads are anonymous. Orders need a Bearer key (self-register: POST /v1/agents/register).",
+    "schemes": [
+      "bearer"
+    ],
+    "registration": "https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/v1/agents/register"
+  },
+  "capabilities": {
+    "streaming": false,
+    "pushNotifications": false,
+    "commerce": true
+  },
+  "commerce": {
+    "flow": [
+      "quote",
+      "order",
+      "pay",
+      "verify",
+      "status"
+    ],
+    "rails": [
+      {
+        "id": "paypal",
+        "for": [
+          "merch",
+          "plan"
+        ]
+      },
+      {
+        "id": "crypto",
+        "for": [
+          "domain",
+          "plan"
+        ],
+        "assets": [
+          "USDT",
+          "USDC"
+        ],
+        "chains": [
+          "tron",
+          "ethereum",
+          "polygon",
+          "solana"
+        ]
+      }
+    ],
+    "safety": [
+      "human-set spend mandates",
+      "idempotency keys required",
+      "price-locked quotes",
+      "unique per-order amount tags",
+      "on-chain verification fails closed"
+    ]
+  },
+  "defaultInputModes": [
+    "application/json"
+  ],
+  "defaultOutputModes": [
+    "application/json",
+    "text/markdown"
+  ],
+  "skills": [
+    {
+      "id": "news",
+      "name": "GTA VI news",
+      "description": "Curated, rated GTA VI / Rockstar / modding news with source links.",
+      "tags": [
+        "gta-vi",
+        "news",
+        "rockstar"
+      ],
+      "examples": [
+        "Latest GTA VI news",
+        "Any leaks about the Leonida map?"
+      ]
+    },
+    {
+      "id": "rp",
+      "name": "GTA RP data",
+      "description": "RP servers, open faction slots, jobs and mods.",
+      "tags": [
+        "gta-rp",
+        "fivem",
+        "servers"
+      ],
+      "examples": [
+        "Which RP servers have open police slots?"
+      ]
+    },
+    {
+      "id": "catalog",
+      "name": "Catalog search",
+      "description": "Merch, Web3 domains, RP store plans and partner products with USD prices and purchase mode.",
+      "tags": [
+        "shopping",
+        "domains",
+        "merch"
+      ],
+      "examples": [
+        "Find a Leonida-themed Web3 domain under $200"
+      ]
+    },
+    {
+      "id": "purchase",
+      "name": "Agent purchases",
+      "description": "Price-locked quotes, idempotent orders, PayPal or on-chain stablecoin payment, human-set spend mandates.",
+      "tags": [
+        "commerce",
+        "payments",
+        "stablecoin",
+        "paypal"
+      ],
+      "examples": [
+        "Buy the cheapest in-stock hoodie and ship to…"
+      ]
+    }
+  ]
+}
