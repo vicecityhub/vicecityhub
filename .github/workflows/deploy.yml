@@ -48,6 +48,8 @@ jobs:
   deploy:
     name: Deploy to GitHub Pages
     needs: build
+    # a skipped ancestor (news-agent on push) would otherwise cascade-skip this job
+    if: ${{ always() && needs.build.result == 'success' }}
     runs-on: ubuntu-latest
     environment:
       name: github-pages
