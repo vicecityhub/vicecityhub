@@ -1,0 +1,22 @@
+# dependencies & build output
+node_modules/
+dist/
+*.tsbuildinfo
+
+# local env / secrets
+.env
+.env.*
+!.env.example
+# .env.production holds ONLY public client-side IDs (e.g. VITE_PAYPAL_CLIENT_ID) — safe to commit, needed by CI
+!.env.production
+
+# Supabase CLI local state
+supabase/.temp/
+supabase/.branches/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.log

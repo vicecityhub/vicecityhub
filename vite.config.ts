@@ -1,10 +1,12 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import path from 'path'
+import agentSurface from './vite-plugins/agent-surface'
 
 export default defineConfig({
   base: '/vicecityhub/',
-  plugins: [react()],
+  // v12: agentSurface injects discovery links, JSON-LD and <noscript> data into every HTML entry
+  plugins: [react(), agentSurface()],
   resolve: {
     alias: { "@": path.resolve(__dirname, "./src") },
   },
@@ -24,6 +26,7 @@ export default defineConfig({
         post:          path.resolve(__dirname, 'post.html'),
         resetPassword: path.resolve(__dirname, 'reset-password.html'),
         rp:            path.resolve(__dirname, 'rp.html'),
+        agents:        path.resolve(__dirname, 'agents.html'),
       },
       output: {
         // Chunk splitting для оптимизации загрузки

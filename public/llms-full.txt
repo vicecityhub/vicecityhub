@@ -1,0 +1,537 @@
+# Vice City Hub — full guide for AI agents (v12.0.0)
+
+Generated 2026-10-18T09:58:15.764Z. Live data beats this snapshot: call the API for anything time-sensitive.
+
+## What this site is
+
+The GTA VI fan hub: live news, Leonida intel, GTA RP servers, Web3 domains and merch — open to humans and AI agents.
+
+- Home — https://vicecityhub.github.io/vicecityhub/index.html — Landing page: featured GTA VI news, media cards, community highlights and the arcade game.
+- News — The Wire — https://vicecityhub.github.io/vicecityhub/news.html — Curated GTA VI, Rockstar and GTA modding news with star ratings. Machine-readable at /v1/news and /data/news.json.
+- RP Hub — https://vicecityhub.github.io/vicecityhub/rp.html — GTA RP server browser, open faction slots, jobs, mod vault, store district and community board.
+- Market — https://vicecityhub.github.io/vicecityhub/market.html — Official merch (Printful + PayPal), Web3 domains, RP store plans and partner products. Agents can buy through the Agent API.
+- Agent Gateway — https://vicecityhub.github.io/vicecityhub/agents.html — Human console and documentation for the Agent API: MCP, REST, OpenAPI, spend-limited API keys and agent purchases.
+- Community — https://vicecityhub.github.io/vicecityhub/community.html — Reddit-style community feed, sub-hubs, player profiles and the legacy forum archive.
+- Leonida Database — https://vicecityhub.github.io/vicecityhub/document.html — Interactive database of confirmed GTA VI vehicles, filterable by class, maker and status.
+- Vice City Real Estate — https://vicecityhub.github.io/vicecityhub/realestate.html — Leonida virtual real estate showcase and listings.
+
+## Access
+
+- Base URL: https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api
+- Index: GET https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/v1
+- OpenAPI: GET https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/v1/openapi.json
+- MCP: POST https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/mcp (JSON-RPC 2.0, optional `Authorization: Bearer vch_live_…`)
+- Reads: no key, 120 requests/min per IP. With a key: 300/min. Writes: 30/min.
+- Auth: `Authorization: Bearer vch_live_<48 hex>` or `X-API-Key`. Self-register with POST /v1/agents/register (key shown once).
+- Errors are JSON: `{error:{code,message,hint,docs,openapi}}`. Honour `Retry-After` on 429.
+
+## Quick examples
+
+```bash
+curl https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/v1/news?limit=5
+curl "https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/v1/catalog?kind=domain&orderable=true"
+curl -X POST https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/v1/agents/register -H 'content-type: application/json' -d '{"name":"my-agent","operator":"me@example.com"}'
+```
+
+## Purchase protocol (agent-safe)
+
+1. Register once (or have your human mint a key with a custom mandate on the Agent Console).
+2. `POST /v1/quotes {items:[{sku,quantity}]}` → `quote_id`, `total_usd`, `payment_rails_available`, `requires`. Quote is valid 15 minutes.
+3. `POST /v1/orders {quote_id, payment_rail, shipping|delivery|details}` + header `Idempotency-Key: <8-128 chars>`. Retrying with the same key returns the same order (`Idempotent-Replayed: true`).
+4. Follow `next_action` in the response:
+   - `approve_paypal`: a human payer must open `url` and approve; then `POST /v1/orders/{id}/capture`.
+   - `send_stablecoin`: send EXACTLY `amount_due` (last 4 digits are a unique order tag) in USDT/USDC on the listed chain/address (Tron, Ethereum, Polygon, Solana), then `POST /v1/orders/{id}/payment-proof {chain, tx_hash, network?}`. The transaction is verified on-chain; if confirmations are pending call `POST /v1/orders/{id}/verify` about once a minute.
+5. Poll `GET /v1/orders/{id}/status` (no key needed). Domains and store slots are delivered by the operator after payment.
+
+Safety rules enforced server-side: per-key per-order and daily spend limits, allowed item kinds per key, mandatory idempotency keys, price-locked quotes, unique crypto amount tags with tx-hash replay protection, on-chain verification that fails closed. The operator never takes payment without the payer approving it.
+Rails: merch → PayPal only (Printful print-on-demand, needs `shipping`); Web3 domains → crypto only (needs `delivery.wallet_address`); store plans → PayPal or crypto (needs `details.store_name`, `details.contact_email`). Mixed-rail baskets are rejected — split orders.
+Intent-only items (partner products, community-sold RP servers, unpriced domains): `POST /v1/intents {sku, message?, contact?}`. Vice City Hub never custodies funds for them.
+
+## MCP tools (17)
+
+- `search_catalog` — Search merch, store plans, Web3 domains, partner products and servers for sale. Returns SKUs, USD prices and how each can be bought.
+- `get_item` — Full details for one SKU including variants (merch) and purchase instructions.
+- `list_news` — Latest curated GTA VI / Rockstar news from The Wire, newest first.
+- `get_news` — Full article body by numeric id.
+- `list_rp` — GTA RP data: servers, open faction slots, jobs, or mods.
+- `search_site` — Cross-search news, catalog and RP servers.
+- `register_agent` — Get a self-service API key (limits: $100/order, $250/day). Shown once.
+- `whoami` — Scopes, spend limits and 24h spend of the current key.
+- `create_quote` — Validate items and lock the price for 15 minutes. Merch must use variant SKUs (merchv:…).
+- `create_order` — Create an order from a quote or items. PayPal rail returns an approve_url; crypto rail returns stablecoin wallet options. Merch needs `shipping`, domains need `delivery.wallet_address`, store plans need `details`. Safe …
+- `get_order` — Full order incl. next_action.
+- `get_order_status` — Cheap status poll (no key needed).
+- `capture_paypal_order` — Call after the payer approved payment.approve_url. Idempotent.
+- `submit_crypto_payment_proof` — After sending EXACTLY next_action.amount_due in stablecoins, submit chain (tron|evm|solana), tx_hash and, for evm, network (polygon|ethereum). The tx is verified on-chain automatically: status becomes paid when final, o…
+- `verify_crypto_payment` — Re-run on-chain verification for an order whose payment proof is pending confirmations. Idempotent; poll about once a minute.
+- `cancel_order` — Cancel an order that is still awaiting_payment.
+- `create_purchase_intent` — For peer listings without on-site checkout (partner products, community servers, domains without a price). Records interest and returns how to complete the purchase.
+
+## Catalog snapshot (53 items)
+
+| SKU | Kind | Title | Price | Purchase |
+|---|---|---|---|---|
+| `merch:445021895` | merch | VCH be Vice Unisex oversized hoodie | $52.00 from (lowest variant) | orderable via API (paypal) |
+| `merch:445021656` | merch | VCH be Vice Crop Hoodie | $47.00 from (lowest variant) | orderable via API (paypal) |
+| `merch:445021472` | merch | VCH be Vice Men’s premium heavyweight tee | $23.50 from (lowest variant) | orderable via API (paypal) |
+| `merch:445021179` | merch | VCH be Vice Unisex Hoodie | $43.50 from (lowest variant) | orderable via API (paypal) |
+| `merch:444141796` | merch | VCH Macca 3/4 sleeve raglan shirt | $34.95 from (lowest variant) | orderable via API (paypal) |
+| `merch:443138617` | merch | VCH Macca Men’s premium tank top | $34.50 from (lowest variant) | orderable via API (paypal) |
+| `merch:443036590` | merch | VCH Macca Dad hat | $28.99 | orderable via API (paypal) |
+| `merch:443025464` | merch | VCH Macca Unisex eco raglan hoodie | $58.95 from (lowest variant) | orderable via API (paypal) |
+| `merch:443023417` | merch | VCH Macca MagSafe® tough case for iPhone® | $34.61 from (lowest variant) | orderable via API (paypal) |
+| `merch:443022436` | merch | VCH Macca Premium basketball jersey | $46.50 from (lowest variant) | orderable via API (paypal) |
+| `merch:443019869` | merch | VCH Macca Mug with Color Inside | $19.49 from (lowest variant) | orderable via API (paypal) |
+| `merch:443017667` | merch | VCH Macca Unisex classic tee | $38.25 from (lowest variant) | orderable via API (paypal) |
+| `plan:60c0f4cb-4fbc-41ab-9b87-74a89af5f4f6` | plan | Store slot — STARTER | $19.00 | orderable via API (paypal/crypto) |
+| `plan:7c2ad812-37f5-4387-854f-6a1b063c0046` | plan | Store slot — FEATURED | $49.00 | orderable via API (paypal/crypto) |
+| `plan:8bf76bd4-1072-4ef5-a3af-cd6bd994ece3` | plan | Store slot — PREMIUM | $99.00 | orderable via API (paypal/crypto) |
+| `domain:110` | domain | gta6.dream | $29999.00 | orderable via API (crypto) |
+| `domain:111` | domain | gta6.grow | $29999.00 | orderable via API (crypto) |
+| `domain:113` | domain | gta6mastermind.x | $29999.00 | orderable via API (crypto) |
+| `domain:115` | domain | gta6.pack | $79999.00 | orderable via API (crypto) |
+| `domain:116` | domain | gta6prime.go | $66666.00 | orderable via API (crypto) |
+| `domain:117` | domain | gta6prime.nft | $66666.00 | orderable via API (crypto) |
+| `domain:118` | domain | gta6prime.x | $66666.00 | orderable via API (crypto) |
+| `domain:120` | domain | gta6online.888 | $19999.00 | orderable via API (crypto) |
+| `domain:121` | domain | gta6online.blockchain | $56555.00 | orderable via API (crypto) |
+| `domain:122` | domain | gta6online.dream | $54555.00 | orderable via API (crypto) |
+| `domain:123` | domain | gta6online.go | $65555.00 | orderable via API (crypto) |
+| `domain:124` | domain | gta6online.grow | $45555.00 | orderable via API (crypto) |
+| `domain:126` | domain | gta6online.secret | $44555.00 | orderable via API (crypto) |
+| `domain:127` | domain | gta6online.unstoppable | $85555.00 | orderable via API (crypto) |
+| `domain:128` | domain | gta6online.wallet | $66666.00 | orderable via API (crypto) |
+| `domain:129` | domain | gta6online.x | $56666.00 | orderable via API (crypto) |
+| `domain:130` | domain | gtaonline.dream | $77777.00 | orderable via API (crypto) |
+| `domain:131` | domain | gtaonline.hi | $88555.00 | orderable via API (crypto) |
+| `domain:132` | domain | vicecity.hub | $79999.00 | orderable via API (crypto) |
+| `domain:135` | domain | take2web3games.bitcoin | $25666.00 | orderable via API (crypto) |
+| `domain:136` | domain | take2web3games.blockchain | $66666.00 | orderable via API (crypto) |
+| `domain:137` | domain | take2web3games.crypto | $66666.00 | orderable via API (crypto) |
+| `domain:138` | domain | take2web3games.dao | $24555.00 | orderable via API (crypto) |
+| `domain:139` | domain | take2web3games.nft | $55666.00 | orderable via API (crypto) |
+| `domain:140` | domain | take2web3games.polygon | $24555.00 | orderable via API (crypto) |
+| `domain:141` | domain | take2web3games.wallet | $77554.00 | orderable via API (crypto) |
+| `domain:109` | domain | gta6.agi | $15555.00 | orderable via API (crypto) |
+| `domain:112` | domain | gta6hype.podcast | $14770.00 | orderable via API (crypto) |
+| `domain:114` | domain | gta6oclock.podcast | $18888.00 | orderable via API (crypto) |
+| `domain:119` | domain | gta6talks.podcast | $19990.00 | orderable via API (crypto) |
+| `domain:125` | domain | gta6online.podcast | $14555.00 | orderable via API (crypto) |
+| `domain:133` | domain | vicecityvibes.podcast | $14555.00 | orderable via API (crypto) |
+| `domain:134` | domain | welcometovice.podcast | $15555.00 | orderable via API (crypto) |
+| `product:8aeef121-d732-428c-8f58-6841aecef4f0` | product | Smartphone 3.0 | FROM $34 | intent-only (contact seller) |
+| `product:c905db1a-2be9-49fa-b0bc-985e17709cfc` | product | Housing Creator | $89 | intent-only (contact seller) |
+| `product:498fc961-0de7-40ab-9ba9-d085b85395f5` | product | Police Creator | $59 | intent-only (contact seller) |
+| `product:72f0b304-fd11-479c-bccc-08f0b46baad3` | product | Advanced Inventory | $29 | intent-only (contact seller) |
+| `server:f871bfa9-681e-4bd7-9ed6-4a4d1e0103f7` | server | Complete FiveM WL Server — 7781 Discord Members | 1500 EUR (seller-quoted) | intent-only (contact seller) |
+
+### Variants of VCH be Vice Unisex oversized hoodie (merch:445021895)
+
+- `merchv:5383033825` S / Black — $52.00 — in_stock
+- `merchv:5383033826` M / Black — $52.00 — in_stock
+- `merchv:5383033827` L / Black — $52.00 — in_stock
+- `merchv:5383033828` XL / Black — $52.00 — in_stock
+- `merchv:5383033829` 2XL / Black — $54.00 — in_stock
+- `merchv:5383033830` 3XL / Black — $56.50 — in_stock
+- `merchv:5383033831` S / Pine Green — $52.00 — in_stock
+- `merchv:5383033832` M / Pine Green — $52.00 — in_stock
+- `merchv:5383033833` L / Pine Green — $52.00 — in_stock
+- `merchv:5383033834` XL / Pine Green — $52.00 — in_stock
+- `merchv:5383033835` 2XL / Pine Green — $54.00 — in_stock
+- `merchv:5383033836` 3XL / Pine Green — $56.50 — in_stock
+- `merchv:5383033837` S / Cobalt — $52.00 — in_stock
+- `merchv:5383033838` M / Cobalt — $52.00 — in_stock
+- `merchv:5383033839` L / Cobalt — $52.00 — in_stock
+- `merchv:5383033840` XL / Cobalt — $52.00 — in_stock
+- `merchv:5383033841` 2XL / Cobalt — $54.00 — in_stock
+- `merchv:5383033842` 3XL / Cobalt — $56.50 — in_stock
+- `merchv:5383033843` S / Chestnut — $52.00 — in_stock
+- `merchv:5383033844` M / Chestnut — $52.00 — in_stock
+- `merchv:5383033845` L / Chestnut — $52.00 — in_stock
+- `merchv:5383033846` XL / Chestnut — $52.00 — in_stock
+- `merchv:5383033847` 2XL / Chestnut — $54.00 — in_stock
+- `merchv:5383033848` 3XL / Chestnut — $56.50 — in_stock
+- `merchv:5383033849` S / Clay — $52.00 — in_stock
+- `merchv:5383033850` M / Clay — $52.00 — in_stock
+- `merchv:5383033851` L / Clay — $52.00 — in_stock
+- `merchv:5383033852` XL / Clay — $52.00 — in_stock
+- `merchv:5383033853` 2XL / Clay — $54.00 — in_stock
+- `merchv:5383033854` 3XL / Clay — $56.50 — in_stock
+- `merchv:5383033855` S / Cypress — $52.00 — in_stock
+- `merchv:5383033856` M / Cypress — $52.00 — in_stock
+- `merchv:5383033857` L / Cypress — $52.00 — in_stock
+- `merchv:5383033858` XL / Cypress — $52.00 — in_stock
+- `merchv:5383033859` 2XL / Cypress — $54.00 — in_stock
+- `merchv:5383033860` 3XL / Cypress — $56.50 — in_stock
+- `merchv:5383033861` S / Sand — $52.00 — in_stock
+- `merchv:5383033862` M / Sand — $52.00 — in_stock
+- `merchv:5383033863` L / Sand — $52.00 — in_stock
+- `merchv:5383033864` XL / Sand — $52.00 — in_stock
+- `merchv:5383033865` 2XL / Sand — $54.00 — in_stock
+- `merchv:5383033866` 3XL / Sand — $56.50 — in_stock
+- `merchv:5383033867` S / Carolina Blue — $52.00 — in_stock
+- `merchv:5383033868` M / Carolina Blue — $52.00 — in_stock
+- `merchv:5383033869` L / Carolina Blue — $52.00 — in_stock
+- `merchv:5383033870` XL / Carolina Blue — $52.00 — in_stock
+- `merchv:5383033871` 2XL / Carolina Blue — $54.00 — in_stock
+- `merchv:5383033872` 3XL / Carolina Blue — $56.50 — in_stock
+- `merchv:5383033873` S / Athletic Heather — $52.00 — in_stock
+- `merchv:5383033874` M / Athletic Heather — $52.00 — in_stock
+- `merchv:5383033875` L / Athletic Heather — $52.00 — in_stock
+- `merchv:5383033876` XL / Athletic Heather — $52.00 — in_stock
+- `merchv:5383033877` 2XL / Athletic Heather — $54.00 — in_stock
+- `merchv:5383033878` 3XL / Athletic Heather — $56.50 — in_stock
+- `merchv:5383033879` S / White Heather — $52.00 — in_stock
+- `merchv:5383033880` M / White Heather — $52.00 — in_stock
+- `merchv:5383033881` L / White Heather — $52.00 — in_stock
+- `merchv:5383033882` XL / White Heather — $52.00 — in_stock
+- `merchv:5383033883` 2XL / White Heather — $54.00 — in_stock
+- `merchv:5383033884` 3XL / White Heather — $56.50 — in_stock
+- `merchv:5383033885` S / White — $52.00 — in_stock
+- `merchv:5383033886` M / White — $52.00 — in_stock
+- `merchv:5383033887` L / White — $52.00 — in_stock
+- `merchv:5383033888` XL / White — $52.00 — in_stock
+- `merchv:5383033889` 2XL / White — $54.00 — in_stock
+- `merchv:5383033890` 3XL / White — $56.50 — in_stock
+
+### Variants of VCH be Vice Crop Hoodie (merch:445021656)
+
+- `merchv:5383032714` S / Black — $52.00 — in_stock
+- `merchv:5383032715` M / Black — $52.00 — in_stock
+- `merchv:5383032716` L / Black — $52.00 — in_stock
+- `merchv:5383032717` XL / Black — $52.00 — in_stock
+- `merchv:5383032718` 2XL / Black — $47.00 — in_stock
+- `merchv:5383032719` S / Military Green — $52.00 — in_stock
+- `merchv:5383032720` M / Military Green — $52.00 — in_stock
+- `merchv:5383032721` L / Military Green — $52.00 — in_stock
+- `merchv:5383032722` XL / Military Green — $52.00 — in_stock
+- `merchv:5383032723` 2XL / Military Green — $47.00 — in_stock
+- `merchv:5383032724` S / Storm — $52.00 — in_stock
+- `merchv:5383032725` M / Storm — $52.00 — in_stock
+- `merchv:5383032726` L / Storm — $52.00 — in_stock
+- `merchv:5383032727` XL / Storm — $52.00 — in_stock
+- `merchv:5383032728` 2XL / Storm — $47.00 — in_stock
+
+### Variants of VCH be Vice Men’s premium heavyweight tee (merch:445021472)
+
+- `merchv:5383031773` S / Black — $23.50 — in_stock
+- `merchv:5383031774` M / Black — $23.50 — in_stock
+- `merchv:5383031775` L / Black — $23.50 — in_stock
+- `merchv:5383031776` XL / Black — $23.50 — in_stock
+- `merchv:5383031777` 2XL / Black — $26.00 — in_stock
+- `merchv:5383031778` 3XL / Black — $29.00 — in_stock
+- `merchv:5383031779` 4XL / Black — $31.50 — in_stock
+- `merchv:5383031780` S / Charcoal Heather — $23.50 — in_stock
+- `merchv:5383031781` M / Charcoal Heather — $23.50 — in_stock
+- `merchv:5383031782` L / Charcoal Heather — $23.50 — in_stock
+- `merchv:5383031783` XL / Charcoal Heather — $23.50 — in_stock
+- `merchv:5383031784` 2XL / Charcoal Heather — $26.00 — in_stock
+- `merchv:5383031785` 3XL / Charcoal Heather — $29.00 — in_stock
+- `merchv:5383031786` 4XL / Charcoal Heather — $31.50 — in_stock
+- `merchv:5383031787` S / Brick Red — $23.50 — in_stock
+- `merchv:5383031788` M / Brick Red — $23.50 — in_stock
+- `merchv:5383031789` L / Brick Red — $23.50 — in_stock
+- `merchv:5383031790` XL / Brick Red — $23.50 — in_stock
+- `merchv:5383031791` 2XL / Brick Red — $26.00 — in_stock
+- `merchv:5383031792` 3XL / Brick Red — $29.00 — in_stock
+- `merchv:5383031793` 4XL / Brick Red — $31.50 — in_stock
+- `merchv:5383031794` S / Carbon Grey — $23.50 — in_stock
+- `merchv:5383031795` M / Carbon Grey — $23.50 — in_stock
+- `merchv:5383031796` L / Carbon Grey — $23.50 — in_stock
+- `merchv:5383031797` XL / Carbon Grey — $23.50 — in_stock
+- `merchv:5383031798` 2XL / Carbon Grey — $26.00 — in_stock
+- `merchv:5383031799` 3XL / Carbon Grey — $29.00 — in_stock
+- `merchv:5383031800` 4XL / Carbon Grey — $31.50 — in_stock
+- `merchv:5383031801` S / Agave — $23.50 — in_stock
+- `merchv:5383031802` M / Agave — $23.50 — in_stock
+- `merchv:5383031803` L / Agave — $23.50 — in_stock
+- `merchv:5383031804` XL / Agave — $23.50 — in_stock
+- `merchv:5383031805` 2XL / Agave — $26.00 — in_stock
+- `merchv:5383031806` 3XL / Agave — $29.00 — in_stock
+- `merchv:5383031807` 4XL / Agave — $31.50 — in_stock
+- `merchv:5383031808` S / Vintage Gold — $23.50 — in_stock
+- `merchv:5383031809` M / Vintage Gold — $23.50 — in_stock
+- `merchv:5383031810` L / Vintage Gold — $23.50 — in_stock
+- `merchv:5383031811` XL / Vintage Gold — $23.50 — in_stock
+- `merchv:5383031812` 2XL / Vintage Gold — $26.00 — in_stock
+- `merchv:5383031813` 3XL / Vintage Gold — $29.00 — in_stock
+- `merchv:5383031814` 4XL / Vintage Gold — $31.50 — in_stock
+- `merchv:5383031815` S / White — $23.50 — in_stock
+- `merchv:5383031816` M / White — $23.50 — in_stock
+- `merchv:5383031817` L / White — $23.50 — in_stock
+- `merchv:5383031818` XL / White — $23.50 — in_stock
+- `merchv:5383031819` 2XL / White — $26.00 — in_stock
+- `merchv:5383031820` 3XL / White — $29.00 — in_stock
+- `merchv:5383031821` 4XL / White — $31.50 — in_stock
+
+### Variants of VCH be Vice Unisex Hoodie (merch:445021179)
+
+- `merchv:5383030144` S / Black — $43.50 — in_stock
+- `merchv:5383030145` M / Black — $43.50 — in_stock
+- `merchv:5383030146` L / Black — $43.50 — in_stock
+- `merchv:5383030147` XL / Black — $43.50 — in_stock
+- `merchv:5383030148` 2XL / Black — $45.00 — in_stock
+- `merchv:5383030149` 3XL / Black — $47.50 — in_stock
+- `merchv:5383030150` S / Maroon — $43.50 — in_stock
+- `merchv:5383030151` M / Maroon — $43.50 — in_stock
+- `merchv:5383030152` L / Maroon — $43.50 — in_stock
+- `merchv:5383030153` XL / Maroon — $43.50 — in_stock
+- `merchv:5383030154` 2XL / Maroon — $45.00 — in_stock
+- `merchv:5383030155` 3XL / Maroon — $47.50 — in_stock
+- `merchv:5383030156` S / Forest Green — $43.50 — in_stock
+- `merchv:5383030157` M / Forest Green — $43.50 — in_stock
+- `merchv:5383030158` L / Forest Green — $43.50 — in_stock
+- `merchv:5383030159` XL / Forest Green — $43.50 — in_stock
+- `merchv:5383030160` 2XL / Forest Green — $45.00 — in_stock
+- `merchv:5383030161` 3XL / Forest Green — $47.50 — in_stock
+- `merchv:5383030162` S / Military Green — $43.50 — in_stock
+- `merchv:5383030163` M / Military Green — $43.50 — in_stock
+- `merchv:5383030164` L / Military Green — $43.50 — in_stock
+- `merchv:5383030165` XL / Military Green — $43.50 — in_stock
+- `merchv:5383030166` 2XL / Military Green — $45.00 — in_stock
+- `merchv:5383030167` 3XL / Military Green — $47.50 — in_stock
+- `merchv:5383030168` S / Light Pink — $43.50 — in_stock
+- `merchv:5383030169` M / Light Pink — $43.50 — in_stock
+- `merchv:5383030170` L / Light Pink — $43.50 — in_stock
+- `merchv:5383030171` XL / Light Pink — $43.50 — in_stock
+- `merchv:5383030172` 2XL / Light Pink — $45.00 — in_stock
+- `merchv:5383030173` 3XL / Light Pink — $47.50 — in_stock
+
+### Variants of VCH Macca 3/4 sleeve raglan shirt (merch:444141796)
+
+- `merchv:5377306830` XS / White/Black — $34.95 — in_stock
+- `merchv:5377306831` S / White/Black — $34.95 — in_stock
+- `merchv:5377306832` M / White/Black — $34.95 — in_stock
+- `merchv:5377306833` L / White/Black — $34.95 — in_stock
+- `merchv:5377306834` XL / White/Black — $34.95 — in_stock
+- `merchv:5377306835` 2XL / White/Black — $36.75 — in_stock
+- `merchv:5377306836` S / White/Navy — $34.95 — in_stock
+- `merchv:5377306837` M / White/Navy — $34.95 — in_stock
+- `merchv:5377306838` L / White/Navy — $34.95 — in_stock
+- `merchv:5377306839` XL / White/Navy — $34.95 — in_stock
+- `merchv:5377306840` 2XL / White/Navy — $36.75 — in_stock
+- `merchv:5377306841` XS / White/Royal — $34.95 — in_stock
+- `merchv:5377306842` S / White/Royal — $34.95 — in_stock
+- `merchv:5377306843` M / White/Royal — $34.95 — in_stock
+- `merchv:5377306844` L / White/Royal — $34.95 — in_stock
+- `merchv:5377306845` XL / White/Royal — $34.95 — in_stock
+- `merchv:5377306846` 2XL / White/Royal — $36.75 — in_stock
+- `merchv:5377306847` XS / White/Red — $34.95 — in_stock
+- `merchv:5377306848` S / White/Red — $34.95 — in_stock
+- `merchv:5377306849` M / White/Red — $34.95 — in_stock
+- `merchv:5377306850` L / White/Red — $34.95 — in_stock
+- `merchv:5377306851` XL / White/Red — $34.95 — in_stock
+- `merchv:5377306852` 2XL / White/Red — $36.75 — in_stock
+- `merchv:5377306853` S / White/Heather Charcoal — $34.95 — in_stock
+- `merchv:5377306854` M / White/Heather Charcoal — $34.95 — in_stock
+- `merchv:5377306855` L / White/Heather Charcoal — $34.95 — in_stock
+- `merchv:5377306856` XL / White/Heather Charcoal — $34.95 — in_stock
+- `merchv:5377306857` 2XL / White/Heather Charcoal — $36.75 — in_stock
+- `merchv:5377306858` XS / White/Kelly — $34.95 — in_stock
+- `merchv:5377306859` S / White/Kelly — $34.95 — in_stock
+- `merchv:5377306860` M / White/Kelly — $34.95 — in_stock
+- `merchv:5377306861` L / White/Kelly — $34.95 — in_stock
+- `merchv:5377306862` XL / White/Kelly — $34.95 — in_stock
+- `merchv:5377306863` 2XL / White/Kelly — $36.75 — in_stock
+
+### Variants of VCH Macca Men’s premium tank top (merch:443138617)
+
+- `merchv:5373367406` S / White — $34.50 — in_stock
+- `merchv:5373367407` M / White — $34.50 — in_stock
+- `merchv:5373367408` L / White — $34.50 — in_stock
+- `merchv:5373367409` XL / White — $34.50 — in_stock
+- `merchv:5373367410` 2XL / White — $34.50 — in_stock
+- `merchv:5373367411` 3XL / White — $34.50 — in_stock
+
+### Variants of VCH Macca Dad hat (merch:443036590)
+
+- `merchv:5372687769` One size / White — $28.99 — in_stock
+
+### Variants of VCH Macca Unisex eco raglan hoodie (merch:443025464)
+
+- `merchv:5372618618` XS / White — $58.95 — in_stock
+- `merchv:5372618619` S / White — $58.95 — in_stock
+- `merchv:5372618620` M / White — $58.95 — in_stock
+- `merchv:5372618621` L / White — $58.95 — in_stock
+- `merchv:5372618622` XL / White — $58.95 — in_stock
+- `merchv:5372618624` 2XL / White — $60.25 — in_stock
+- `merchv:5372618625` 3XL / White — $61.55 — in_stock
+
+### Variants of VCH Macca MagSafe® tough case for iPhone® (merch:443023417)
+
+- `merchv:5372610267` iPhone 14 / Matte — $34.61 — in_stock
+- `merchv:5372610268` iPhone 14 Plus / Matte — $34.61 — in_stock
+- `merchv:5372610269` iPhone 14 Pro / Matte — $34.61 — in_stock
+- `merchv:5372610270` iPhone 14 Pro Max / Matte — $34.61 — in_stock
+- `merchv:5372610271` iPhone 15 / Matte — $34.61 — in_stock
+- `merchv:5372610272` iPhone 15 Plus / Matte — $34.61 — in_stock
+- `merchv:5372610273` iPhone 15 Pro / Matte — $34.61 — in_stock
+- `merchv:5372610274` iPhone 15 Pro Max / Matte — $34.61 — in_stock
+- `merchv:5372610275` iPhone 16 / Matte — $34.61 — in_stock
+- `merchv:5372610276` iPhone 16 Plus / Matte — $34.61 — in_stock
+- `merchv:5372610277` iPhone 16 Pro / Matte — $34.61 — in_stock
+- `merchv:5372610278` iPhone 16 Pro Max / Matte — $34.61 — in_stock
+- `merchv:5372610279` iPhone 17 / Matte — $34.61 — in_stock
+- `merchv:5372610280` iPhone 17 Air / Matte — $34.61 — in_stock
+- `merchv:5372610281` iPhone 17 Pro / Matte — $34.61 — in_stock
+- `merchv:5372610282` iPhone 17 Pro Max / Matte — $34.61 — in_stock
+
+### Variants of VCH Macca Premium basketball jersey (merch:443022436)
+
+- `merchv:5372603399` 2XS / White — $46.50 — in_stock
+- `merchv:5372603400` XS / White — $46.50 — in_stock
+- `merchv:5372603401` S / White — $46.50 — in_stock
+- `merchv:5372603402` M / White — $46.50 — in_stock
+- `merchv:5372603403` L / White — $46.50 — in_stock
+- `merchv:5372603404` XL / White — $46.50 — in_stock
+- `merchv:5372603405` 2XL / White — $48.25 — in_stock
+- `merchv:5372603406` 3XL / White — $49.95 — in_stock
+- `merchv:5372603407` 4XL / White — $51.75 — in_stock
+- `merchv:5372603408` 5XL / White — $53.50 — in_stock
+- `merchv:5372603409` 6XL / White — $55.25 — in_stock
+
+### Variants of VCH Macca Mug with Color Inside (merch:443019869)
+
+- `merchv:5372587038` 11 oz / Black — $19.49 — in_stock
+- `merchv:5372587039` 15 oz / Black — $20.49 — in_stock
+- `merchv:5372587040` 11 oz / Dark Blue — $19.49 — in_stock
+- `merchv:5372587041` 15 oz / Dark Blue — $20.49 — in_stock
+- `merchv:5372587042` 11 oz / Red — $19.49 — in_stock
+- `merchv:5372587043` 15 oz / Red — $20.49 — in_stock
+- `merchv:5372587044` 11 oz / Dark Green — $19.49 — in_stock
+- `merchv:5372587045` 15 oz / Dark Green — $20.49 — in_stock
+- `merchv:5372587046` 11 oz / Orange — $19.49 — in_stock
+- `merchv:5372587047` 11 oz / Blue — $19.49 — in_stock
+- `merchv:5372587048` 15 oz / Blue — $20.49 — in_stock
+- `merchv:5372587049` 11 oz / Pink — $19.49 — in_stock
+- `merchv:5372587050` 15 oz / Pink — $20.49 — in_stock
+- `merchv:5372587051` 11 oz / Golden Yellow — $19.49 — in_stock
+- `merchv:5372587052` 11 oz / Green — $19.49 — in_stock
+- `merchv:5372587053` 11 oz / Yellow — $19.49 — in_stock
+
+### Variants of VCH Macca Unisex classic tee (merch:443017667)
+
+- `merchv:5372556278` S / White — $38.25 — in_stock
+- `merchv:5372556279` M / White — $38.25 — in_stock
+- `merchv:5372556280` L / White — $38.25 — in_stock
+- `merchv:5372556281` XL / White — $38.25 — in_stock
+- `merchv:5372556282` 2XL / White — $39.75 — in_stock
+- `merchv:5372556283` 3XL / White — $41.50 — in_stock
+- `merchv:5372556284` 4XL / White — $43.25 — in_stock
+- `merchv:5372556285` 5XL / White — $44.95 — in_stock
+
+## RP servers (9)
+
+- **NoPixel 4.0** [ONLINE] 247/300 players — The legendary whitelist server. Home of the biggest streamers. Zero tolerance for fail RP. — connect: fivem://connect/cfx.re/join/nopixel
+- **Eclipse RP** [ONLINE] 891/1000 players — Biggest public RP server in North America. Serious rules, serious economy, serious drama. — connect: fivem://connect/cfx.re/join/eclipse
+- **Mafia City RP** [WHITELIST_OPEN] 0/200 players — Applications open now. Dedicated to organized crime RP. If you spit wrong, you're out.
+- **Vice City Online** [IN_DEVELOPMENT] 0/500 players — Set in Vice City map. 80s aesthetics, drug trade mechanics, Scarface energy. Q2 2025 launch.
+- **Badlands RP** [ONLINE] 134/200 players — Mid-tier public server with solid economy scripts. Good for learning RP before going whitelist. — connect: fivem://connect/cfx.re/join/badlands
+- **Leonida State RP** [IN_DEVELOPMENT] 0/400 players — GTA 6 Leonida map when it drops. Building the framework now. Whitelist applications pre-open.
+- **SRTG RP** [ONLINE] 67/128 players — Free Access. No pay to win. Custom scripts built in-house. Gang, LSPD, EMS, Civilian — every role shapes the city. Your story starts small and ends at the top.
+- **Vision RP** [WHITELIST_OPEN] 0/128 players — Quality over quantity. Gang and MC slots open. Legal businesses available for takeover. Whitelist sessions Mon–Fri 18h–20h. Every scene leaves a mark.
+- **American Dream RP** [ONLINE] 35/64 players — Serious US-style RP. WL server. Custom businesses, exclusive features, reactive staff. Legal and illegal recruitment open. 30–40 active players nightly. Beginn…
+
+## Latest news (17)
+
+### Leaker CYBERLEEK Threatens a Full GTA 6 Build Drop Unless Rockstar Reverses Its Disc Decision
+- Category: Rumors · Stars: 3/5 · Published: 2026-10-13T08:23:45.725355+00:00
+- Page: https://vicecityhub.github.io/vicecityhub/news.html?id=4388 · Source: https://www.pushsquare.com
+
+The leaker known as CYBERLEEK is threatening to release a full GTA 6 build unless Rockstar reverses its decision on physical discs, and is pointing to a disputed 17th clip as supposed proof. None of this is confirmed. Rockstar hasn't responded, and the clip's authenticity is contested. Treat it as an unverified claim and don't go hunting for files.
+
+### Australia's Workplace Watchdog Publishes a Guide to Taking Unpaid Leave for GTA 6 Launch Day
+- Category: Community · Stars: 2/5 · Published: 2026-10-13T08:23:45.725355+00:00
+- Page: https://vicecityhub.github.io/vicecityhub/news.html?id=4387 · Source: https://www.fairwork.gov.au
+
+Australia's Fair Work Ombudsman has put out guidance on how employees can request unpaid leave around the GTA 6 launch. It covers the basics of asking your employer and what your rights look like. It's a light-hearted sign of how big the release is, not a sign that anyone is handing out days off.
+
+### Rockstar Reveals GTA 6 Radio Lineup: Six Stations, Bad Bunny, Lana Del Rey and Slayer Alumni
+- Category: Official · Stars: 5/5 · Published: 2026-10-13T08:23:45.725355+00:00
+- Page: https://vicecityhub.github.io/vicecityhub/news.html?id=4383 · Source: https://www.purexbox.com
+
+Rockstar has pulled back the curtain on Vice City's airwaves. Six stations were announced on October 8: Back Country Radio, Cocoteo FM, AfroBank FM, The Chamber 106.6, Flash FM and Dirty South Classics. The hosts and artists attached to the dial include Bad Bunny, Lana Del Rey, Morgan Wallen, Burna Boy and members of Slayer, so the genre spread runs from country to afrobeats to thrash. Rockstar also confirmed on-demand podcasts, plus headphone and earbud support for listening. Next up on the reveal calendar is the dynamic score, the music that reacts to what you're doing on screen.
+
+### Boxed GTA 6 Is Already Selling Out: Code-in-Box Edition Gone at Amazon US and Some Target Stores
+- Category: Community · Stars: 4/5 · Published: 2026-10-13T08:23:45.725355+00:00
+- Page: https://vicecityhub.github.io/vicecityhub/news.html?id=4384 · Source: https://screenrant.com
+
+The code-in-box edition of GTA 6 has reportedly sold out at Amazon US as of October 11, and some Target stores are out of stock too. Remember, this is the box with a download code inside rather than a disc, which became the plan after Rockstar's physical-media decision. Demand for anything with the GTA 6 logo on it is clearly not the problem. Stock can come back through restocks, so keep an eye on retailer pages if you want a physical shelf copy.
+
+### Xbox Exec Says No Exclusive Cloud Streaming Deal for GTA 6 - And No PC Streaming Either
+- Category: Official · Stars: 4/5 · Published: 2026-10-13T08:23:45.725355+00:00
+- Page: https://vicecityhub.github.io/vicecityhub/news.html?id=4385 · Source: https://www.purexbox.com
+
+Xbox's Matthew Ball addressed the cloud question on October 7, denying that there is any exclusive cloud streaming arrangement for GTA 6. He also said PC streaming is not part of the picture. That puts a lid on the theory that Xbox Cloud Gaming would get special treatment at launch. If you were planning to play Vice City on a potato through the cloud, plan on a console instead.
+
+### Nintendo of America Boss Dodges the GTA 6 Switch 2 Question
+- Category: Official · Stars: 3/5 · Published: 2026-10-13T08:23:45.725355+00:00
+- Page: https://vicecityhub.github.io/vicecityhub/news.html?id=4386 · Source: https://planetgta6.com
+
+Nintendo of America's Devon Pritchard was asked about GTA 6 on Switch 2 and gave no commitment either way. There is no announcement of a Switch 2 version, and nothing here suggests one is coming at launch. Treat it as a non-answer, not a tease.
+
+### The Man Who Leaked GTA 6 Is Heading to Trial the Same Month It Finally Launches
+- Category: Leaks · Stars: 4/5 · Published: 2026-10-12T21:47:31.713859+00:00
+- Page: https://vicecityhub.github.io/vicecityhub/news.html?id=4382 · Source: https://www.ghacks.net/2026/07/17/gta-6-hacker-arion-kurtaj-moved-from-secure-hospital-to-prison-ahead-of-november-2026-retrial/
+
+Arion Kurtaj, the hacker behind the September 2022 leak of over 90 Grand Theft Auto VI gameplay clips and the game's source code, has been moved from a secure hospital to a standard prison ahead of a retrial scheduled for November 2026, according to BBC correspondent Joe Tidy. Kurtaj, a member of the Lapsus$ hacking group, was previously deemed unfit for trial in 2023 due to a severe autism diagnosis. Rockstar previously said the leak cost the company roughly $5 million and thousands of staff hours.
+
+### Rockstar Says GTA 6's Cops Will Be Much Harder to Shake Than GTA 5's
+- Category: Official · Stars: 3/5 · Published: 2026-10-12T21:47:31.713859+00:00
+- Page: https://vicecityhub.github.io/vicecityhub/news.html?id=4381 · Source: https://vgtimes.com/games/gta-6/news/
+
+Rockstar North co-studio head Rob Nelson said Grand Theft Auto VI will make police pursuits significantly harder to shake off compared to previous entries in the series, according to VGTimes. The comment builds on earlier statements from Rockstar describing an overhauled police AI and reputation system for the November 19, 2026 release, suggesting players will need to rely on genuine evasion tactics rather than simply outrunning a wanted level.
+
+### GTA 6 Pre-Loading Opens November 12 - A Full Week Before Launch
+- Category: Official · Stars: 3/5 · Published: 2026-10-12T21:47:31.713859+00:00
+- Page: https://vicecityhub.github.io/vicecityhub/news.html?id=4380 · Source: https://beebom.com/gta-6/
+
+Pre-loading for Grand Theft Auto VI will open on November 12, 2026, a full week ahead of its November 19, 2026 launch, according to Beebom. Separately, players who purchase the Standard Edition can upgrade to the Ultimate Edition at any time for $20 through eligible storefronts, offering a lower-commitment entry point than buying the $99.99 Ultimate Edition outright. The physical Standard Edition will ship with a download code rather than a disc.
+
+### GTA 6 Has a Real Relationship System Between Jason and Lucia - But Rockstar Says Don't Overhype It
+- Category: Official · Stars: 3/5 · Published: 2026-10-12T16:43:42.320974+00:00
+- Page: https://vicecityhub.github.io/vicecityhub/news.html?id=4379 · Source: https://vgtimes.com/games/gta-6/news/
+
+Grand Theft Auto VI will feature a relationship system tracking the dynamic between protagonists Lucia and Jason, according to VGTimes, though Rockstar Games has urged fans not to overstate its significance to the overall game. The confirmation adds mechanical weight to the Bonnie-and-Clyde-style partnership the pair has displayed across the game's trailers and Extended Look footage, without suggesting it will function as a deep, branching relationship simulator.
+
+### GTA 6 Just Confirmed Its First Officially Revealed Cast Member
+- Category: Official · Stars: 4/5 · Published: 2026-10-12T16:43:42.320974+00:00
+- Page: https://vicecityhub.github.io/vicecityhub/news.html?id=4378 · Source: https://vgtimes.com/games/gta-6/news/
+
+An actor has confirmed they voice a character named Brian Heder in Grand Theft Auto VI, making them the first cast member officially revealed for the game ahead of its November 19, 2026 release, according to VGTimes. Rockstar Games has historically kept its voice cast tightly under wraps until close to launch, making this early confirmation notable. Details about Brian Heder's role in the story have not been disclosed.
+
+### Take-Two Just Signed a New Long-Term Xbox Deal - But It Won't Change Anything About GTA 6
+- Category: Official · Stars: 3/5 · Published: 2026-10-12T16:43:42.320974+00:00
+- Page: https://vicecityhub.github.io/vicecityhub/news.html?id=4376 · Source: https://www.gtaboom.com/take-two-signed-a-new-long-term-xbox-publishing-deal-covering-all-devices-21cd
+
+Take-Two Interactive and Microsoft signed a new long-term Xbox Publisher License Agreement, effective September 17, 2026, covering the development, publishing, marketing, and sale of Xbox-compatible products across all Xbox devices, according to multiple outlets including GTA BOOM. The agreement replaces all of Take-Two's prior Xbox publishing arrangements and includes standard terms around revenue sharing and content approval, but reporting has been consistent that the deal is routine contract housekeeping rather than anything specific to Grand Theft Auto VI, which remains on track for a multiplatform release on both PS5 and Xbox Series X/S on November 19, 2026.
+
+### Sony Just Showed Off a Limited-Edition GTA 6 DualSense Controller
+- Category: Official · Stars: 4/5 · Published: 2026-10-12T16:43:42.320974+00:00
+- Page: https://vicecityhub.github.io/vicecityhub/news.html?id=4377 · Source: https://vgtimes.com/games/gta-6/news/
+
+Sony unveiled a limited-edition Grand Theft Auto VI DualSense controller, with the black colorway available exclusively through PlayStation Direct. The controller adds to a growing lineup of official Grand Theft Auto VI hardware and accessories ahead of the game's November 19, 2026 release, giving PS5 owners a themed option to match the game on launch day.
+
+### New Rockstar Character Art Is Already Showing Up in a Spotify Ad Collaboration
+- Category: Official · Stars: 4/5 · Published: 2026-10-06T08:32:18.273186+00:00
+- Page: https://vicecityhub.github.io/vicecityhub/news.html?id=4374 · Source: https://lpglkglhjdqnktybksth.supabase.co/storage/v1/object/public/post_news/photo_2026-09-16_23-16-07.jpg
+
+New promotional artwork attributed to Rockstar Games has surfaced showing Grand Theft Auto VI character art being used across a co-branded advertising push tied to Spotify, ahead of the game's November 19, 2026 launch. The material features the game's signature Vice City visual style paired with Spotify branding, pointing toward a music-streaming tie-in likely connected to the game's licensed radio soundtrack. Neither Rockstar Games nor Spotify has issued a formal statement detailing the scope of the partnership as of this writing.
+
+### GTA 6's Game Informer Cover Story Confirms a Map Twice the Size of GTA 5 - And Over 170 Animal Species
+- Category: Official · Stars: 5/5 · Published: 2026-10-06T08:32:18.273186+00:00
+- Page: https://vicecityhub.github.io/vicecityhub/news.html?id=4372 · Source: https://www.gtaboom.com/everything-new-we-learned-about-gta-6-from-the-game-informer-cover-story-4d76
+
+Game Informer's 14-page Grand Theft Auto VI cover story went live September 29, 2026, confirming the game's map is approximately twice the size of Grand Theft Auto V's, according to Rockstar art director Aaron Garbut. The issue, built on interviews with Rockstar's lead designers, details six named regions: Vice City, the Leonida Keys, Grassrivers, Port Gellhorn, Ambrosia, and Mount Kalaga National Park. The cover story also confirms a re-engineered, localized weather system capable of producing tropical storms and hurricanes, and more than 170 animal species across land, air, and sea, including manatees, flamingos, alligators, and multiple shark species, some tagged by rarity, ahead of the game's November 19, 2026 release.
+
+### GTA 6 Is Officially Rated Mature - And Its Store Listing Specifically Flags 'Sex Scenes'
+- Category: Official · Stars: 4/5 · Published: 2026-10-06T08:32:18.273186+00:00
+- Page: https://vicecityhub.github.io/vicecityhub/news.html?id=4373 · Source: https://www.gtaboom.com/gta-6-ratings-sex-scenes-in-game-purchases-c8c7
+
+Grand Theft Auto VI has received an official Mature 17+ rating from the ESRB in the United States and a PEGI 18 rating in Europe, with regional PlayStation Store listings in Australia and New Zealand going further by explicitly naming 'Sex Scenes' as a content descriptor, according to GTA BOOM and GHacks. The wording marks a shift from Grand Theft Auto V's Australian rating, which listed only 'Sex' despite the earlier game containing scripted sexual content. US listings use the phrase 'Strong Sexual Content' instead. The ESRB has not yet published its longer rating summary, and a store rating is not confirmation the game has gone gold ahead of its November 19, 2026 release.
+
+### Rockstar's Official Goodtime State Vice City Collection Just Dropped
+- Category: Official · Stars: 3/5 · Published: 2026-10-06T08:32:18.273186+00:00
+- Page: https://vicecityhub.github.io/vicecityhub/news.html?id=4375 · Source: https://store.rockstargames.com/ru/merchandise/gtavi-goodtime-state-vice-city-collection
+
+Rockstar Games launched its official Goodtime State Vice City Collection through the Rockstar Warehouse, giving fans a line of licensed Vice City-themed merchandise ahead of Grand Theft Auto VI's November 19, 2026 release. The collection is available now in limited quantities through Rockstar's official store.

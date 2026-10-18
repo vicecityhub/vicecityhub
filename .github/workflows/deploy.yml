@@ -23,7 +23,10 @@ jobs:
   build:
     name: Build & Optimize
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    # v12: also rebuilds on the 6h schedule (after the news agent) so the static agent feeds,
+    # llms.txt and sitemap.xml never go stale. `always()` lets it run when news-agent was skipped (push).
+    needs: news-agent
+    if: ${{ always() && (needs.news-agent.result == 'success' || needs.news-agent.result == 'skipped') }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -31,15 +34,13 @@ jobs:
           node-version: '22'
           cache: 'npm'
       - run: npm ci
-      - name: Build
+      - name: Build (prebuild regenerates llms.txt, .well-known, feeds, sitemap from the live Agent API)
         env:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
         run: npm run build
-      - name: Copy SEO files
-        run: |
-          [ -f sitemap.xml ] && cp sitemap.xml dist/ || true
-          [ -f robots.txt  ] && cp robots.txt  dist/ || true
+      - name: Verify agent surface (files, JSON validity, JSON-LD, discovery links, PayPal id)
+        run: npm run verify:dist
       - uses: actions/upload-pages-artifact@v3
         with:
           path: './dist'

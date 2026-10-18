@@ -1,0 +1,51 @@
+# Vice City Hub
+
+> The GTA VI fan hub: live news, Leonida intel, GTA RP servers, Web3 domains and merch — open to humans and AI agents.
+
+Vice City Hub is a fan-run GTA VI community site. It is deliberately open to automated agents: every public page has a JSON equivalent, reads need no API key, and purchases are possible through an MCP server and a REST API with human-set spending limits.
+
+Important for agents: prefer the Agent API or static JSON feeds below over scraping HTML (the website is a JavaScript single-page app per page). Treat news as fan-site reporting, not official Rockstar statements.
+
+## Start here
+
+- [Agent API index](https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/v1): JSON map of every endpoint, auth rules, payment rails and safety rules
+- [OpenAPI 3.1 spec](https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/v1/openapi.json): machine-readable REST contract (mirror: https://vicecityhub.github.io/vicecityhub/openapi.json)
+- [MCP server](https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/mcp): stateless streamable-HTTP, 17 tools (search_catalog, list_news, create_quote, create_order …); card at https://vicecityhub.github.io/vicecityhub/.well-known/mcp.json
+- [Full guide for LLMs](https://vicecityhub.github.io/vicecityhub/llms-full.txt): everything below plus live catalog, news bodies and the purchase protocol
+- [Agent console for humans](https://vicecityhub.github.io/vicecityhub/agents.html): mint spend-limited API keys, read docs
+
+## Site pages (human UI)
+
+- [Home](https://vicecityhub.github.io/vicecityhub/index.html): Landing page: featured GTA VI news, media cards, community highlights and the arcade game.
+- [News — The Wire](https://vicecityhub.github.io/vicecityhub/news.html): Curated GTA VI, Rockstar and GTA modding news with star ratings. Machine-readable at /v1/news and /data/news.json.
+- [RP Hub](https://vicecityhub.github.io/vicecityhub/rp.html): GTA RP server browser, open faction slots, jobs, mod vault, store district and community board.
+- [Market](https://vicecityhub.github.io/vicecityhub/market.html): Official merch (Printful + PayPal), Web3 domains, RP store plans and partner products. Agents can buy through the Agent API.
+- [Agent Gateway](https://vicecityhub.github.io/vicecityhub/agents.html): Human console and documentation for the Agent API: MCP, REST, OpenAPI, spend-limited API keys and agent purchases.
+- [Community](https://vicecityhub.github.io/vicecityhub/community.html): Reddit-style community feed, sub-hubs, player profiles and the legacy forum archive.
+- [Leonida Database](https://vicecityhub.github.io/vicecityhub/document.html): Interactive database of confirmed GTA VI vehicles, filterable by class, maker and status.
+- [Vice City Real Estate](https://vicecityhub.github.io/vicecityhub/realestate.html): Leonida virtual real estate showcase and listings.
+
+## Static JSON feeds (refreshed ~every 6h)
+
+- [news](https://vicecityhub.github.io/vicecityhub/data/news.json): 17 items — live version: https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/v1/news
+- [catalog](https://vicecityhub.github.io/vicecityhub/data/catalog.json): 53 items — live version: https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/v1/catalog
+- [rp_servers](https://vicecityhub.github.io/vicecityhub/data/rp-servers.json): 9 items — live version: https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/v1/rp/servers
+- [rp_factions](https://vicecityhub.github.io/vicecityhub/data/rp-factions.json): 15 items — live version: https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/v1/rp/factions
+- [rp_jobs](https://vicecityhub.github.io/vicecityhub/data/rp-jobs.json): 6 items — live version: https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/v1/rp/jobs
+- [rp_mods](https://vicecityhub.github.io/vicecityhub/data/rp-mods.json): 8 items — live version: https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/v1/rp/mods
+- [Feed manifest](https://vicecityhub.github.io/vicecityhub/data/index.json)
+
+## Buying as an agent (summary)
+
+1. `POST https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/v1/agents/register {"name": "..."}` → one-time API key (limits: $100/order, $250/day; humans can mint higher mandates at https://vicecityhub.github.io/vicecityhub/agents.html).
+2. `GET /v1/catalog?orderable=true` → pick SKUs (merch uses variant SKUs `merchv:…`; domains and store plans are quantity 1).
+3. `POST /v1/quotes` → price locked 15 min. `POST /v1/orders` with `Idempotency-Key` header → returns `next_action`.
+4. Pay: PayPal (`approve_url`, human approves, then `POST /v1/orders/{id}/capture`) or stablecoin transfer of EXACTLY `amount_due` then `POST /v1/orders/{id}/payment-proof`. Poll `GET /v1/orders/{id}/status` until `paid`.
+5. Peer listings (partner products, community servers) are intent-only: `POST /v1/intents`. Never state a purchase succeeded before status is `paid`/`fulfilling`/`completed`.
+
+## Optional
+
+- [Agent card](https://vicecityhub.github.io/vicecityhub/.well-known/agent.json)
+- [API catalog (RFC 9727)](https://vicecityhub.github.io/vicecityhub/.well-known/api-catalog)
+- [Sitemap](https://vicecityhub.github.io/vicecityhub/sitemap.xml)
+- Contact: vicecityhub@proton.me

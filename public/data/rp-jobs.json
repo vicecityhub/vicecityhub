@@ -1,0 +1,133 @@
+{
+  "generated_at": "2026-10-18T09:58:15.764Z",
+  "source": "https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/v1/rp/jobs",
+  "count": 6,
+  "items": [
+    {
+      "id": "39bd3ec5-8cbb-46c6-9d53-a9347b975d50",
+      "title": "Vice City Highway Patrol",
+      "faction": "Vice City Highway Patrol Division",
+      "legality": "LEGAL",
+      "salary_range": "Solid Salary + Seized Cash",
+      "description": "Protect and serve... or just camp the highways with a radar gun. High-stress job requiring strict adherence to the Penal Code.",
+      "responsibilities": [
+        "Patrol state highways and enforce traffic laws",
+        "Issue citations and conduct sobriety checks",
+        "PIT maneuver authorized pursuit protocols",
+        "Process seized vehicles and contraband"
+      ],
+      "requirements": [
+        "Pass written Penal Code exam",
+        "Mandatory voice comms (no text-only cops)",
+        "Complete 2-week field training with senior officer",
+        "Zero tolerance for fail RP or NVL behavior"
+      ],
+      "difficulty": 3
+    },
+    {
+      "id": "3cf8a5bf-8d8e-4943-85c3-4269e69fde5f",
+      "title": "Asset Liquidator",
+      "faction": "Independent / Cartel Affiliated",
+      "legality": "ILLEGAL",
+      "salary_range": "To the moon (if you don't get busted)",
+      "description": "Moving product from the Everglades swamps straight into the neon clubs of Vice City. High risk, maximum payout.",
+      "responsibilities": [
+        "Coordinate supply runs from swamp stash to urban distributors",
+        "Manage corner boys and territory assignments",
+        "Negotiate wholesale pricing with rival factions",
+        "Counter-surveil undercover units in the area"
+      ],
+      "requirements": [
+        "Gang affiliation OR proven solo operation track record",
+        "Radio comms for lookout network",
+        "Lawyer on speed dial — you WILL need one",
+        "Basic understanding of server heat/wanted mechanics"
+      ],
+      "difficulty": 5
+    },
+    {
+      "id": "a8307107-a5f5-43c3-8fae-7001fed44793",
+      "title": "Malibu Club Bartender / DJ",
+      "faction": "Malibu Club Entertainment",
+      "legality": "LEGAL",
+      "salary_range": "Tips-heavy + Free Drinks",
+      "description": "The heart of the Vice City nightlife. Keep the locals hydrated, spin the finest synthwave tracks, and listen to gangsters venting about their problems.",
+      "responsibilities": [
+        "Manage drink orders and custom mixing minigame",
+        "Host live DJ sets via audio-stream integration",
+        "Coordinate with security to remove troublemakers",
+        "Build regulars base for larger tip income"
+      ],
+      "requirements": [
+        "Approved by club management (whitelist slot)",
+        "Mic presence and willingness to entertain",
+        "Knowledge of Vice City FM track catalog helps",
+        "No pulling weapons behind the bar. Seriously."
+      ],
+      "difficulty": 1
+    },
+    {
+      "id": "a0ba99e7-bf53-4fe2-a0b8-90b8004ea3f9",
+      "title": "Downtown EMS Paramedic",
+      "faction": "Vice City Emergency Medical Services",
+      "legality": "LEGAL",
+      "salary_range": "Stable Government Pay",
+      "description": "The only thing stopping the server from turning into a total perma-death graveyard. High-speed driving, constant chaos, zero recognition.",
+      "responsibilities": [
+        "Respond to downed players and trauma calls citywide",
+        "Perform triage and field stabilization RP",
+        "Transport critical patients to Shady Palms Hospital",
+        "File injury reports for legal proceedings"
+      ],
+      "requirements": [
+        "Whitelist application with roleplay scenario test",
+        "Must own a mic — no silent paramedics",
+        "Knowledge of basic trauma RP mechanics",
+        "Prepared to work active shooter scenes (no immunity)"
+      ],
+      "difficulty": 3
+    },
+    {
+      "id": "add25d0e-f590-4cb9-9d4b-e5464a8c7639",
+      "title": "Bayview Customs Mechanic",
+      "faction": "Bayview Customs / Independent",
+      "legality": "GRAY_ZONE",
+      "salary_range": "Commission based + Cash under table",
+      "description": "Where street racers and cartel money converge. If it has wheels, you fix it, tune it, or spray it a different color to lose the cops. No questions asked.",
+      "responsibilities": [
+        "Accept vehicle repair and customization jobs",
+        "Run performance tuning for sanctioned race circuits",
+        "Accept off-books spray jobs from \"motivated\" clients",
+        "Operate a discreet underground vehicle stash service"
+      ],
+      "requirements": [
+        "Mechanical RP knowledge (flavor, not IRL required)",
+        "Affiliation with at least one street racing crew recommended",
+        "Understand that some clients' paperwork may be incomplete",
+        "Not a cop. Not a fed. Proven."
+      ],
+      "difficulty": 2
+    },
+    {
+      "id": "4c97e5c5-1785-41a2-99e0-284ee744e0cf",
+      "title": "Weazel News Photojournalist",
+      "faction": "Weazel News / Freelance",
+      "legality": "LEGAL",
+      "salary_range": "Per-story payout",
+      "description": "If it bleeds, it leads. Chase cop pursuits, film gang wars from rooftops, and sell your footage to the highest bidding editor. Die for content.",
+      "responsibilities": [
+        "Cover breaking incidents across Vice City in real time",
+        "Conduct field interviews with suspects and officials",
+        "Broadcast live feeds to in-game TVs across server",
+        "Sell exclusive footage to faction leadership"
+      ],
+      "requirements": [
+        "Streaming or recording setup is a major advantage",
+        "Press pass application through Weazel News admin",
+        "No partisan affiliation (everyone will hate you equally)",
+        "Accept that your press pass stops zero bullets"
+      ],
+      "difficulty": 2
+    }
+  ]
+}

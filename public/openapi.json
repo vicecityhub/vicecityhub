@@ -1,0 +1,1252 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Vice City Hub Agent API",
+    "version": "12.0.0",
+    "summary": "News, RP data, unified catalog and agent-safe ordering for the GTA VI fan hub.",
+    "description": "Open interface for AI agents. Read endpoints are anonymous. Ordering needs an API key (self-register at POST /v1/agents/register). Orders always require an Idempotency-Key. Payment is never taken without the payer approving it: PayPal (approve_url) or stablecoin transfer of EXACTLY the order's amount_due (USDT/USDC on Polygon, Ethereum, TRON or Solana), which is verified on-chain automatically via payment-proof. Delivery of Web3 domains and store slots is performed by the operator. Humans can mint spend-mandated keys at the Agents page. Third-party listings are intent-only.",
+    "contact": {
+      "name": "Vice City Hub",
+      "url": "https://vicecityhub.github.io/vicecityhub/agents.html",
+      "email": "vicecityhub@proton.me"
+    },
+    "license": {
+      "name": "Content: attribution required",
+      "url": "https://vicecityhub.github.io/vicecityhub/llms.txt"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api",
+      "description": "Production"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Discovery"
+    },
+    {
+      "name": "Content"
+    },
+    {
+      "name": "Catalog"
+    },
+    {
+      "name": "Agents"
+    },
+    {
+      "name": "Commerce"
+    },
+    {
+      "name": "Owner"
+    }
+  ],
+  "security": [
+    {},
+    {
+      "bearerAuth": []
+    }
+  ],
+  "paths": {
+    "/v1": {
+      "get": {
+        "tags": [
+          "Discovery"
+        ],
+        "operationId": "getIndex",
+        "summary": "API index with every endpoint, limits and payment rails",
+        "responses": {
+          "200": {
+            "description": "Index document"
+          }
+        }
+      }
+    },
+    "/v1/search": {
+      "get": {
+        "tags": [
+          "Discovery"
+        ],
+        "operationId": "searchSite",
+        "summary": "Cross-search news, catalog and RP servers",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 2
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Grouped results"
+          }
+        }
+      }
+    },
+    "/v1/news": {
+      "get": {
+        "tags": [
+          "Content"
+        ],
+        "operationId": "listNews",
+        "summary": "Latest GTA VI news (newest first)",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "category",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "featured",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 20,
+              "maximum": 50
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "News list"
+          }
+        }
+      }
+    },
+    "/v1/news/{id}": {
+      "get": {
+        "tags": [
+          "Content"
+        ],
+        "operationId": "getNews",
+        "summary": "One article with full body",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Article"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/v1/rp/{collection}": {
+      "get": {
+        "tags": [
+          "Content"
+        ],
+        "operationId": "listRp",
+        "summary": "GTA RP data",
+        "parameters": [
+          {
+            "name": "collection",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "servers",
+                "factions",
+                "jobs",
+                "mods"
+              ]
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 50,
+              "maximum": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Collection"
+          }
+        }
+      }
+    },
+    "/v1/catalog": {
+      "get": {
+        "tags": [
+          "Catalog"
+        ],
+        "operationId": "searchCatalog",
+        "summary": "Unified catalog: merch, store plans, Web3 domains, partner products, servers",
+        "parameters": [
+          {
+            "name": "kind",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "merch",
+                "plan",
+                "domain",
+                "product",
+                "server"
+              ]
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "min_price",
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "max_price",
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "orderable",
+            "in": "query",
+            "description": "Only items with on-site checkout",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "price_asc",
+                "price_desc"
+              ]
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 20,
+              "maximum": 50
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Page of items",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Item"
+                      }
+                    },
+                    "total": {
+                      "type": "integer"
+                    },
+                    "next_cursor": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/catalog/{sku}": {
+      "get": {
+        "tags": [
+          "Catalog"
+        ],
+        "operationId": "getItem",
+        "summary": "One item with purchase instructions (merch includes variants)",
+        "parameters": [
+          {
+            "name": "sku",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "examples": [
+                "domain:118",
+                "merch:123456",
+                "plan:<uuid>"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Item",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Item"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/v1/agents/register": {
+      "post": {
+        "tags": [
+          "Agents"
+        ],
+        "operationId": "registerAgent",
+        "summary": "Self-issue an API key ($100/order, $250/day, 5 per IP per day)",
+        "security": [
+          {}
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "name"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "maxLength": 80
+                  },
+                  "homepage": {
+                    "type": "string"
+                  },
+                  "contact": {
+                    "type": "string"
+                  },
+                  "model": {
+                    "type": "string"
+                  },
+                  "operator": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Key shown once"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/v1/agents/me": {
+      "get": {
+        "tags": [
+          "Agents"
+        ],
+        "operationId": "whoAmI",
+        "summary": "Scopes, limits and 24h spend of this key",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Key info"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/v1/quotes": {
+      "post": {
+        "tags": [
+          "Commerce"
+        ],
+        "operationId": "createQuote",
+        "summary": "Price-lock items for 15 minutes",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Items"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Quote"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/v1/orders": {
+      "post": {
+        "tags": [
+          "Commerce"
+        ],
+        "operationId": "createOrder",
+        "summary": "Create an order (idempotent)",
+        "description": "Merch requires `shipping`; domains require `delivery.wallet_address` (EVM) and use the `crypto` rail; store plans require `details.store_name` + `details.contact_email`. Merch and domains cannot share an order.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 8,
+              "maxLength": 128
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrderRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Replay of an existing order (Idempotent-Replayed: true)"
+          },
+          "201": {
+            "description": "Order created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/v1/orders/{id}": {
+      "get": {
+        "tags": [
+          "Commerce"
+        ],
+        "operationId": "getOrder",
+        "summary": "Order with next_action",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/OrderId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/v1/orders/{id}/status": {
+      "get": {
+        "tags": [
+          "Commerce"
+        ],
+        "operationId": "getOrderStatus",
+        "summary": "Cheap public status poll (no PII)",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/OrderId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Status"
+          }
+        }
+      }
+    },
+    "/v1/orders/{id}/capture": {
+      "post": {
+        "tags": [
+          "Commerce"
+        ],
+        "operationId": "capturePaypal",
+        "summary": "Capture an approved PayPal order (idempotent, no key needed)",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/OrderId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order after capture"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/v1/orders/{id}/payment-proof": {
+      "post": {
+        "tags": [
+          "Commerce"
+        ],
+        "operationId": "submitPaymentProof",
+        "summary": "Submit stablecoin transaction hash",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/OrderId"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "chain",
+                  "tx_hash"
+                ],
+                "properties": {
+                  "chain": {
+                    "type": "string",
+                    "enum": [
+                      "tron",
+                      "evm",
+                      "solana"
+                    ]
+                  },
+                  "network": {
+                    "type": "string",
+                    "enum": [
+                      "polygon",
+                      "ethereum"
+                    ],
+                    "description": "evm only; auto-detected if omitted"
+                  },
+                  "tx_hash": {
+                    "type": "string"
+                  },
+                  "note": {
+                    "type": "string"
+                  },
+                  "request_manual_review": {
+                    "type": "boolean",
+                    "description": "skip auto-verification; the operator checks by hand"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Order paid (verified on-chain) or queued for manual review"
+          },
+          "202": {
+            "description": "Transaction seen but not final yet: poll POST /v1/orders/{id}/verify"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/v1/orders/{id}/verify": {
+      "post": {
+        "tags": [
+          "Commerce"
+        ],
+        "operationId": "verifyCryptoPayment",
+        "summary": "Re-check an on-chain payment (idempotent; poll ~1/min while confirmations accumulate)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/OrderId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order (status paid when final)"
+          },
+          "202": {
+            "description": "Still pending confirmations"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/v1/owner/keys": {
+      "get": {
+        "tags": [
+          "Owner"
+        ],
+        "operationId": "ownerListKeys",
+        "summary": "List the signed-in human's agent keys",
+        "description": "Authenticated with a Supabase session JWT (Authorization: Bearer <access_token>) from the Agents page, not with an agent key.",
+        "security": [
+          {
+            "ownerSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Keys (no secrets)"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Owner"
+        ],
+        "operationId": "ownerMintKey",
+        "summary": "Mint a spend-mandated agent key (shown once)",
+        "security": [
+          {
+            "ownerSession": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "name"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "maxLength": 80
+                  },
+                  "max_order_usd": {
+                    "type": "number",
+                    "maximum": 5000,
+                    "default": 100
+                  },
+                  "max_daily_usd": {
+                    "type": "number",
+                    "maximum": 10000
+                  },
+                  "allowed_kinds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "merch",
+                        "plan",
+                        "domain",
+                        "product",
+                        "server"
+                      ]
+                    }
+                  },
+                  "scopes": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "read",
+                        "quote",
+                        "order"
+                      ]
+                    }
+                  },
+                  "expires_in_days": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 365
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Key shown once"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/v1/owner/keys/{id}/revoke": {
+      "post": {
+        "tags": [
+          "Owner"
+        ],
+        "operationId": "ownerRevokeKey",
+        "summary": "Revoke a key immediately",
+        "security": [
+          {
+            "ownerSession": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Revoked"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/v1/orders/{id}/cancel": {
+      "post": {
+        "tags": [
+          "Commerce"
+        ],
+        "operationId": "cancelOrder",
+        "summary": "Cancel an unpaid order",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/OrderId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Cancelled"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/v1/intents": {
+      "post": {
+        "tags": [
+          "Commerce"
+        ],
+        "operationId": "createIntent",
+        "summary": "Record interest in a peer listing (no on-site checkout)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "sku"
+                ],
+                "properties": {
+                  "sku": {
+                    "type": "string"
+                  },
+                  "message": {
+                    "type": "string",
+                    "maxLength": 1000
+                  },
+                  "contact": {
+                    "type": "object",
+                    "properties": {
+                      "email": {
+                        "type": "string"
+                      },
+                      "discord": {
+                        "type": "string"
+                      },
+                      "telegram": {
+                        "type": "string"
+                      },
+                      "wallet": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Intent recorded with how_to_complete"
+          }
+        }
+      }
+    },
+    "/mcp": {
+      "post": {
+        "tags": [
+          "Discovery"
+        ],
+        "operationId": "mcp",
+        "summary": "Model Context Protocol endpoint (stateless streamable HTTP, JSON-RPC 2.0)",
+        "description": "Add this URL as a remote MCP server. Tools: search_catalog, get_item, list_news, get_news, list_rp, search_site, register_agent, whoami, create_quote, create_order, get_order, get_order_status, capture_paypal_order, submit_crypto_payment_proof, verify_crypto_payment, cancel_order, create_purchase_intent.",
+        "responses": {
+          "200": {
+            "description": "JSON-RPC response"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "vch_live_<48 hex>"
+      },
+      "ownerSession": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "Supabase session JWT"
+      }
+    },
+    "parameters": {
+      "OrderId": {
+        "name": "id",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "pattern": "^vch_ord_[0-9a-f]+$"
+        }
+      }
+    },
+    "responses": {
+      "Error": {
+        "description": "Error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      }
+    },
+    "schemas": {
+      "Error": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "object",
+            "required": [
+              "code",
+              "message"
+            ],
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "message": {
+                "type": "string"
+              },
+              "hint": {
+                "type": "string"
+              },
+              "docs": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "Items": {
+        "type": "object",
+        "required": [
+          "items"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 10,
+            "items": {
+              "type": "object",
+              "required": [
+                "sku"
+              ],
+              "properties": {
+                "sku": {
+                  "type": "string"
+                },
+                "quantity": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 10,
+                  "default": 1
+                }
+              }
+            }
+          }
+        }
+      },
+      "Item": {
+        "type": "object",
+        "required": [
+          "sku",
+          "kind",
+          "title",
+          "purchase"
+        ],
+        "properties": {
+          "sku": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "merch",
+              "plan",
+              "domain",
+              "product",
+              "server"
+            ]
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "price_usd": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "currency": {
+            "type": "string"
+          },
+          "seller": {
+            "type": "string"
+          },
+          "availability": {
+            "type": "string"
+          },
+          "purchase": {
+            "type": "object",
+            "properties": {
+              "mode": {
+                "type": "string",
+                "enum": [
+                  "order",
+                  "intent"
+                ]
+              },
+              "rails": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "requires": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "external_url": {
+                "type": "string"
+              }
+            }
+          },
+          "url": {
+            "type": "string"
+          },
+          "attributes": {
+            "type": "object"
+          },
+          "variants": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          }
+        }
+      },
+      "OrderRequest": {
+        "type": "object",
+        "required": [
+          "payment_rail"
+        ],
+        "properties": {
+          "quote_id": {
+            "type": "string"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "payment_rail": {
+            "type": "string",
+            "enum": [
+              "paypal",
+              "crypto"
+            ]
+          },
+          "shipping": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "address1": {
+                "type": "string"
+              },
+              "address2": {
+                "type": "string"
+              },
+              "city": {
+                "type": "string"
+              },
+              "state_code": {
+                "type": "string"
+              },
+              "zip": {
+                "type": "string"
+              },
+              "country_code": {
+                "type": "string",
+                "pattern": "^[A-Z]{2}$"
+              },
+              "email": {
+                "type": "string"
+              },
+              "phone": {
+                "type": "string"
+              }
+            }
+          },
+          "delivery": {
+            "type": "object",
+            "properties": {
+              "wallet_address": {
+                "type": "string",
+                "pattern": "^0x[0-9a-fA-F]{40}$"
+              }
+            }
+          },
+          "details": {
+            "type": "object",
+            "properties": {
+              "store_name": {
+                "type": "string"
+              },
+              "contact_email": {
+                "type": "string"
+              },
+              "website_url": {
+                "type": "string"
+              },
+              "discord_url": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "Order": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "awaiting_payment",
+              "payment_review",
+              "paid",
+              "fulfilling",
+              "completed",
+              "cancelled",
+              "expired",
+              "failed"
+            ]
+          },
+          "total_usd": {
+            "type": "number"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "payment_rail": {
+            "type": "string"
+          },
+          "payment": {
+            "type": "object"
+          },
+          "next_action": {
+            "type": "object",
+            "description": "Machine-readable instruction for what to do next"
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "links": {
+            "type": "object"
+          }
+        }
+      }
+    }
+  }
+}

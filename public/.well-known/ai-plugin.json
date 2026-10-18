@@ -1,0 +1,17 @@
+{
+  "schema_version": "v1",
+  "name_for_human": "Vice City Hub",
+  "name_for_model": "vice_city_hub",
+  "description_for_human": "GTA VI news, GTA RP servers, Web3 domains and merch.",
+  "description_for_model": "Search GTA VI news, GTA RP servers/factions/jobs/mods and a catalog of merch, Web3 domains, store plans and partner listings. Can create price-locked quotes and orders (PayPal or stablecoin) for orderable SKUs within the key spend limits.",
+  "auth": {
+    "type": "none"
+  },
+  "api": {
+    "type": "openapi",
+    "url": "https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/v1/openapi.json"
+  },
+  "logo_url": "https://lpglkglhjdqnktybksth.supabase.co/storage/v1/object/public/photos/Official_Cover_Art_landscape.12.uu2irr.2_a%20(1).jpg",
+  "contact_email": "vicecityhub@proton.me",
+  "legal_info_url": "https://vicecityhub.github.io/vicecityhub/agents.html"
+}
