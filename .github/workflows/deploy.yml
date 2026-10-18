@@ -41,6 +41,14 @@ jobs:
         run: npm run build
       - name: Verify agent surface (files, JSON validity, JSON-LD, discovery links, PayPal id)
         run: npm run verify:dist
+      - name: Build root discovery bundle (for vicecityhub.github.io)
+        run: node scripts/gen-root-site.mjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: root-site
+          path: root-site
+          include-hidden-files: true
+          if-no-files-found: error
       - uses: actions/upload-pages-artifact@v3
         with:
           path: './dist'
@@ -57,6 +65,40 @@ jobs:
     steps:
       - id: deployment
         uses: actions/deploy-pages@v4
+
+  # Mirrors the generated root bundle (robots.txt, llms.txt, .well-known, feeds) to the
+  # vicecityhub.github.io user-site repo so crawlers/agents find it at the host root.
+  # Never blocks the site deploy; uses a write-only deploy key scoped to that one repo.
+  sync-root:
+    name: Sync root discovery bundle
+    needs: build
+    if: ${{ always() && needs.build.result == 'success' }}
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: root-site
+          path: bundle
+      - uses: actions/checkout@v4
+        with:
+          repository: vicecityhub/vicecityhub.github.io
+          ssh-key: ${{ secrets.ROOT_SITE_DEPLOY_KEY }}
+          path: root-repo
+      - name: Mirror bundle and push if changed
+        run: |
+          set -e
+          find root-repo -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
+          cp -a bundle/. root-repo/
+          cd root-repo
+          git config user.name "vch-ci"
+          git config user.email "vicecityhub@proton.me"
+          git add -A
+          if git diff --cached --quiet; then echo "root bundle unchanged"; exit 0; fi
+          git commit -m "Sync root discovery bundle ($(date -u +%Y-%m-%dT%H:%MZ))"
+          git push origin HEAD:main
 
   # ────────────────────────────────────
   # JOB 2: NEWS AGENT (cron only)
