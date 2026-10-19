@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-18T09:58:15.764Z",
+  "generated_at": "2026-10-19T19:26:26.838Z",
   "source": "https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/v1/catalog",
   "count": 53,
   "items": [
@@ -14,7 +14,8 @@
       "purchase": {
         "mode": "order",
         "rails": [
-          "paypal"
+          "paypal",
+          "crypto"
         ],
         "requires": [
           "shipping"
@@ -571,7 +572,8 @@
       "purchase": {
         "mode": "order",
         "rails": [
-          "paypal"
+          "paypal",
+          "crypto"
         ],
         "requires": [
           "shipping"
@@ -720,7 +722,8 @@
       "purchase": {
         "mode": "order",
         "rails": [
-          "paypal"
+          "paypal",
+          "crypto"
         ],
         "requires": [
           "shipping"
@@ -1141,7 +1144,8 @@
       "purchase": {
         "mode": "order",
         "rails": [
-          "paypal"
+          "paypal",
+          "crypto"
         ],
         "requires": [
           "shipping"
@@ -1410,7 +1414,8 @@
       "purchase": {
         "mode": "order",
         "rails": [
-          "paypal"
+          "paypal",
+          "crypto"
         ],
         "requires": [
           "shipping"
@@ -1711,7 +1716,8 @@
       "purchase": {
         "mode": "order",
         "rails": [
-          "paypal"
+          "paypal",
+          "crypto"
         ],
         "requires": [
           "shipping"
@@ -1788,7 +1794,8 @@
       "purchase": {
         "mode": "order",
         "rails": [
-          "paypal"
+          "paypal",
+          "crypto"
         ],
         "requires": [
           "shipping"
@@ -1824,7 +1831,8 @@
       "purchase": {
         "mode": "order",
         "rails": [
-          "paypal"
+          "paypal",
+          "crypto"
         ],
         "requires": [
           "shipping"
@@ -1909,7 +1917,8 @@
       "purchase": {
         "mode": "order",
         "rails": [
-          "paypal"
+          "paypal",
+          "crypto"
         ],
         "requires": [
           "shipping"
@@ -2066,7 +2075,8 @@
       "purchase": {
         "mode": "order",
         "rails": [
-          "paypal"
+          "paypal",
+          "crypto"
         ],
         "requires": [
           "shipping"
@@ -2183,7 +2193,8 @@
       "purchase": {
         "mode": "order",
         "rails": [
-          "paypal"
+          "paypal",
+          "crypto"
         ],
         "requires": [
           "shipping"
@@ -2340,7 +2351,8 @@
       "purchase": {
         "mode": "order",
         "rails": [
-          "paypal"
+          "paypal",
+          "crypto"
         ],
         "requires": [
           "shipping"

@@ -74,7 +74,7 @@
     {
       "name": "create_order",
       "title": "Create order",
-      "description": "Create an order from a quote or items. PayPal rail returns an approve_url; crypto rail returns stablecoin wallet options. Merch needs `shipping`, domains need `delivery.wallet_address`, store plans need `details`. Safe to retry with the same idempotency_key."
+      "description": "Create an order from a quote or items. PayPal rail returns an approve_url that a human must approve; the crypto rail (merch, domains, store plans) is fully automatic: send EXACTLY next_action.amount_due in USDT/USDC and the payment is detected and verified on-chain, no further call needed (poll get_order_status). Merch needs `shipping`, domains need `delivery.wallet_address`, store plans need `details`. Safe to retry with the same idempotency_key."
     },
     {
       "name": "get_order",
@@ -94,7 +94,7 @@
     {
       "name": "submit_crypto_payment_proof",
       "title": "Submit crypto tx",
-      "description": "After sending EXACTLY next_action.amount_due in stablecoins, submit chain (tron|evm|solana), tx_hash and, for evm, network (polygon|ethereum). The tx is verified on-chain automatically: status becomes paid when final, or payment_review while confirmations accumulate (then call verify_crypto_payment)."
+      "description": "Optional shortcut (crypto payments are detected automatically): after sending EXACTLY next_action.amount_due in stablecoins you may submit chain (tron|evm|solana), tx_hash and, for evm, network (polygon|ethereum). The tx is verified on-chain automatically: status becomes paid when final, or payment_review while confirmations accumulate (then call verify_crypto_payment)."
     },
     {
       "name": "verify_crypto_payment",

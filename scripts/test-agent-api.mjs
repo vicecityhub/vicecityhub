@@ -92,6 +92,23 @@ if (starter) {
   console.log('SKIP  no plan ≤ $100 in catalog');
 }
 
+// merch over the crypto rail (never paid in the smoke test)
+const mer = await call('GET', '/v1/catalog?kind=merch&limit=5');
+const merch = mer.j?.items?.[0];
+check('merch lists the crypto rail', !!merch && merch.purchase.rails.includes('crypto'), merch?.sku);
+if (merch) {
+  const det = await call('GET', `/v1/catalog/${encodeURIComponent(merch.sku)}`);
+  const variant = det.j?.variants?.find((v) => v.availability === 'in_stock' && v.price_usd <= 100);
+  if (variant) {
+    const mo = await call('POST', '/v1/orders', { key, idem: 'smoke-merch-' + Date.now(), body: { items: [{ sku: variant.sku }], payment_rail: 'crypto', shipping: { name: 'Smoke Test', address1: '1 Test St', city: 'Miami', state_code: 'FL', zip: '33101', country_code: 'US' } } });
+    check('merch order created via crypto (auto-detect)', mo.s === 201 && mo.j.next_action?.type === 'send_stablecoin' && mo.j.next_action?.auto_detect === true, mo.j?.id || mo.j?.error?.code);
+    const mc = await call('POST', `/v1/orders/${mo.j?.id}/cancel`, { key });
+    check('merch crypto order cancel', mc.s === 200);
+  } else console.log('SKIP  no in-stock merch variant <= $100');
+}
+const rc = await call('GET', '/v1/internal/reconcile');
+check('reconciler endpoint', rc.s === 200 && (rc.j?.skipped === 'throttled' || typeof rc.j?.awaiting_orders === 'number'), JSON.stringify(rc.j));
+
 // MCP
 const mcpCall = async (method, params, id = 1) => (await fetch(BASE + '/mcp', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ jsonrpc: '2.0', id, method, params }) })).json();
 const init = await mcpCall('initialize', { protocolVersion: '2025-06-18', capabilities: {}, clientInfo: { name: 'smoke', version: '1' } });

@@ -158,7 +158,7 @@ L.push(
   `1. \`POST ${API}/v1/agents/register {"name": "..."}\` → one-time API key (limits: $100/order, $250/day; humans can mint higher mandates at ${SITE}/agents.html).`,
   '2. `GET /v1/catalog?orderable=true` → pick SKUs (merch uses variant SKUs `merchv:…`; domains and store plans are quantity 1).',
   '3. `POST /v1/quotes` → price locked 15 min. `POST /v1/orders` with `Idempotency-Key` header → returns `next_action`.',
-  '4. Pay: PayPal (`approve_url`, human approves, then `POST /v1/orders/{id}/capture`) or stablecoin transfer of EXACTLY `amount_due` then `POST /v1/orders/{id}/payment-proof`. Poll `GET /v1/orders/{id}/status` until `paid`.',
+  '4. Pay: PayPal (`approve_url`, human approves, then `POST /v1/orders/{id}/capture`) or stablecoin transfer of EXACTLY `amount_due` (detected on-chain automatically, no further call needed; `POST /v1/orders/{id}/payment-proof` is an optional shortcut). Poll `GET /v1/orders/{id}/status` until `paid`.',
   '5. Peer listings (partner products, community servers) are intent-only: `POST /v1/intents`. Never state a purchase succeeded before status is `paid`/`fulfilling`/`completed`.',
   '', '## Optional', '',
   `- [Agent card](${SITE}/.well-known/agent.json)`,
@@ -189,11 +189,11 @@ F.push(
   '3. `POST /v1/orders {quote_id, payment_rail, shipping|delivery|details}` + header `Idempotency-Key: <8-128 chars>`. Retrying with the same key returns the same order (`Idempotent-Replayed: true`).',
   '4. Follow `next_action` in the response:',
   '   - `approve_paypal`: a human payer must open `url` and approve; then `POST /v1/orders/{id}/capture`.',
-  '   - `send_stablecoin`: send EXACTLY `amount_due` (last 4 digits are a unique order tag) in USDT/USDC on the listed chain/address (Tron, Ethereum, Polygon, Solana), then `POST /v1/orders/{id}/payment-proof {chain, tx_hash, network?}`. The transaction is verified on-chain; if confirmations are pending call `POST /v1/orders/{id}/verify` about once a minute.',
-  '5. Poll `GET /v1/orders/{id}/status` (no key needed). Domains and store slots are delivered by the operator after payment.',
+  '   - `send_stablecoin`: send EXACTLY `amount_due` (last 4 digits are a unique order tag) in USDT/USDC on the listed chain/address (Tron, Ethereum, Polygon, Solana), and you are done: the transfer is detected and verified on-chain automatically (usually 1-5 min), no further call needed. Optional shortcuts: `POST /v1/orders/{id}/payment-proof {chain, tx_hash, network?}` and `POST /v1/orders/{id}/verify`.',
+  '5. Poll `GET /v1/orders/{id}/status` (no key needed). Merch paid in crypto is sent to Printful automatically; domains and store slots are delivered by the operator after payment.',
   '',
   'Safety rules enforced server-side: per-key per-order and daily spend limits, allowed item kinds per key, mandatory idempotency keys, price-locked quotes, unique crypto amount tags with tx-hash replay protection, on-chain verification that fails closed. The operator never takes payment without the payer approving it.',
-  'Rails: merch → PayPal only (Printful print-on-demand, needs `shipping`); Web3 domains → crypto only (needs `delivery.wallet_address`); store plans → PayPal or crypto (needs `details.store_name`, `details.contact_email`). Mixed-rail baskets are rejected — split orders.',
+  'Rails: merch → PayPal or crypto (Printful print-on-demand, needs `shipping`); Web3 domains → crypto only (needs `delivery.wallet_address`); store plans → PayPal or crypto (needs `details.store_name`, `details.contact_email`). Mixed-rail baskets are rejected — split orders.',
   'Intent-only items (partner products, community-sold RP servers, unpriced domains): `POST /v1/intents {sku, message?, contact?}`. Vice City Hub never custodies funds for them.', '',
 );
 F.push(`## MCP tools (${tools.length})`, '', ...tools.map((t) => `- \`${t.name}\` — ${trunc(t.description, 220)}`), '');
@@ -215,7 +215,7 @@ const skills = [
   { id: 'news', name: 'GTA VI news', description: 'Curated, rated GTA VI / Rockstar / modding news with source links.', tags: ['gta-vi', 'news', 'rockstar'], examples: ['Latest GTA VI news', 'Any leaks about the Leonida map?'] },
   { id: 'rp', name: 'GTA RP data', description: 'RP servers, open faction slots, jobs and mods.', tags: ['gta-rp', 'fivem', 'servers'], examples: ['Which RP servers have open police slots?'] },
   { id: 'catalog', name: 'Catalog search', description: 'Merch, Web3 domains, RP store plans and partner products with USD prices and purchase mode.', tags: ['shopping', 'domains', 'merch'], examples: ['Find a Leonida-themed Web3 domain under $200'] },
-  { id: 'purchase', name: 'Agent purchases', description: 'Price-locked quotes, idempotent orders, PayPal or on-chain stablecoin payment, human-set spend mandates.', tags: ['commerce', 'payments', 'stablecoin', 'paypal'], examples: ['Buy the cheapest in-stock hoodie and ship to…'] },
+  { id: 'purchase', name: 'Agent purchases', description: 'Price-locked quotes, idempotent orders, PayPal or fully automatic on-chain stablecoin payment, human-set spend mandates.', tags: ['commerce', 'payments', 'stablecoin', 'paypal'], examples: ['Buy the cheapest in-stock hoodie and ship to…'] },
 ];
 out('.well-known/agent.json', {
   schemaVersion: 'vch-agent-card/1',
@@ -232,7 +232,7 @@ out('.well-known/agent.json', {
   capabilities: { streaming: false, pushNotifications: false, commerce: true },
   commerce: {
     flow: ['quote', 'order', 'pay', 'verify', 'status'],
-    rails: [{ id: 'paypal', for: ['merch', 'plan'] }, { id: 'crypto', for: ['domain', 'plan'], assets: ['USDT', 'USDC'], chains: ['tron', 'ethereum', 'polygon', 'solana'] }],
+    rails: [{ id: 'paypal', for: ['merch', 'plan'] }, { id: 'crypto', automatic: true, for: ['merch', 'domain', 'plan'], assets: ['USDT', 'USDC'], chains: ['tron', 'ethereum', 'polygon', 'solana'] }],
     safety: ['human-set spend mandates', 'idempotency keys required', 'price-locked quotes', 'unique per-order amount tags', 'on-chain verification fails closed'],
   },
   defaultInputModes: ['application/json'], defaultOutputModes: ['application/json', 'text/markdown'],

@@ -391,7 +391,7 @@ const RULES: Array<[string, string]> = [
   ['Mandates, not blank checks', 'Every key has a per-order cap, a 24h cap, allowed product kinds and an expiry. You set them, you revoke them.'],
   ['Idempotent by force', 'Orders require an Idempotency-Key. A retrying bot never buys the same domain twice.'],
   ['Price-locked quotes', 'Quotes hold the price for 15 minutes. If it moves, the order is refused instead of overcharging.'],
-  ['Crypto that checks itself', 'Each crypto order gets a unique exact amount. Payments are verified on-chain (Polygon, Ethereum, TRON, Solana); anything off-by-a-cent is never auto-accepted.'],
+  ['Crypto that checks itself', 'Each crypto order gets a unique exact amount. Send it and you are done: the payment is detected and verified on-chain automatically (Polygon, Ethereum, TRON, Solana) and merch goes straight to print. Anything off-by-a-cent is never auto-accepted.'],
   ['A human clicks PayPal', 'Card and PayPal payments always need the payer to approve. No bot can drain your account.'],
   ['Domains are delivered by humans', 'Private keys never touch the API. After payment, the operator transfers your Web3 domain by hand.'],
   ['Third-party deals stay third-party', 'Partner goods and community servers are intent-only: we introduce, we never hold the money.'],

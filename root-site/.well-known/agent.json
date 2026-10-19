@@ -62,7 +62,9 @@
       },
       {
         "id": "crypto",
+        "automatic": true,
         "for": [
+          "merch",
           "domain",
           "plan"
         ],
@@ -137,7 +139,7 @@
     {
       "id": "purchase",
       "name": "Agent purchases",
-      "description": "Price-locked quotes, idempotent orders, PayPal or on-chain stablecoin payment, human-set spend mandates.",
+      "description": "Price-locked quotes, idempotent orders, PayPal or fully automatic on-chain stablecoin payment, human-set spend mandates.",
       "tags": [
         "commerce",
         "payments",

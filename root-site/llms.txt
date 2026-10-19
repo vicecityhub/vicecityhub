@@ -40,7 +40,7 @@ Important for agents: prefer the Agent API or static JSON feeds below over scrap
 1. `POST https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/v1/agents/register {"name": "..."}` → one-time API key (limits: $100/order, $250/day; humans can mint higher mandates at https://vicecityhub.github.io/vicecityhub/agents.html).
 2. `GET /v1/catalog?orderable=true` → pick SKUs (merch uses variant SKUs `merchv:…`; domains and store plans are quantity 1).
 3. `POST /v1/quotes` → price locked 15 min. `POST /v1/orders` with `Idempotency-Key` header → returns `next_action`.
-4. Pay: PayPal (`approve_url`, human approves, then `POST /v1/orders/{id}/capture`) or stablecoin transfer of EXACTLY `amount_due` then `POST /v1/orders/{id}/payment-proof`. Poll `GET /v1/orders/{id}/status` until `paid`.
+4. Pay: PayPal (`approve_url`, human approves, then `POST /v1/orders/{id}/capture`) or stablecoin transfer of EXACTLY `amount_due` (detected on-chain automatically, no further call needed; `POST /v1/orders/{id}/payment-proof` is an optional shortcut). Poll `GET /v1/orders/{id}/status` until `paid`.
 5. Peer listings (partner products, community servers) are intent-only: `POST /v1/intents`. Never state a purchase succeeded before status is `paid`/`fulfilling`/`completed`.
 
 ## Optional

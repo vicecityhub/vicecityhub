@@ -5,6 +5,7 @@ import { catalogItem, catalogList, indexDoc, newsItem, newsList, rpList, search 
 import { cancelOrder, captureOrder, createIntent, createOrder, createQuote, getOrder, orderStatus, registerAgent, submitProof, verifyOrder, whoAmI } from "./orders.ts";
 import { ownerRoute } from "./owner.ts";
 import { mcpHandle } from "./mcp.ts";
+import { reconcile } from "./reconcile.ts";
 import spec from "./openapi.json" with { type: "json" };
 
 const need = (key: any): R | null =>
@@ -71,12 +72,17 @@ async function route(req: Request, url: URL, path: string, key: any, ipHash: str
     if (path === "/v1/openapi.json") return { status: 200, body: spec, headers: { "Cache-Control": "public, max-age=3600" } };
     if (path === "/v1/catalog") return catalogList(p);
     if ((g = path.match(/^\/v1\/catalog\/(.+)$/))) return catalogItem(decodeURIComponent(g[1]));
+    if (path === "/v1/internal/reconcile") return reconcile(); // pg_cron every minute: auto-detects + settles crypto payments
     if (path === "/v1/search") return search(p);
     if (path === "/v1/news") return newsList(p);
     if ((g = path.match(/^\/v1\/news\/(\d+)$/))) return newsItem(g[1]);
     if ((g = path.match(/^\/v1\/rp\/(servers|factions|jobs|mods)$/))) return rpList(g[1], p);
     if (path === "/v1/agents/me") return need(key) || whoAmI(key);
-    if ((g = path.match(/^\/v1\/orders\/([\w]+)\/status$/))) return orderStatus(g[1]);
+    if ((g = path.match(/^\/v1\/orders\/([\w]+)\/status$/))) {
+      // polling an order also nudges the (globally throttled) reconciler so an agent never waits for the next cron tick
+      try { (globalThis as any).EdgeRuntime?.waitUntil(reconcile()); } catch (_) { /* best effort */ }
+      return orderStatus(g[1]);
+    }
     if ((g = path.match(/^\/v1\/orders\/([\w]+)$/))) return need(key) || getOrder(key, g[1]);
   }
 

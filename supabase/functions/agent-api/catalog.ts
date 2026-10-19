@@ -64,7 +64,9 @@ let pfInflight: Promise<MerchSnap> | null = null;
 async function readSnap(): Promise<MerchSnap | null> {
   const { data } = await db.from("agent_cache").select("value,updated_at").eq("key", "merch").maybeSingle();
   if (!data?.value?.items) return null;
-  return { at: new Date(data.updated_at).getTime(), items: data.value.items, variants: new Map(data.value.variants || []) };
+  // snapshots written before the crypto rail existed still say rails:["paypal"] for merch: normalise on read
+  const items = (data.value.items as Item[]).map((i) => (i.kind === "merch" ? { ...i, purchase: { ...i.purchase, rails: ["paypal", "crypto"] } } : i));
+  return { at: new Date(data.updated_at).getTime(), items, variants: new Map(data.value.variants || []) };
 }
 async function saveSnap(s: MerchSnap) {
   await db.from("agent_cache").upsert({ key: "merch", value: { items: s.items, variants: [...s.variants] }, refresh_lock: null, updated_at: new Date().toISOString() });
@@ -137,7 +139,7 @@ async function fetchMerch(): Promise<MerchSnap & { complete: boolean }> {
       currency: "USD",
       seller: "Vice City Hub",
       availability: vlist.some((v: any) => v.availability === "in_stock") ? "in_stock" : "out_of_stock",
-      purchase: { mode: "order", rails: ["paypal"], requires: ["shipping"] },
+      purchase: { mode: "order", rails: ["paypal", "crypto"], requires: ["shipping"] },
       url: `${SITE}/market.html`,
       image: sp.thumbnail_url || null,
       attributes: { fulfillment: "Printful print-on-demand" },
@@ -240,7 +242,7 @@ export async function resolveLine(sku: string): Promise<{ line?: Line; reason?: 
     if (!v) return { reason: "unknown_sku" };
     if (v.availability !== "in_stock") return { reason: "out_of_stock" };
     if (v.price_usd === null) return { reason: "no_price" };
-    return { line: { sku, kind: "merch", title: `${v.product} — ${v.name}`, unit_usd: v.price_usd, rails: ["paypal"], requires: ["shipping"], extra: { sync_variant_id: v.sync_variant_id } } };
+    return { line: { sku, kind: "merch", title: `${v.product} — ${v.name}`, unit_usd: v.price_usd, rails: ["paypal", "crypto"], requires: ["shipping"], extra: { sync_variant_id: v.sync_variant_id } } };
   }
   const item = (await loadDbItems()).find((i) => i.sku === sku);
   if (!item) return { reason: sku.startsWith("merch:") ? "use_variant_sku" : "unknown_sku" };

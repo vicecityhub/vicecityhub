@@ -5,6 +5,10 @@ import { dueUnits, EVM_NETWORKS, fmtUnits, type Verdict, verifyCrypto } from "./
 
 const PAYPAL = "https://api-m.paypal.com";
 const PF_STORE = 18377240;
+// Default ON: a Printful order is submitted for production as soon as the payment is verified (PayPal capture or on-chain).
+// Set secret PRINTFUL_AUTO_CONFIRM=0 to create drafts instead, which the operator confirms in the Printful dashboard.
+const PF_AUTO = Deno.env.get("PRINTFUL_AUTO_CONFIRM") !== "0";
+const PF_STATE = PF_AUTO ? "submitted for fulfilment" : "draft (confirm in Printful dashboard)";
 const DEAD = "(cancelled,expired,failed)";
 
 // ───────────── PayPal / Printful plumbing ─────────────
@@ -61,13 +65,26 @@ async function ppCreate(o: any, hasMerch: boolean) {
   return { paypal_order_id: d.id as string, approve_url: approve as string };
 }
 
+/** idempotency guard: an order already pushed to Printful (same external_id) is never created twice */
+async function printfulFind(publicId: string): Promise<number | null> {
+  const t = Deno.env.get("PRINTFUL_API_TOKEN");
+  if (!t) return null;
+  try {
+    const r = await fetch(`https://api.printful.com/orders/@${encodeURIComponent(publicId)}?store_id=${PF_STORE}`, { headers: { Authorization: `Bearer ${t}`, "X-PF-Store-Id": String(PF_STORE) }, signal: AbortSignal.timeout(8000) });
+    if (!r.ok) return null;
+    return ((await r.json()).result?.id as number) ?? null;
+  } catch { return null; }
+}
+
 async function printfulDraft(o: any) {
   const items = o.items.filter((i: any) => i.kind === "merch").map((i: any) => ({ sync_variant_id: Number(i.extra?.sync_variant_id), quantity: i.quantity }));
   if (!items.length) return null;
   const t = Deno.env.get("PRINTFUL_API_TOKEN");
   if (!t) throw new Error("PRINTFUL_API_TOKEN missing");
+  const existing = await printfulFind(o.public_id);
+  if (existing) return existing;
   const s = o.shipping;
-  const r = await fetch(`https://api.printful.com/orders?store_id=${PF_STORE}`, {
+  const r = await fetch(`https://api.printful.com/orders?store_id=${PF_STORE}${PF_AUTO ? "&confirm=1" : ""}`, {
     method: "POST",
     headers: { Authorization: `Bearer ${t}`, "Content-Type": "application/json", "X-PF-Store-Id": String(PF_STORE) },
     body: JSON.stringify({
@@ -109,9 +126,10 @@ function nextAction(o: any) {
       type: "send_stablecoin",
       amount_due: dueAmount(o),
       exact_amount_required: true,
-      note: "Send EXACTLY amount_due (the last 4 digits are a unique order tag). Any other amount is rejected by auto-verification.",
+      auto_detect: true,
+      note: "Send EXACTLY amount_due (the last 4 digits are a unique order tag). The transfer is detected and verified automatically; any other amount is never auto-accepted.",
       options: CRYPTO_WALLETS.map((w: any) => (w.chain === "evm" ? { ...w, networks: Object.keys(EVM_NETWORKS) } : w)),
-      then: `POST ${API}/v1/orders/${id}/payment-proof {chain, tx_hash, network?}`,
+      then: `Nothing else is required: payment is detected automatically (usually 1-5 min, depending on chain confirmations). Optional shortcut: POST ${API}/v1/orders/${id}/payment-proof {chain, tx_hash, network?}. Poll GET ${API}/v1/orders/${id}/status until paid/fulfilling.`,
     };
   if (o.status === "payment_review" && o.payment?.proof?.verification === "pending_confirmations")
     return { type: "poll_verify", detail: o.payment.proof.detail || null, then: `POST ${API}/v1/orders/${id}/verify (retry in ~60s)` };
@@ -195,7 +213,7 @@ async function priceItems(key: Key, input: any) {
   }
   total = round2(total);
   if (!rails || rails.length === 0)
-    return { error: fail(422, "mixed_rails", "These items cannot be paid in one order (no common payment rail).", "Split into separate orders: domains are crypto-only; merch is PayPal-only.") };
+    return { error: fail(422, "mixed_rails", "These items cannot be paid in one order (no common payment rail).", "Split into separate orders: domains are crypto-only; merch and store plans accept PayPal or crypto.") };
   if (total > key.max_order_usd)
     return { error: fail(403, "limit_exceeded", `Order total $${total} exceeds this key's per-order limit of $${key.max_order_usd}.`, "A human owner can mint a key with a higher mandate from the Agents page.") };
   const since = new Date(Date.now() - 86_400_000).toISOString();
@@ -339,7 +357,7 @@ export async function captureOrder(id: string): Promise<R> {
   let fulfillment: any = { ...(o.fulfillment || {}) };
   try {
     const pfId = await printfulDraft(o);
-    if (pfId) fulfillment = { ...fulfillment, printful_order_id: pfId, printful_state: "draft (confirm in Printful dashboard)" };
+    if (pfId) fulfillment = { ...fulfillment, printful_order_id: pfId, printful_state: PF_STATE };
   } catch (e) { fulfillment = { ...fulfillment, printful_error: String((e as Error).message) }; }
   const { data: u } = await db.from("agent_orders").update({ status: fulfillment.printful_error ? "paid" : "fulfilling", payment, fulfillment, updated_at: new Date().toISOString() }).eq("id", o.id).select("*").single();
   await notifyOwner("VCH agent order PAID", `${o.public_id} — $${o.total_usd}\nItems: ${(o.items || []).map((i: any) => `${i.quantity}× ${i.title}`).join(", ")}\n${fulfillment.printful_error ? "Printful error: " + fulfillment.printful_error : "Fulfilment started."}`);
@@ -410,9 +428,19 @@ async function runVerification(o: any, proof: any): Promise<R> {
 
   if (v.state === "confirmed") {
     const done = { ...proof, verification: "confirmed", verified: true, network: v.network, verified_at: now, paid_units: v.paid_units, block_time: v.block_time };
-    const fulfillment = { ...(o.fulfillment || {}), note: "Payment verified on-chain automatically. Delivery (domain transfer / slot activation) is done by the operator, usually within 24h." };
-    const { data: u } = await db.from("agent_orders").update({ status: "paid", payment: { ...o.payment, proof: done }, fulfillment, updated_at: now }).eq("id", o.id).select("*").single();
-    await notifyOwner("VCH crypto order PAID (auto-verified)", `${o.public_id} — $${o.total_usd}\nnetwork=${v.network}\ntx=${proof.tx_hash}\nItems: ${(o.items || []).map((i: any) => `${i.quantity}× ${i.title}`).join(", ")}\nDelivery: ${JSON.stringify(o.delivery)}\nACTION: deliver the item.`);
+    const hasMerch = (o.items || []).some((i: any) => i.kind === "merch");
+    let fulfillment: any = { ...(o.fulfillment || {}) };
+    // atomic: only ONE concurrent verifier (cron / agent / status poll) may settle and fulfil this order
+    const { data: won } = await db.from("agent_orders").update({ status: "paid", payment: { ...o.payment, proof: done }, fulfillment, updated_at: now }).eq("id", o.id).in("status", ["awaiting_payment", "payment_review"]).select("*").maybeSingle();
+    if (!won) { const { data: cur } = await db.from("agent_orders").select("*").eq("id", o.id).single(); return ok(view(cur || o, true)); }
+    if (hasMerch) {
+      try { const pfId = await printfulDraft(o); if (pfId) fulfillment = { ...fulfillment, printful_order_id: pfId, printful_state: PF_STATE }; }
+      catch (e) { fulfillment = { ...fulfillment, printful_error: String((e as Error).message) }; }
+    }
+    const hasManual = (o.items || []).some((i: any) => i.kind !== "merch"); // domains / store slots are delivered by the operator
+    if (hasManual) fulfillment = { ...fulfillment, note: "Payment verified on-chain automatically. Delivery (domain transfer / slot activation) is done by the operator, usually within 24h." };
+    const { data: u } = await db.from("agent_orders").update({ status: hasMerch && !hasManual && !fulfillment.printful_error ? "fulfilling" : "paid", fulfillment, updated_at: new Date().toISOString() }).eq("id", o.id).select("*").single();
+    await notifyOwner("VCH crypto order PAID (auto-verified)", `${o.public_id} — $${o.total_usd}\nnetwork=${v.network}\ntx=${proof.tx_hash}\nItems: ${(o.items || []).map((i: any) => `${i.quantity}× ${i.title}`).join(", ")}\nDelivery: ${JSON.stringify(o.delivery)}\n${hasMerch ? (fulfillment.printful_error ? "Printful error: " + fulfillment.printful_error : "Printful order created (" + PF_STATE + ").") + " " : ""}${hasManual ? "ACTION: deliver the item." : ""}`);
     return ok(view(u || o, true));
   }
   if (v.state === "pending") {
@@ -425,6 +453,51 @@ async function runVerification(o: any, proof: any): Promise<R> {
   if (v.state === "not_found") return fail(409, "tx_not_found", v.detail + ".", "Wait until the transaction is broadcast, then resubmit.");
   if (v.state === "mismatch") return fail(422, "payment_mismatch", v.detail + ".", `Send exactly the order's amount_due, or resubmit with request_manual_review=true / email vicecityhub@proton.me quoting ${o.public_id}.`);
   return fail(503, "verification_unavailable", "On-chain verification is temporarily unavailable.", "Retry in a minute (the order stays open).");
+}
+
+/** Auto-settlement entry point: a scanned on-chain transfer matched this order's exact tagged amount. Full verification still runs. */
+export async function settleFromScan(o: any, c: { chain: string; network: string; tx: string }): Promise<string> {
+  const txKey = c.chain === "solana" ? c.tx : c.tx.toLowerCase();
+  const { error: ce } = await db.from("agent_tx_claims").insert({ chain: c.chain, tx_hash: txKey, order_id: o.id });
+  if (ce) {
+    if ((ce as any).code !== "23505") return "db_error";
+    const { data: cl } = await db.from("agent_tx_claims").select("order_id").eq("chain", c.chain).eq("tx_hash", txKey).maybeSingle();
+    if (!cl || cl.order_id !== o.id) return "claimed_by_other_order";
+  }
+  const proof = { chain: c.chain, network: c.chain === "evm" ? c.network : null, tx_hash: c.tx, note: "auto-detected on-chain", auto_detected: true, submitted_at: new Date().toISOString() };
+  const r = await runVerification(o, proof);
+  return `verification -> HTTP ${r.status}`;
+}
+
+/** Self-healing fulfilment: a verified-paid merch order that never reached Printful (crash, 5xx, rate limit) is retried by the reconciler. */
+export async function retryFulfilment(o: any): Promise<string> {
+  const f = o.fulfillment || {};
+  if (o.status !== "paid" || f.printful_order_id) return "nothing_to_retry";
+  if (!(o.items || []).some((i: any) => i.kind === "merch")) return "nothing_to_retry";
+  const attempts = Number(f.printful_attempts || 0);
+  if (attempts >= 6) return "gave_up";
+  // compare-and-swap on updated_at: only one worker may own this attempt
+  const stamp = new Date().toISOString();
+  const { data: mine } = await db.from("agent_orders").update({ fulfillment: { ...f, printful_attempts: attempts + 1 }, updated_at: stamp }).eq("id", o.id).eq("status", "paid").eq("updated_at", o.updated_at).select("id").maybeSingle();
+  if (!mine) return "claimed_elsewhere";
+  let fulfillment: any = { ...f, printful_attempts: attempts + 1 };
+  try {
+    const pfId = await printfulDraft(o);
+    if (pfId) { fulfillment = { ...fulfillment, printful_order_id: pfId, printful_state: PF_STATE }; delete fulfillment.printful_error; }
+  } catch (e) { fulfillment = { ...fulfillment, printful_error: String((e as Error).message) }; }
+  const hasManual = (o.items || []).some((i: any) => i.kind !== "merch");
+  const done = !!fulfillment.printful_order_id && !hasManual;
+  await db.from("agent_orders").update({ status: done ? "fulfilling" : "paid", fulfillment, updated_at: new Date().toISOString() }).eq("id", o.id);
+  if (!fulfillment.printful_order_id && attempts + 1 >= 6) await notifyOwner("VCH order stuck: Printful fulfilment failed 6x", `${o.public_id} — $${o.total_usd}\n${fulfillment.printful_error || "unknown error"}\nACTION: create the Printful order manually (payment is verified).`);
+  return done ? "fulfilled" : "retry_failed";
+}
+
+/** Re-run verification for an order whose proof is waiting for confirmations. */
+export async function recheckOrder(o: any): Promise<string> {
+  const proof = o.payment?.proof;
+  if (!proof?.tx_hash || proof.verification !== "pending_confirmations") return "nothing_to_recheck";
+  const r = await runVerification(o, proof);
+  return `recheck -> HTTP ${r.status}`;
 }
 
 export async function cancelOrder(key: Key, id: string): Promise<R> {

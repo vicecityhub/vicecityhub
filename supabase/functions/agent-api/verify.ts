@@ -170,11 +170,82 @@ async function verifySolana(sig: string, due: bigint, createdAtMs: number): Prom
   if (t.meta?.err) return { state: "mismatch", detail: "transaction failed on-chain" };
   const ts = Number(t.blockTime || 0) * 1000;
   if (ts < createdAtMs - 60_000) return { state: "mismatch", detail: "transaction predates this order" };
-  const sum = (arr: any[]) => (arr || []).filter((b) => b.owner === ours && b.mint === SOL_USDC).reduce((s, b) => s + BigInt(b.uiTokenAmount?.amount || "0"), 0n);
+  const sum = (arr: any[]): bigint => (arr || []).filter((b) => b.owner === ours && b.mint === SOL_USDC).reduce((s: bigint, b: any) => s + BigInt(b.uiTokenAmount?.amount || "0"), 0n);
   const delta = sum(t.meta?.postTokenBalances) - sum(t.meta?.preTokenBalances);
   if (delta <= 0n) return { state: "mismatch", detail: "no USDC received by our Solana wallet in this transaction" };
   if (delta !== due) return { state: "mismatch", detail: `received ${fmtUnits(delta)} but the exact amount due is ${fmtUnits(due)}` };
   return { state: "confirmed", network: "solana", paid_units: delta.toString(), block_time: new Date(ts).toISOString() };
+}
+
+// ───────────── Incoming-transfer scanner (automatic settlement) ─────────────
+// The scanner only DISCOVERS candidate transactions (amount -> tx hash). It never decides that an order is paid:
+// every candidate goes through verifyCrypto() with the full rule set above before anything is marked paid.
+export interface Incoming { chain: "tron" | "evm" | "solana"; network: string; tx: string; units: bigint }
+
+const hex = (n: number) => "0x" + n.toString(16);
+
+async function scanTron(sinceMs: number): Promise<Incoming[]> {
+  const ours = wallet("tron");
+  if (!ours) return [];
+  const key = Deno.env.get("TRONGRID_API_KEY");
+  const q = `only_to=true&only_confirmed=true&limit=100&order_by=block_timestamp,desc&min_timestamp=${Math.max(0, sinceMs - 60_000)}&contract_address=${TRON_USDT}`;
+  const r = await fetch(`${TRON_API}/v1/accounts/${ours}/transactions/trc20?${q}`, { headers: key ? { "TRON-PRO-API-KEY": key } : {}, signal: AbortSignal.timeout(TIMEOUT) });
+  if (!r.ok) throw new Error(`tron http ${r.status}`);
+  const j = await r.json();
+  return (j.data || [])
+    .filter((t: any) => t.to === ours && t.token_info?.address === TRON_USDT && /^\d+$/.test(String(t.value)))
+    .map((t: any) => ({ chain: "tron" as const, network: "tron", tx: String(t.transaction_id), units: BigInt(t.value) }));
+}
+
+async function scanEvm(sinceMs: number, errors: string[]): Promise<Incoming[]> {
+  const to = wallet("evm").toLowerCase();
+  if (!to) return [];
+  const topicTo = "0x" + to.replace(/^0x/, "").padStart(64, "0");
+  const out: Incoming[] = [];
+  for (const [name, n] of Object.entries(EVM_NETWORKS)) {
+    try {
+      const latest = parseInt(await jrpc(n.rpc, "eth_blockNumber", []), 16);
+      const blockSec = name === "polygon" ? 2.1 : 12.1;
+      const cap = name === "polygon" ? 8000 : 1500;
+      const back = Math.min(cap, Math.ceil((Date.now() - sinceMs) / 1000 / blockSec) + 60);
+      for (let a = Math.max(0, latest - back); a <= latest; a += 1000) {
+        const logs = await jrpc(n.rpc, "eth_getLogs", [{ fromBlock: hex(a), toBlock: hex(Math.min(latest, a + 999)), address: Object.keys(n.tokens), topics: ["0x" + TRANSFER_SIG, null, topicTo] }]);
+        for (const l of logs || []) if (!l.removed) out.push({ chain: "evm", network: name, tx: String(l.transactionHash), units: BigInt(l.data) });
+      }
+    } catch (e) { errors.push(`${name}: ${(e as Error).message}`); }
+  }
+  return out;
+}
+
+async function scanSolana(sinceMs: number): Promise<Incoming[]> {
+  const ours = wallet("solana");
+  if (!ours) return [];
+  const ta = await jrpc(SOL_RPC, "getTokenAccountsByOwner", [ours, { mint: SOL_USDC }, { encoding: "jsonParsed" }]);
+  const accts: string[] = (ta?.value || []).map((v: any) => v.pubkey).slice(0, 3);
+  const out: Incoming[] = [];
+  let fetched = 0;
+  for (const acct of accts) {
+    const sigs = await jrpc(SOL_RPC, "getSignaturesForAddress", [acct, { limit: 25, commitment: "finalized" }]);
+    for (const s of sigs || []) {
+      if (s.err || (s.blockTime && s.blockTime * 1000 < sinceMs - 60_000)) continue;
+      if (fetched++ >= 10) return out; // keep public-RPC usage small
+      const t = await jrpc(SOL_RPC, "getTransaction", [s.signature, { encoding: "jsonParsed", commitment: "finalized", maxSupportedTransactionVersion: 0 }]);
+      if (!t || t.meta?.err) continue;
+      const sum = (arr: any[]): bigint => (arr || []).filter((b) => b.owner === ours && b.mint === SOL_USDC).reduce((x: bigint, b: any) => x + BigInt(b.uiTokenAmount?.amount || "0"), 0n);
+      const delta = sum(t.meta?.postTokenBalances) - sum(t.meta?.preTokenBalances);
+      if (delta > 0n) out.push({ chain: "solana", network: "solana", tx: String(s.signature), units: delta });
+    }
+  }
+  return out;
+}
+
+/** Candidate incoming stablecoin transfers to our wallets since `sinceMs`. A failing chain is reported in `errors`, never fatal. */
+export async function scanIncoming(sinceMs: number): Promise<{ items: Incoming[]; errors: string[] }> {
+  const errors: string[] = [];
+  const items: Incoming[] = [];
+  const run = async (name: string, f: () => Promise<Incoming[]>) => { try { items.push(...(await f())); } catch (e) { errors.push(`${name}: ${String((e as Error).message || e).slice(0, 160)}`); } };
+  await Promise.all([run("tron", () => scanTron(sinceMs)), run("evm", () => scanEvm(sinceMs, errors)), run("solana", () => scanSolana(sinceMs))]);
+  return { items, errors };
 }
 
 export async function verifyCrypto(a: { chain: string; tx: string; network?: string; due: bigint; createdAtMs: number }): Promise<Verdict> {

@@ -4,7 +4,7 @@
     "title": "Vice City Hub Agent API",
     "version": "12.0.0",
     "summary": "News, RP data, unified catalog and agent-safe ordering for the GTA VI fan hub.",
-    "description": "Open interface for AI agents. Read endpoints are anonymous. Ordering needs an API key (self-register at POST /v1/agents/register). Orders always require an Idempotency-Key. Payment is never taken without the payer approving it: PayPal (approve_url) or stablecoin transfer of EXACTLY the order's amount_due (USDT/USDC on Polygon, Ethereum, TRON or Solana), which is verified on-chain automatically via payment-proof. Delivery of Web3 domains and store slots is performed by the operator. Humans can mint spend-mandated keys at the Agents page. Third-party listings are intent-only.",
+    "description": "Open interface for AI agents. Read endpoints are anonymous. Ordering needs an API key (self-register at POST /v1/agents/register). Orders always require an Idempotency-Key. Payment is never taken without the payer approving it: PayPal (approve_url) or stablecoin transfer of EXACTLY the order's amount_due (USDT/USDC on Polygon, Ethereum, TRON or Solana), which is detected and verified on-chain automatically (no further call needed; payment-proof is an optional shortcut). Delivery of Web3 domains and store slots is performed by the operator. Humans can mint spend-mandated keys at the Agents page. Third-party listings are intent-only.",
     "contact": {
       "name": "Vice City Hub",
       "url": "https://vicecityhub.github.io/vicecityhub/agents.html",
@@ -463,7 +463,7 @@
         ],
         "operationId": "createOrder",
         "summary": "Create an order (idempotent)",
-        "description": "Merch requires `shipping`; domains require `delivery.wallet_address` (EVM) and use the `crypto` rail; store plans require `details.store_name` + `details.contact_email`. Merch and domains cannot share an order.",
+        "description": "Merch requires `shipping`; domains require `delivery.wallet_address` (EVM) and use the `crypto` rail; store plans require `details.store_name` + `details.contact_email`. Items can share an order only if they have a common payment rail. Merch, domains and store plans can all use the `crypto` rail, which is fully automatic: send the exact amount_due and poll the status.",
         "security": [
           {
             "bearerAuth": []
@@ -598,7 +598,7 @@
           "Commerce"
         ],
         "operationId": "submitPaymentProof",
-        "summary": "Submit stablecoin transaction hash",
+        "summary": "Submit stablecoin transaction hash (optional shortcut; payments are auto-detected)",
         "security": [
           {
             "bearerAuth": []

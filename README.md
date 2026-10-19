@@ -55,7 +55,7 @@ docs/legacy/                ← old one-off notes/scripts (kept, not used)
 1. `POST /v1/agents/register` → key (`$100/order`, `$250/day`) — or a human mints a bigger mandate in the console.
 2. `POST /v1/quotes` → price locked 15 min.
 3. `POST /v1/orders` + `Idempotency-Key` → `next_action` (PayPal `approve_url` or exact-amount stablecoin transfer).
-4. `POST /v1/orders/{id}/payment-proof` (crypto) / `capture` (PayPal) → `GET /v1/orders/{id}/status` until `paid`.
+4. **Crypto (no PayPal, fully automatic):** send exactly `amount_due` in USDT/USDC. `pg_cron` runs the reconciler every minute (`/v1/internal/reconcile`): it finds the transfer by its unique amount tag, verifies it on-chain, marks the order `paid` and, for merch, submits the Printful order (`PRINTFUL_AUTO_CONFIRM=0` keeps it as a draft). Failed Printful calls are retried by the reconciler. `payment-proof` is an optional shortcut. PayPal: `capture` → `GET /v1/orders/{id}/status` until `paid`.
 
 Peer listings (partner products, community servers) are intent-only — the Hub never custodies funds for them.
 

@@ -1,6 +1,6 @@
 # Vice City Hub — full guide for AI agents (v12.0.0)
 
-Generated 2026-10-18T09:58:15.764Z. Live data beats this snapshot: call the API for anything time-sensitive.
+Generated 2026-10-19T19:26:51.852Z. Live data beats this snapshot: call the API for anything time-sensitive.
 
 ## What this site is
 
@@ -40,11 +40,11 @@ curl -X POST https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/v1/
 3. `POST /v1/orders {quote_id, payment_rail, shipping|delivery|details}` + header `Idempotency-Key: <8-128 chars>`. Retrying with the same key returns the same order (`Idempotent-Replayed: true`).
 4. Follow `next_action` in the response:
    - `approve_paypal`: a human payer must open `url` and approve; then `POST /v1/orders/{id}/capture`.
-   - `send_stablecoin`: send EXACTLY `amount_due` (last 4 digits are a unique order tag) in USDT/USDC on the listed chain/address (Tron, Ethereum, Polygon, Solana), then `POST /v1/orders/{id}/payment-proof {chain, tx_hash, network?}`. The transaction is verified on-chain; if confirmations are pending call `POST /v1/orders/{id}/verify` about once a minute.
-5. Poll `GET /v1/orders/{id}/status` (no key needed). Domains and store slots are delivered by the operator after payment.
+   - `send_stablecoin`: send EXACTLY `amount_due` (last 4 digits are a unique order tag) in USDT/USDC on the listed chain/address (Tron, Ethereum, Polygon, Solana), and you are done: the transfer is detected and verified on-chain automatically (usually 1-5 min), no further call needed. Optional shortcuts: `POST /v1/orders/{id}/payment-proof {chain, tx_hash, network?}` and `POST /v1/orders/{id}/verify`.
+5. Poll `GET /v1/orders/{id}/status` (no key needed). Merch paid in crypto is sent to Printful automatically; domains and store slots are delivered by the operator after payment.
 
 Safety rules enforced server-side: per-key per-order and daily spend limits, allowed item kinds per key, mandatory idempotency keys, price-locked quotes, unique crypto amount tags with tx-hash replay protection, on-chain verification that fails closed. The operator never takes payment without the payer approving it.
-Rails: merch → PayPal only (Printful print-on-demand, needs `shipping`); Web3 domains → crypto only (needs `delivery.wallet_address`); store plans → PayPal or crypto (needs `details.store_name`, `details.contact_email`). Mixed-rail baskets are rejected — split orders.
+Rails: merch → PayPal or crypto (Printful print-on-demand, needs `shipping`); Web3 domains → crypto only (needs `delivery.wallet_address`); store plans → PayPal or crypto (needs `details.store_name`, `details.contact_email`). Mixed-rail baskets are rejected — split orders.
 Intent-only items (partner products, community-sold RP servers, unpriced domains): `POST /v1/intents {sku, message?, contact?}`. Vice City Hub never custodies funds for them.
 
 ## MCP tools (17)
@@ -58,11 +58,11 @@ Intent-only items (partner products, community-sold RP servers, unpriced domains
 - `register_agent` — Get a self-service API key (limits: $100/order, $250/day). Shown once.
 - `whoami` — Scopes, spend limits and 24h spend of the current key.
 - `create_quote` — Validate items and lock the price for 15 minutes. Merch must use variant SKUs (merchv:…).
-- `create_order` — Create an order from a quote or items. PayPal rail returns an approve_url; crypto rail returns stablecoin wallet options. Merch needs `shipping`, domains need `delivery.wallet_address`, store plans need `details`. Safe …
+- `create_order` — Create an order from a quote or items. PayPal rail returns an approve_url that a human must approve; the crypto rail (merch, domains, store plans) is fully automatic: send EXACTLY next_action.amount_due in USDT/USDC and…
 - `get_order` — Full order incl. next_action.
 - `get_order_status` — Cheap status poll (no key needed).
 - `capture_paypal_order` — Call after the payer approved payment.approve_url. Idempotent.
-- `submit_crypto_payment_proof` — After sending EXACTLY next_action.amount_due in stablecoins, submit chain (tron|evm|solana), tx_hash and, for evm, network (polygon|ethereum). The tx is verified on-chain automatically: status becomes paid when final, o…
+- `submit_crypto_payment_proof` — Optional shortcut (crypto payments are detected automatically): after sending EXACTLY next_action.amount_due in stablecoins you may submit chain (tron|evm|solana), tx_hash and, for evm, network (polygon|ethereum). The t…
 - `verify_crypto_payment` — Re-run on-chain verification for an order whose payment proof is pending confirmations. Idempotent; poll about once a minute.
 - `cancel_order` — Cancel an order that is still awaiting_payment.
 - `create_purchase_intent` — For peer listings without on-site checkout (partner products, community servers, domains without a price). Records interest and returns how to complete the purchase.
@@ -71,18 +71,18 @@ Intent-only items (partner products, community-sold RP servers, unpriced domains
 
 | SKU | Kind | Title | Price | Purchase |
 |---|---|---|---|---|
-| `merch:445021895` | merch | VCH be Vice Unisex oversized hoodie | $52.00 from (lowest variant) | orderable via API (paypal) |
-| `merch:445021656` | merch | VCH be Vice Crop Hoodie | $47.00 from (lowest variant) | orderable via API (paypal) |
-| `merch:445021472` | merch | VCH be Vice Men’s premium heavyweight tee | $23.50 from (lowest variant) | orderable via API (paypal) |
-| `merch:445021179` | merch | VCH be Vice Unisex Hoodie | $43.50 from (lowest variant) | orderable via API (paypal) |
-| `merch:444141796` | merch | VCH Macca 3/4 sleeve raglan shirt | $34.95 from (lowest variant) | orderable via API (paypal) |
-| `merch:443138617` | merch | VCH Macca Men’s premium tank top | $34.50 from (lowest variant) | orderable via API (paypal) |
-| `merch:443036590` | merch | VCH Macca Dad hat | $28.99 | orderable via API (paypal) |
-| `merch:443025464` | merch | VCH Macca Unisex eco raglan hoodie | $58.95 from (lowest variant) | orderable via API (paypal) |
-| `merch:443023417` | merch | VCH Macca MagSafe® tough case for iPhone® | $34.61 from (lowest variant) | orderable via API (paypal) |
-| `merch:443022436` | merch | VCH Macca Premium basketball jersey | $46.50 from (lowest variant) | orderable via API (paypal) |
-| `merch:443019869` | merch | VCH Macca Mug with Color Inside | $19.49 from (lowest variant) | orderable via API (paypal) |
-| `merch:443017667` | merch | VCH Macca Unisex classic tee | $38.25 from (lowest variant) | orderable via API (paypal) |
+| `merch:445021895` | merch | VCH be Vice Unisex oversized hoodie | $52.00 from (lowest variant) | orderable via API (paypal/crypto) |
+| `merch:445021656` | merch | VCH be Vice Crop Hoodie | $47.00 from (lowest variant) | orderable via API (paypal/crypto) |
+| `merch:445021472` | merch | VCH be Vice Men’s premium heavyweight tee | $23.50 from (lowest variant) | orderable via API (paypal/crypto) |
+| `merch:445021179` | merch | VCH be Vice Unisex Hoodie | $43.50 from (lowest variant) | orderable via API (paypal/crypto) |
+| `merch:444141796` | merch | VCH Macca 3/4 sleeve raglan shirt | $34.95 from (lowest variant) | orderable via API (paypal/crypto) |
+| `merch:443138617` | merch | VCH Macca Men’s premium tank top | $34.50 from (lowest variant) | orderable via API (paypal/crypto) |
+| `merch:443036590` | merch | VCH Macca Dad hat | $28.99 | orderable via API (paypal/crypto) |
+| `merch:443025464` | merch | VCH Macca Unisex eco raglan hoodie | $58.95 from (lowest variant) | orderable via API (paypal/crypto) |
+| `merch:443023417` | merch | VCH Macca MagSafe® tough case for iPhone® | $34.61 from (lowest variant) | orderable via API (paypal/crypto) |
+| `merch:443022436` | merch | VCH Macca Premium basketball jersey | $46.50 from (lowest variant) | orderable via API (paypal/crypto) |
+| `merch:443019869` | merch | VCH Macca Mug with Color Inside | $19.49 from (lowest variant) | orderable via API (paypal/crypto) |
+| `merch:443017667` | merch | VCH Macca Unisex classic tee | $38.25 from (lowest variant) | orderable via API (paypal/crypto) |
 | `plan:60c0f4cb-4fbc-41ab-9b87-74a89af5f4f6` | plan | Store slot — STARTER | $19.00 | orderable via API (paypal/crypto) |
 | `plan:7c2ad812-37f5-4387-854f-6a1b063c0046` | plan | Store slot — FEATURED | $49.00 | orderable via API (paypal/crypto) |
 | `plan:8bf76bd4-1072-4ef5-a3af-cd6bd994ece3` | plan | Store slot — PREMIUM | $99.00 | orderable via API (paypal/crypto) |
