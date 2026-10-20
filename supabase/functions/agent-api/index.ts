@@ -2,7 +2,8 @@
 // Public base: https://<project>.supabase.co/functions/v1/agent-api
 import { authenticate, CORS, clientIpHash, db, fail, rate, toResponse, R } from "./lib.ts";
 import { catalogItem, catalogList, indexDoc, newsItem, newsList, rpList, search } from "./handlers.ts";
-import { cancelOrder, captureOrder, createIntent, createOrder, createQuote, getOrder, orderStatus, registerAgent, submitProof, verifyOrder, whoAmI } from "./orders.ts";
+import { donationInfo } from "./donate.ts";
+import { cancelOrder, captureOrder, createDonation, createIntent, createOrder, createQuote, getOrder, orderStatus, registerAgent, submitProof, verifyOrder, whoAmI } from "./orders.ts";
 import { ownerRoute } from "./owner.ts";
 import { mcpHandle } from "./mcp.ts";
 import { reconcile } from "./reconcile.ts";
@@ -73,6 +74,7 @@ async function route(req: Request, url: URL, path: string, key: any, ipHash: str
     if (path === "/v1/catalog") return catalogList(p);
     if ((g = path.match(/^\/v1\/catalog\/(.+)$/))) return catalogItem(decodeURIComponent(g[1]));
     if (path === "/v1/internal/reconcile") return reconcile(); // pg_cron every minute: auto-detects + settles crypto payments
+    if (path === "/v1/donate") return donationInfo();
     if (path === "/v1/search") return search(p);
     if (path === "/v1/news") return newsList(p);
     if ((g = path.match(/^\/v1\/news\/(\d+)$/))) return newsItem(g[1]);
@@ -93,6 +95,7 @@ async function route(req: Request, url: URL, path: string, key: any, ipHash: str
     if (path === "/v1/quotes") return need(key) || createQuote(key, body);
     if (path === "/v1/orders") return need(key) || createOrder(key, body, req.headers.get("idempotency-key"));
     if (path === "/v1/intents") return need(key) || createIntent(key, body);
+    if (path === "/v1/donations") return need(key) || createDonation(key, body, req.headers.get("idempotency-key"));
     if ((g = path.match(/^\/v1\/orders\/([\w]+)\/capture$/))) return captureOrder(g[1]);
     if ((g = path.match(/^\/v1\/orders\/([\w]+)\/payment-proof$/))) return need(key) || submitProof(key, g[1], body);
     if ((g = path.match(/^\/v1\/orders\/([\w]+)\/verify$/))) return need(key) || verifyOrder(key, g[1]);

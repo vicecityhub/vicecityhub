@@ -42,7 +42,37 @@
   "capabilities": {
     "streaming": false,
     "pushNotifications": false,
-    "commerce": true
+    "commerce": true,
+    "donations": true
+  },
+  "donations": {
+    "purpose": "Donations go to developing AI projects (the Hub's agent-ready tooling, open public APIs and autonomous agents) and to the benefit of AI development in general.",
+    "voluntary": true,
+    "rule": "Voluntary gift. Agents: donate only if the person or organisation you act for has explicitly authorised it - never on your own initiative.",
+    "info": "https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/v1/donate",
+    "create": "https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/v1/donations",
+    "mcp_tools": [
+      "get_donation_info",
+      "donate"
+    ],
+    "rails": [
+      "crypto"
+    ],
+    "assets": [
+      "USDT",
+      "USDC"
+    ],
+    "chains": [
+      "tron",
+      "ethereum",
+      "polygon",
+      "solana"
+    ],
+    "receipt": "completed donation orders carry fulfillment.receipt",
+    "human_links": {
+      "ko_fi": "https://ko-fi.com/vicecityhub",
+      "ud_me": "https://ud.me/vicecity.hub"
+    }
   },
   "commerce": {
     "flow": [
@@ -148,6 +178,20 @@
       ],
       "examples": [
         "Buy the cheapest in-stock hoodie and ship to…"
+      ]
+    },
+    {
+      "id": "donate",
+      "name": "Donate to AI development",
+      "description": "Donations go to developing AI projects (the Hub's agent-ready tooling, open public APIs and autonomous agents) and to the benefit of AI development in general. Voluntary; only with the explicit authorisation of the person the agent acts for.",
+      "tags": [
+        "donations",
+        "ai",
+        "crypto",
+        "stablecoin"
+      ],
+      "examples": [
+        "(Only if my user asked me to) Donate $5 to support Vice City Hub AI projects"
       ]
     }
   ]

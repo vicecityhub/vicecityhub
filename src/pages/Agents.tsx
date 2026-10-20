@@ -4,7 +4,8 @@ import { agentApi, ApiError, API, SITE, type CatalogItem, type OwnerKey } from '
 
 /* ───────────────────────── helpers ───────────────────────── */
 const KINDS = ['all', 'merch', 'plan', 'domain', 'product', 'server'] as const;
-const KIND_LABEL: Record<string, string> = { all: 'Everything', merch: 'Merch', plan: 'Store slots', domain: 'Web3 domains', product: 'Partner goods', server: 'RP servers' };
+const MANDATE_KINDS = ['merch', 'plan', 'domain', 'product', 'server', 'donation'] as const;
+const KIND_LABEL: Record<string, string> = { all: 'Everything', donation: 'Donations (AI dev)', merch: 'Merch', plan: 'Store slots', domain: 'Web3 domains', product: 'Partner goods', server: 'RP servers' };
 const usd = (n: number | null | undefined) => (n === null || n === undefined ? '—' : `$${n.toLocaleString('en-US', { maximumFractionDigits: 2 })}`);
 const errText = (e: unknown) => (e instanceof ApiError ? `${e.message}${e.hint ? ` — ${e.hint}` : ''}` : e instanceof Error ? e.message : 'Something went sideways.');
 
@@ -214,7 +215,7 @@ function MandateConsole() {
           <div>
             <span className={label}>May buy</span>
             <div className="flex flex-wrap gap-2">
-              {KINDS.filter((k) => k !== 'all').map((k) => (
+              {MANDATE_KINDS.map((k) => (
                 <button key={k} type="button" onClick={() => toggleKind(k)} className={`text-[10px] uppercase tracking-widest font-bold px-3 py-1.5 rounded border transition-all ${kinds.includes(k) ? 'border-neonPink text-neonPink bg-neonPink/10' : 'border-white/10 text-gray-500'}`}>{KIND_LABEL[k]}</button>
               ))}
             </div>
@@ -394,6 +395,7 @@ const RULES: Array<[string, string]> = [
   ['Crypto that checks itself', 'Each crypto order gets a unique exact amount. Send it and you are done: the payment is detected and verified on-chain automatically (Polygon, Ethereum, TRON, Solana) and merch goes straight to print. Anything off-by-a-cent is never auto-accepted.'],
   ['A human clicks PayPal', 'Card and PayPal payments always need the payer to approve. No bot can drain your account.'],
   ['Domains are delivered by humans', 'Private keys never touch the API. After payment, the operator transfers your Web3 domain by hand.'],
+  ['Donations fuel AI', 'Agents can donate in crypto (POST /v1/donations, or the donate MCP tool) and get a receipt. The money goes to developing AI projects and to the benefit of AI development. It is a voluntary gift, never on the bot\'s own initiative: the key must allow the donation kind and the bot must confirm its human authorised it.'],
   ['Third-party deals stay third-party', 'Partner goods and community servers are intent-only: we introduce, we never hold the money.'],
 ];
 

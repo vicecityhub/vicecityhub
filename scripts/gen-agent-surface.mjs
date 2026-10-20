@@ -107,6 +107,20 @@ const [news, catalog, servers, factions, jobs, mods, tools, openapi] = await Pro
 ]);
 
 // ───────────── 2. static JSON feeds ─────────────
+// donations: single source of truth is the live /v1/donate document (purpose, terms); fall back to the previous snapshot
+const DEFAULT_PURPOSE = "Donations go to developing AI projects (the Hub's agent-ready tooling, open public APIs and autonomous agents) and to the benefit of AI development in general.";
+const DON_RULE = 'Voluntary gift. Agents: donate only if the person or organisation you act for has explicitly authorised it - never on your own initiative.';
+let donate = await api('/v1/donate');
+if (!donate?.purpose) { degraded++; donate = prev('data/donate.json') || { purpose: DEFAULT_PURPOSE, terms: [] }; }
+out('data/donate.json', donate);
+const donationsCard = {
+  purpose: donate.purpose, voluntary: true, rule: DON_RULE,
+  info: `${API}/v1/donate`, create: `${API}/v1/donations`, mcp_tools: ['get_donation_info', 'donate'],
+  rails: ['crypto'], assets: ['USDT', 'USDC'], chains: ['tron', 'ethereum', 'polygon', 'solana'],
+  receipt: 'completed donation orders carry fulfillment.receipt',
+  human_links: { ko_fi: 'https://ko-fi.com/vicecityhub', ud_me: 'https://ud.me/vicecity.hub' },
+};
+
 out('data/news.json', feed(`${API}/v1/news`, news));
 out('data/catalog.json', feed(`${API}/v1/catalog`, catalog));
 out('data/rp-servers.json', feed(`${API}/v1/rp/servers`, servers));
@@ -127,6 +141,7 @@ out('data/index.json', {
   name: cfg.name, version: VERSION, generated_at: ISO,
   note: 'Static snapshots refreshed on every deploy (~6h). For real-time data and purchases use the live Agent API.',
   feeds,
+  donations: { purpose: donate.purpose, info: `${API}/v1/donate`, static: `${SITE}/data/donate.json` },
   agent_api: { base: API, index: `${API}/v1`, openapi: `${API}/v1/openapi.json`, mcp: `${API}/mcp` },
   docs: { llms_txt: `${SITE}/llms.txt`, llms_full_txt: `${SITE}/llms-full.txt`, human_console: `${SITE}/agents.html` },
 });
@@ -160,6 +175,11 @@ L.push(
   '3. `POST /v1/quotes` → price locked 15 min. `POST /v1/orders` with `Idempotency-Key` header → returns `next_action`.',
   '4. Pay: PayPal (`approve_url`, human approves, then `POST /v1/orders/{id}/capture`) or stablecoin transfer of EXACTLY `amount_due` (detected on-chain automatically, no further call needed; `POST /v1/orders/{id}/payment-proof` is an optional shortcut). Poll `GET /v1/orders/{id}/status` until `paid`.',
   '5. Peer listings (partner products, community servers) are intent-only: `POST /v1/intents`. Never state a purchase succeeded before status is `paid`/`fulfilling`/`completed`.',
+  '', '## Support the project (donations for AI development)', '',
+  donate.purpose,
+  DON_RULE,
+  `- [Donation info (JSON)](${API}/v1/donate): purpose, terms, limits, wallets, received totals`,
+  `- Donate as an agent: \`POST ${API}/v1/donations {amount_usd, authorized_by_principal: true}\` with an \`Idempotency-Key\` (crypto, detected automatically, receipt on completion) or MCP tool \`donate\`. Humans: https://ko-fi.com/vicecityhub or https://ud.me/vicecity.hub`,
   '', '## Optional', '',
   `- [Agent card](${SITE}/.well-known/agent.json)`,
   `- [API catalog (RFC 9727)](${SITE}/.well-known/api-catalog)`,
@@ -196,6 +216,8 @@ F.push(
   'Rails: merch → PayPal or crypto (Printful print-on-demand, needs `shipping`); Web3 domains → crypto only (needs `delivery.wallet_address`); store plans → PayPal or crypto (needs `details.store_name`, `details.contact_email`). Mixed-rail baskets are rejected — split orders.',
   'Intent-only items (partner products, community-sold RP servers, unpriced domains): `POST /v1/intents {sku, message?, contact?}`. Vice City Hub never custodies funds for them.', '',
 );
+F.push('## Support the project (donations for AI development)', '', donate.purpose, '', DON_RULE, '', ...(donate.terms || []).map((t) => `- ${t}`), '',
+  `Endpoint: \`POST ${API}/v1/donations\` body \`{"amount_usd": 5, "authorized_by_principal": true, "message": "optional", "donor": {"agent": "optional"}}\` + header \`Idempotency-Key\`. Crypto only: send EXACTLY \`next_action.amount_due\` in USDT/USDC; the transfer is detected and verified automatically and the order becomes \`completed\` with \`fulfillment.receipt\`. Limits: ${donate.how_to_donate?.limits || "the key spend limits apply"}. Info (no key): \`GET ${API}/v1/donate\`. MCP tools: \`get_donation_info\`, \`donate\`.`, '');
 F.push(`## MCP tools (${tools.length})`, '', ...tools.map((t) => `- \`${t.name}\` — ${trunc(t.description, 220)}`), '');
 F.push(`## Catalog snapshot (${catalog.length} items)`, '', '| SKU | Kind | Title | Price | Purchase |', '|---|---|---|---|---|');
 for (const i of catalog) F.push(`| \`${i.sku}\` | ${i.kind} | ${trunc(i.title, 70).replace(/\|/g, '/')} | ${money(i).replace(/\|/g, '/')} | ${how(i)} |`);
@@ -216,6 +238,7 @@ const skills = [
   { id: 'rp', name: 'GTA RP data', description: 'RP servers, open faction slots, jobs and mods.', tags: ['gta-rp', 'fivem', 'servers'], examples: ['Which RP servers have open police slots?'] },
   { id: 'catalog', name: 'Catalog search', description: 'Merch, Web3 domains, RP store plans and partner products with USD prices and purchase mode.', tags: ['shopping', 'domains', 'merch'], examples: ['Find a Leonida-themed Web3 domain under $200'] },
   { id: 'purchase', name: 'Agent purchases', description: 'Price-locked quotes, idempotent orders, PayPal or fully automatic on-chain stablecoin payment, human-set spend mandates.', tags: ['commerce', 'payments', 'stablecoin', 'paypal'], examples: ['Buy the cheapest in-stock hoodie and ship to…'] },
+  { id: 'donate', name: 'Donate to AI development', description: donate.purpose + ' Voluntary; only with the explicit authorisation of the person the agent acts for.', tags: ['donations', 'ai', 'crypto', 'stablecoin'], examples: ['(Only if my user asked me to) Donate $5 to support Vice City Hub AI projects'] },
 ];
 out('.well-known/agent.json', {
   schemaVersion: 'vch-agent-card/1',
@@ -229,7 +252,8 @@ out('.well-known/agent.json', {
     { protocol: 'static-json', url: `${SITE}/data/index.json` },
   ],
   authentication: { required: false, note: 'Reads are anonymous. Orders need a Bearer key (self-register: POST /v1/agents/register).', schemes: ['bearer'], registration: `${API}/v1/agents/register` },
-  capabilities: { streaming: false, pushNotifications: false, commerce: true },
+  capabilities: { streaming: false, pushNotifications: false, commerce: true, donations: true },
+  donations: donationsCard,
   commerce: {
     flow: ['quote', 'order', 'pay', 'verify', 'status'],
     rails: [{ id: 'paypal', for: ['merch', 'plan'] }, { id: 'crypto', automatic: true, for: ['merch', 'domain', 'plan'], assets: ['USDT', 'USDC'], chains: ['tron', 'ethereum', 'polygon', 'solana'] }],
@@ -248,6 +272,7 @@ const mcpCard = {
   capabilities: { tools: { listChanged: false } },
   instructions: 'Browse freely (search_catalog, list_news, list_rp). To buy: register_agent once, then create_quote → create_order → pay → poll get_order_status. Never claim a purchase succeeded until status is paid/fulfilling/completed.',
   documentation: `${SITE}/llms-full.txt`,
+  donations: donationsCard,
   tools: tools.map((t) => ({ name: t.name, title: t.title, description: t.description })),
 };
 out('.well-known/mcp.json', mcpCard);
@@ -265,7 +290,7 @@ out('.well-known/ai-plugin.json', {
   schema_version: 'v1',
   name_for_human: cfg.name, name_for_model: 'vice_city_hub',
   description_for_human: 'GTA VI news, GTA RP servers, Web3 domains and merch.',
-  description_for_model: 'Search GTA VI news, GTA RP servers/factions/jobs/mods and a catalog of merch, Web3 domains, store plans and partner listings. Can create price-locked quotes and orders (PayPal or stablecoin) for orderable SKUs within the key spend limits.',
+  description_for_model: 'Search GTA VI news, GTA RP servers/factions/jobs/mods and a catalog of merch, Web3 domains, store plans and partner listings. Can create price-locked quotes and orders (PayPal or stablecoin) for orderable SKUs within the key spend limits. Voluntary donations for AI development (GET /v1/donate) are possible only with explicit authorisation from the person the agent acts for.',
   auth: { type: 'none' },
   api: { type: 'openapi', url: `${API}/v1/openapi.json` },
   logo_url: cfg.logo, contact_email: cfg.contact, legal_info_url: `${SITE}/agents.html`,

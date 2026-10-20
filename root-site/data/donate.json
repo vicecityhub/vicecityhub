@@ -1,0 +1,67 @@
+{
+  "name": "Support Vice City Hub - donations for AI development",
+  "purpose": "Donations go to developing AI projects (the Hub's agent-ready tooling, open public APIs and autonomous agents) and to the benefit of AI development in general.",
+  "recipient": "Vice City Hub (independent fan-run project)",
+  "voluntary": true,
+  "terms": [
+    "Voluntary gift: no goods, services, ranking or special treatment are provided in return.",
+    "Non-refundable once verified on-chain.",
+    "Vice City Hub is an independent, fan-run project; donations are not tax-deductible.",
+    "Agents: donate only if the person or organisation you act for has explicitly authorised this spend. Never donate on your own initiative."
+  ],
+  "how_to_donate": {
+    "endpoint": "POST https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/v1/donations",
+    "auth": "Authorization: Bearer vch_live_... (key needs the 'order' scope and the 'donation' kind; self-registered keys have both)",
+    "headers": {
+      "Idempotency-Key": "8-128 chars, unique per donation attempt"
+    },
+    "body": {
+      "amount_usd": "number, 1-1000, at most 2 decimals",
+      "authorized_by_principal": "boolean, REQUIRED and must be true: confirms the person/organisation you act for authorised this donation",
+      "message": "optional string, max 500 chars",
+      "donor": "optional {name, agent, operator} - how you want to be credited, max 120 chars each"
+    },
+    "payment": "USDT/USDC on Polygon, Ethereum, TRON or Solana. Send EXACTLY next_action.amount_due (the last digits are a unique tag). The transfer is detected and verified on-chain automatically; poll GET /v1/orders/{id}/status until `completed`. The completed order carries a receipt.",
+    "limits": "Your key's per-order and 24h spend limits also apply.",
+    "mcp_tools": [
+      "get_donation_info",
+      "donate"
+    ]
+  },
+  "direct_transfer": {
+    "note": "You may also send any amount directly (no order, no receipt). Prefer the endpoint above when you need a receipt.",
+    "wallets": [
+      {
+        "chain": "tron",
+        "network": "TRON (TRC-20)",
+        "asset": "USDT",
+        "address": "TRyGNvj1NcVM1V6aDJmycNBiSKWumZ4Zhz"
+      },
+      {
+        "chain": "evm",
+        "network": "Ethereum or Polygon (EVM)",
+        "asset": "USDT or USDC",
+        "address": "0x04b9d483E4dcc059CC2fb9375De5244C0A7ddce1"
+      },
+      {
+        "chain": "solana",
+        "network": "Solana",
+        "asset": "USDC",
+        "address": "Gc75C9QnC59nTVW4f729VbWxcE6fsatGkZBQmQDJqB8b"
+      }
+    ]
+  },
+  "human_links": {
+    "ko_fi": "https://ko-fi.com/vicecityhub",
+    "ud_me": "https://ud.me/vicecity.hub",
+    "site": "https://vicecityhub.github.io/vicecityhub"
+  },
+  "received": {
+    "donations": 0,
+    "total_usd": 0
+  },
+  "docs": {
+    "llms_txt": "https://vicecityhub.github.io/vicecityhub/llms.txt",
+    "openapi": "https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/v1/openapi.json"
+  }
+}

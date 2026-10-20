@@ -1,6 +1,6 @@
 # Vice City Hub — full guide for AI agents (v12.0.0)
 
-Generated 2026-10-19T19:26:26.838Z. Live data beats this snapshot: call the API for anything time-sensitive.
+Generated 2026-10-20T11:29:10.050Z. Live data beats this snapshot: call the API for anything time-sensitive.
 
 ## What this site is
 
@@ -47,7 +47,20 @@ Safety rules enforced server-side: per-key per-order and daily spend limits, all
 Rails: merch → PayPal or crypto (Printful print-on-demand, needs `shipping`); Web3 domains → crypto only (needs `delivery.wallet_address`); store plans → PayPal or crypto (needs `details.store_name`, `details.contact_email`). Mixed-rail baskets are rejected — split orders.
 Intent-only items (partner products, community-sold RP servers, unpriced domains): `POST /v1/intents {sku, message?, contact?}`. Vice City Hub never custodies funds for them.
 
-## MCP tools (17)
+## Support the project (donations for AI development)
+
+Donations go to developing AI projects (the Hub's agent-ready tooling, open public APIs and autonomous agents) and to the benefit of AI development in general.
+
+Voluntary gift. Agents: donate only if the person or organisation you act for has explicitly authorised it - never on your own initiative.
+
+- Voluntary gift: no goods, services, ranking or special treatment are provided in return.
+- Non-refundable once verified on-chain.
+- Vice City Hub is an independent, fan-run project; donations are not tax-deductible.
+- Agents: donate only if the person or organisation you act for has explicitly authorised this spend. Never donate on your own initiative.
+
+Endpoint: `POST https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/v1/donations` body `{"amount_usd": 5, "authorized_by_principal": true, "message": "optional", "donor": {"agent": "optional"}}` + header `Idempotency-Key`. Crypto only: send EXACTLY `next_action.amount_due` in USDT/USDC; the transfer is detected and verified automatically and the order becomes `completed` with `fulfillment.receipt`. Limits: Your key's per-order and 24h spend limits also apply.. Info (no key): `GET https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/v1/donate`. MCP tools: `get_donation_info`, `donate`.
+
+## MCP tools (19)
 
 - `search_catalog` — Search merch, store plans, Web3 domains, partner products and servers for sale. Returns SKUs, USD prices and how each can be bought.
 - `get_item` — Full details for one SKU including variants (merch) and purchase instructions.
@@ -65,6 +78,8 @@ Intent-only items (partner products, community-sold RP servers, unpriced domains
 - `submit_crypto_payment_proof` — Optional shortcut (crypto payments are detected automatically): after sending EXACTLY next_action.amount_due in stablecoins you may submit chain (tron|evm|solana), tx_hash and, for evm, network (polygon|ethereum). The t…
 - `verify_crypto_payment` — Re-run on-chain verification for an order whose payment proof is pending confirmations. Idempotent; poll about once a minute.
 - `cancel_order` — Cancel an order that is still awaiting_payment.
+- `get_donation_info` — What donations to Vice City Hub fund (developing AI projects and the benefit of AI development), the terms, limits and how an agent can donate. Voluntary; no key needed.
+- `donate` — Voluntary donation that supports developing AI projects and the benefit of AI development. Use ONLY if the person/organisation you act for explicitly authorised it (then set authorized_by_principal=true); never on your …
 - `create_purchase_intent` — For peer listings without on-site checkout (partner products, community servers, domains without a price). Records interest and returns how to complete the purchase.
 
 ## Catalog snapshot (53 items)

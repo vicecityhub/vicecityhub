@@ -1,6 +1,7 @@
 // Vice City Hub — Agent API · read-only handlers (catalog, news, RP, search, index)
 import { API, db, fail, num, ok, parseMeta, R, SITE } from "./lib.ts";
 import { findItem, loadCatalog } from "./catalog.ts";
+import { PURPOSE } from "./donate.ts";
 
 const cache = (s = 60) => ({ "Cache-Control": `public, max-age=${s}` });
 const lim = (v: string | null, d = 20, m = 50) => Math.min(Math.max(parseInt(v || "") || d, 1), m);
@@ -24,6 +25,7 @@ export function indexDoc(): R {
       register: `${API}/v1/agents/register`, me: `${API}/v1/agents/me`,
       quotes: `${API}/v1/quotes`, orders: `${API}/v1/orders`, intents: `${API}/v1/intents`,
       verify_payment: `${API}/v1/orders/{id}/verify`,
+      donate_info: `${API}/v1/donate`, donations: `${API}/v1/donations`,
     },
     mcp: { url: `${API}/mcp`, transport: "streamable-http (stateless JSON)", auth: "optional Bearer key" },
     machine_readable: { openapi: `${API}/v1/openapi.json`, llms_txt: `${SITE}/llms.txt`, llms_full_txt: `${SITE}/llms-full.txt`, agent_card: `${SITE}/.well-known/agent.json`, mcp_card: `${SITE}/.well-known/mcp.json`, api_catalog: `${SITE}/.well-known/api-catalog`, static_feeds: `${SITE}/data/index.json`, sitemap: `${SITE}/sitemap.xml` },
@@ -31,6 +33,13 @@ export function indexDoc(): R {
       paypal: "merch + store plans: returns approve_url (a human payer approves it), then POST /v1/orders/{id}/capture",
       crypto: "merch + domains + store plans, FULLY AUTOMATIC: send EXACTLY next_action.amount_due in USDT/USDC (Polygon, Ethereum, TRON, Solana). The transfer is detected and verified on-chain with no further call (usually 1-5 min): just poll GET /v1/orders/{id}/status. POST /v1/orders/{id}/payment-proof and /verify are optional shortcuts. Merch then goes to Printful automatically; domains and store slots are delivered by the operator.",
       third_party: "partner products and community server sales are intent-only: Vice City Hub does not custody funds for them",
+    },
+    donations: {
+      purpose: PURPOSE,
+      voluntary: true,
+      info: `GET ${API}/v1/donate`,
+      create: `POST ${API}/v1/donations {amount_usd, authorized_by_principal: true, message?, donor?} + Idempotency-Key (crypto, fully automatic, receipt on completion)`,
+      rule: "Donate only when the person or organisation you act for has explicitly authorised it; never on your own initiative.",
     },
     safety: ["per-key spend limits (human-set mandates)", "mandatory Idempotency-Key on orders", "price-locked quotes (15 min)", "unique per-order crypto amount tag + tx replay protection", "on-chain verification fails closed", "no payment is ever taken without the payer approving it"],
   }, 200, cache(300));

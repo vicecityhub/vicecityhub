@@ -2,6 +2,7 @@
 import { API, CRYPTO_WALLETS, db, fail, Key, notifyOwner, ok, R, rate, round2, SITE, sha256Hex } from "./lib.ts";
 import { findItem, resolveLine } from "./catalog.ts";
 import { dueUnits, EVM_NETWORKS, fmtUnits, type Verdict, verifyCrypto } from "./verify.ts";
+import { DONATION, PURPOSE } from "./donate.ts";
 
 const PAYPAL = "https://api-m.paypal.com";
 const PF_STORE = 18377240;
@@ -135,6 +136,7 @@ function nextAction(o: any) {
     return { type: "poll_verify", detail: o.payment.proof.detail || null, then: `POST ${API}/v1/orders/${id}/verify (retry in ~60s)` };
   if (o.status === "payment_review") return { type: "wait", note: "Payment submitted; the operator verifies it manually (usually within 24h)." };
   if (o.status === "paid" || o.status === "fulfilling") return { type: "wait", note: "Paid. Fulfilment in progress; poll the status endpoint." };
+  if (o.status === "completed" && (o.items || []).every((i: any) => i.kind === "donation")) return { type: "none", note: "Donation received and verified on-chain. Thank you. The receipt is in fulfillment.receipt." };
   return { type: "none" };
 }
 
@@ -214,14 +216,21 @@ async function priceItems(key: Key, input: any) {
   total = round2(total);
   if (!rails || rails.length === 0)
     return { error: fail(422, "mixed_rails", "These items cannot be paid in one order (no common payment rail).", "Split into separate orders: domains are crypto-only; merch and store plans accept PayPal or crypto.") };
+  const limited = await limitsError(key, total);
+  if (limited) return { error: limited };
+  return { lines, total, rails, requires: [...requires] };
+}
+
+/** per-order and rolling-24h spend mandate of the key (shared by orders and donations) */
+async function limitsError(key: Key, total: number): Promise<R | null> {
   if (total > key.max_order_usd)
-    return { error: fail(403, "limit_exceeded", `Order total $${total} exceeds this key's per-order limit of $${key.max_order_usd}.`, "A human owner can mint a key with a higher mandate from the Agents page.") };
+    return fail(403, "limit_exceeded", `Order total $${total} exceeds this key's per-order limit of $${key.max_order_usd}.`, "A human owner can mint a key with a higher mandate from the Agents page.");
   const since = new Date(Date.now() - 86_400_000).toISOString();
   const { data } = await db.from("agent_orders").select("total_usd").eq("agent_key_id", key.id).gte("created_at", since).not("status", "in", DEAD);
   const spent = (data || []).reduce((s: number, o: any) => s + Number(o.total_usd), 0);
   if (spent + total > key.max_daily_usd)
-    return { error: fail(403, "daily_limit_exceeded", `24h spend would be $${round2(spent + total)} > limit $${key.max_daily_usd}.`) };
-  return { lines, total, rails, requires: [...requires] };
+    return fail(403, "daily_limit_exceeded", `24h spend would be $${round2(spent + total)} > limit $${key.max_daily_usd}.`);
+  return null;
 }
 
 function validShipping(s: any): string | null {
@@ -315,6 +324,39 @@ export async function createOrder(key: Key, body: any, idem: string | null): Pro
     }
   }
   return ok(view(order, true), 201);
+}
+
+/** Voluntary donation for AI development: crypto only, fully automatic detection, receipt on completion. */
+export async function createDonation(key: Key, body: any, idem: string | null): Promise<R> {
+  if (!key.scopes.includes("order")) return fail(403, "scope_missing", "This key lacks the 'order' scope.");
+  if (!key.allowed_kinds.includes("donation")) return fail(403, "kind_not_allowed", "This API key may not donate.", "A human owner can allow the 'donation' kind when minting a key on the Agents page.");
+  if (!idem || idem.length < 8 || idem.length > 128) return fail(400, "idempotency_key_required", "Send an `Idempotency-Key` header (8-128 chars, unique per donation attempt).");
+  const ex = await db.from("agent_orders").select("*").eq("agent_key_id", key.id).eq("idempotency_key", idem).maybeSingle();
+  if (ex.data) return ok(view(ex.data, true), 200, { "Idempotent-Replayed": "true" });
+  if (body?.authorized_by_principal !== true)
+    return fail(422, "authorization_required", "Set `authorized_by_principal: true` only if the person or organisation you act for has explicitly authorised this donation.", "Agents must not donate on their own initiative. GET /v1/donate explains the terms.");
+  const amount = Number(body?.amount_usd);
+  if (!Number.isFinite(amount) || amount < DONATION.min_usd || amount > DONATION.max_usd || Math.abs(amount * 100 - Math.round(amount * 100)) > 1e-6)
+    return fail(422, "invalid_amount", `amount_usd must be a number between ${DONATION.min_usd} and ${DONATION.max_usd} with at most 2 decimals.`);
+  const total = round2(amount);
+  const limited = await limitsError(key, total);
+  if (limited) return limited;
+  const str = (v: unknown, n: number) => (typeof v === "string" && v.trim() ? v.trim().slice(0, n) : null);
+  const donor = { name: str(body?.donor?.name, 120), agent: str(body?.donor?.agent, 120), operator: str(body?.donor?.operator, 120) };
+  const message = str(body?.message, 500);
+  const lines = [{ sku: DONATION.sku, kind: "donation", title: DONATION.title, quantity: 1, unit_usd: total, line_usd: total, extra: { donor, message } }];
+  const { data: o, error } = await db.from("agent_orders").insert({
+    agent_key_id: key.id, owner_id: key.owner_id, idempotency_key: idem, items: lines, total_usd: total,
+    payment_rail: "crypto", shipping: null, delivery: null, payment: { crypto: await allocateCryptoTag(total) },
+  }).select("*").single();
+  if (error) {
+    if ((error as any).code === "23505") {
+      const again = await db.from("agent_orders").select("*").eq("agent_key_id", key.id).eq("idempotency_key", idem).maybeSingle();
+      if (again.data) return ok(view(again.data, true), 200, { "Idempotent-Replayed": "true" });
+    }
+    return fail(500, "db_error", "Could not create the donation.");
+  }
+  return ok({ ...view(o, true), purpose: PURPOSE }, 201);
 }
 
 export async function getOrder(key: Key, id: string): Promise<R> {
@@ -437,10 +479,20 @@ async function runVerification(o: any, proof: any): Promise<R> {
       try { const pfId = await printfulDraft(o); if (pfId) fulfillment = { ...fulfillment, printful_order_id: pfId, printful_state: PF_STATE }; }
       catch (e) { fulfillment = { ...fulfillment, printful_error: String((e as Error).message) }; }
     }
-    const hasManual = (o.items || []).some((i: any) => i.kind !== "merch"); // domains / store slots are delivered by the operator
+    const isDonation = (o.items || []).length > 0 && (o.items || []).every((i: any) => i.kind === "donation");
+    const hasManual = (o.items || []).some((i: any) => i.kind !== "merch" && i.kind !== "donation"); // domains / store slots are delivered by the operator
     if (hasManual) fulfillment = { ...fulfillment, note: "Payment verified on-chain automatically. Delivery (domain transfer / slot activation) is done by the operator, usually within 24h." };
-    const { data: u } = await db.from("agent_orders").update({ status: hasMerch && !hasManual && !fulfillment.printful_error ? "fulfilling" : "paid", fulfillment, updated_at: new Date().toISOString() }).eq("id", o.id).select("*").single();
-    await notifyOwner("VCH crypto order PAID (auto-verified)", `${o.public_id} — $${o.total_usd}\nnetwork=${v.network}\ntx=${proof.tx_hash}\nItems: ${(o.items || []).map((i: any) => `${i.quantity}× ${i.title}`).join(", ")}\nDelivery: ${JSON.stringify(o.delivery)}\n${hasMerch ? (fulfillment.printful_error ? "Printful error: " + fulfillment.printful_error : "Printful order created (" + PF_STATE + ").") + " " : ""}${hasManual ? "ACTION: deliver the item." : ""}`);
+    if (isDonation) {
+      fulfillment = {
+        ...fulfillment,
+        receipt: { type: "donation", reference: o.public_id, amount_usd: Number(o.total_usd), currency: "USD", network: v.network, tx_hash: proof.tx_hash, verified_at: now, purpose: PURPOSE },
+        note: "Thank you! Your donation was received and verified on-chain. It supports the development of AI projects and the benefit of AI development. No goods or services are provided in return.",
+      };
+    }
+    const { data: u } = await db.from("agent_orders").update({ status: isDonation ? "completed" : hasMerch && !hasManual && !fulfillment.printful_error ? "fulfilling" : "paid", fulfillment, updated_at: new Date().toISOString() }).eq("id", o.id).select("*").single();
+    const dn = isDonation ? ((o.items || [])[0]?.extra || {}) : null;
+    if (isDonation) await notifyOwner("VCH DONATION received (auto-verified)", `${o.public_id} — $${o.total_usd}\nnetwork=${v.network}\ntx=${proof.tx_hash}\nDonor: ${JSON.stringify(dn?.donor || {})}\nMessage: ${dn?.message || "-"}\nAgent key: ${o.agent_key_id}`);
+    else await notifyOwner("VCH crypto order PAID (auto-verified)", `${o.public_id} — $${o.total_usd}\nnetwork=${v.network}\ntx=${proof.tx_hash}\nItems: ${(o.items || []).map((i: any) => `${i.quantity}× ${i.title}`).join(", ")}\nDelivery: ${JSON.stringify(o.delivery)}\n${hasMerch ? (fulfillment.printful_error ? "Printful error: " + fulfillment.printful_error : "Printful order created (" + PF_STATE + ").") + " " : ""}${hasManual ? "ACTION: deliver the item." : ""}`);
     return ok(view(u || o, true));
   }
   if (v.state === "pending") {

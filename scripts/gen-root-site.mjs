@@ -23,6 +23,8 @@ const SITE = cfg.site; // https://vicecityhub.github.io/vicecityhub
 const HOST = SITE.replace(/\/[^/]+$/, ''); // https://vicecityhub.github.io
 const API = cfg.api;
 
+let DON_PURPOSE = "Donations go to developing AI projects (the Hub's agent-ready tooling, open public APIs and autonomous agents) and to the benefit of AI development in general.";
+try { DON_PURPOSE = JSON.parse(readFileSync(join(PUB, 'data', 'donate.json'), 'utf8')).purpose || DON_PURPOSE; } catch { /* keep default */ }
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const need = (rel) => {
   const p = join(PUB, rel);
@@ -76,6 +78,8 @@ put('index.html', `<!doctype html>
   <meta name="mcp-server" content="${API}/mcp">
   <meta name="agent-api" content="${API}/v1">
   <meta name="ai-access" content="open; read=anonymous; write=api-key; docs=${HOST}/llms.txt">
+  <meta name="agent-donations" content="${API}/v1/donate">
+  <meta name="donation-purpose" content="${esc(DON_PURPOSE)}">
   <meta name="generator" content="${esc(cfg.name)} v${esc(cfg.version)}">
 </head>
 <body>
@@ -88,7 +92,8 @@ put('index.html', `<!doctype html>
       <a href="${API}/v1/openapi.json">OpenAPI</a> |
       <a href="${API}/mcp">MCP server</a> |
       <a href="${HOST}/.well-known/agent.json">agent card</a> |
-      <a href="${HOST}/data/index.json">JSON feeds</a></p>
+      <a href="${HOST}/data/index.json">JSON feeds</a> |
+      <a href="${API}/v1/donate">Donations: ${esc(DON_PURPOSE)}</a></p>
   </main>
 </body>
 </html>

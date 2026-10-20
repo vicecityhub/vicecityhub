@@ -829,7 +829,7 @@ export default function Layout({ children, activePage }: LayoutProps) {
           {/* Donation CTA */}
           <div className="w-full border-t border-white/5 mt-4 pt-6 flex flex-col items-center gap-3">
             <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">
-              Vice City Hub runs on community fuel — no ads, no trackers, no corporate overlords.
+              Vice City Hub runs on community fuel — no ads, no trackers, no corporate overlords. Donations fuel our AI projects and the open development of AI. Bots may chip in too, with their human's blessing.
             </p>
             <div className="flex items-center gap-3 flex-wrap justify-center">
               <a

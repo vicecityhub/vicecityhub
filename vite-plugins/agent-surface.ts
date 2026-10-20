@@ -37,6 +37,20 @@ export default function agentSurface(): Plugin {
   const { site: SITE, api: API } = cfg;
   const feed = (name: string): Record<string, any>[] => readJson<Feed>(join(root, 'public', 'data', `${name}.json`))?.items || [];
 
+  // donations: purpose text comes from the generated public/data/donate.json (itself mirrored from the live /v1/donate)
+  const DON_PURPOSE = readJson<{ purpose?: string }>(join(root, 'public', 'data', 'donate.json'))?.purpose
+    || "Donations go to developing AI projects (the Hub's agent-ready tooling, open public APIs and autonomous agents) and to the benefit of AI development in general.";
+  const donateAction = () => ({
+    '@type': 'DonateAction',
+    name: 'Donate to support AI development',
+    description: `${DON_PURPOSE} Voluntary; agents must only donate with the explicit authorisation of the person they act for.`,
+    recipient: { '@id': `${SITE}/#org` },
+    target: [
+      { '@type': 'EntryPoint', urlTemplate: `${API}/v1/donations`, httpMethod: 'POST', contentType: 'application/json', description: 'Agent API: crypto, detected automatically, receipt on completion' },
+      { '@type': 'EntryPoint', urlTemplate: 'https://ko-fi.com/vicecityhub', description: 'For humans' },
+    ],
+  });
+
   const orgId = `${SITE}/#org`;
   const siteId = `${SITE}/#website`;
   const avail = (a: string): string =>
@@ -45,7 +59,7 @@ export default function agentSurface(): Plugin {
   function graph(page: Page): unknown[] {
     const url = `${SITE}/${page.file}`;
     const g: any[] = [
-      { '@type': 'Organization', '@id': orgId, name: cfg!.name, url: SITE, logo: cfg!.logo, email: cfg!.contact, sameAs: [`https://x.com/${cfg!.twitter.replace('@', '')}`] },
+      { '@type': 'Organization', '@id': orgId, name: cfg!.name, url: SITE, logo: cfg!.logo, email: cfg!.contact, sameAs: [`https://x.com/${cfg!.twitter.replace('@', '')}`], potentialAction: donateAction() },
       {
         '@type': 'WebSite', '@id': siteId, name: cfg!.name, url: SITE, description: cfg!.tagline, inLanguage: cfg!.language, publisher: { '@id': orgId },
         potentialAction: { '@type': 'SearchAction', target: { '@type': 'EntryPoint', urlTemplate: `${API}/v1/search?q={search_term_string}`, contentType: 'application/json' }, 'query-input': 'required name=search_term_string' },
@@ -104,6 +118,8 @@ export default function agentSurface(): Plugin {
       `<meta name="mcp-server" content="${API}/mcp">`,
       `<meta name="agent-api" content="${API}/v1">`,
       `<meta name="ai-access" content="open; read=anonymous; write=api-key; docs=${SITE}/llms.txt">`,
+      `<meta name="agent-donations" content="${API}/v1/donate">`,
+      `<meta name="donation-purpose" content="${esc(DON_PURPOSE)}">`,
       `<meta name="generator" content="${esc(cfg!.name)} v${cfg!.version}">`,
     ];
     if (page.index) t.push(`<script type="application/ld+json">${ld({ '@context': 'https://schema.org', '@graph': graph(page) })}</script>`);
@@ -120,6 +136,7 @@ export default function agentSurface(): Plugin {
       li(`${API}/v1/openapi.json`, 'OpenAPI 3.1'),
       li(`${API}/mcp`, 'MCP server', 'streamable-http, JSON-RPC 2.0'),
       li(`${SITE}/data/index.json`, 'Static JSON feeds'),
+      li(`${API}/v1/donate`, 'Donations for AI development', DON_PURPOSE),
     ].join('');
     let data = '';
     const news = feed('news');

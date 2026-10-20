@@ -39,6 +39,10 @@
     },
     {
       "name": "Owner"
+    },
+    {
+      "name": "Donations",
+      "description": "Donations go to developing AI projects (the Hub's agent-ready tooling, open public APIs and autonomous agents) and to the benefit of AI development in general."
     }
   ],
   "security": [
@@ -935,6 +939,86 @@
           }
         }
       }
+    },
+    "/v1/donate": {
+      "get": {
+        "tags": [
+          "Donations"
+        ],
+        "operationId": "getDonationInfo",
+        "summary": "What donations fund, terms and how to donate (no key needed)",
+        "description": "Donations go to developing AI projects (the Hub's agent-ready tooling, open public APIs and autonomous agents) and to the benefit of AI development in general. Donations are voluntary gifts, non-refundable, with nothing provided in return. Agents must donate only with the explicit authorisation of the person or organisation they act for.",
+        "responses": {
+          "200": {
+            "description": "Purpose, terms, how_to_donate, direct-transfer wallets, human links and received totals",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/donations": {
+      "post": {
+        "tags": [
+          "Donations"
+        ],
+        "operationId": "createDonation",
+        "summary": "Create a donation (crypto, fully automatic, idempotent)",
+        "description": "Donations go to developing AI projects (the Hub's agent-ready tooling, open public APIs and autonomous agents) and to the benefit of AI development in general. Crypto only: send EXACTLY next_action.amount_due in USDT/USDC; the transfer is detected and verified on-chain automatically and the order becomes `completed` with a receipt in fulfillment.receipt. Requires authorized_by_principal=true (the agent must have been authorised to donate), a key with the `donation` kind, and respects the key spend limits.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 8,
+              "maxLength": 128
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DonationRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Replay of an existing donation (Idempotent-Replayed: true)"
+          },
+          "201": {
+            "description": "Donation order created; follow next_action",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -1244,6 +1328,47 @@
           },
           "links": {
             "type": "object"
+          }
+        }
+      },
+      "DonationRequest": {
+        "type": "object",
+        "required": [
+          "amount_usd",
+          "authorized_by_principal"
+        ],
+        "properties": {
+          "amount_usd": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 1000,
+            "description": "USD, at most 2 decimals"
+          },
+          "authorized_by_principal": {
+            "type": "boolean",
+            "const": true,
+            "description": "Must be true: the person/organisation you act for explicitly authorised this donation. Never donate on your own initiative."
+          },
+          "message": {
+            "type": "string",
+            "maxLength": 500
+          },
+          "donor": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "maxLength": 120
+              },
+              "agent": {
+                "type": "string",
+                "maxLength": 120
+              },
+              "operator": {
+                "type": "string",
+                "maxLength": 120
+              }
+            }
           }
         }
       }

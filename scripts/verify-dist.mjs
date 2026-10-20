@@ -39,6 +39,12 @@ check('news.html: NewsArticle in JSON-LD', read('news.html').includes('"@type":"
 check('rp.html: GameServer in JSON-LD', read('rp.html').includes('"@type":"GameServer"'));
 check('index.html: WebAPI in JSON-LD', read('index.html').includes('"@type":"WebAPI"'));
 
+// 3b. donations are discoverable by agents and state their purpose
+check('llms.txt: donation section states the AI purpose', /Support the project \(donations for AI development\)/.test(read('llms.txt')) && /AI projects/.test(read('llms.txt')) && /never on your own initiative/.test(read('llms.txt')));
+check('agent.json: donations block', (() => { try { const a = JSON.parse(read('.well-known/agent.json')); return /AI/.test(a.donations?.purpose || '') && /\/v1\/donations$/.test(a.donations?.create || '') && a.donations?.voluntary === true; } catch { return false; } })());
+check('index.html: DonateAction in JSON-LD + meta', read('index.html').includes('"@type":"DonateAction"') && read('index.html').includes('name="agent-donations"'));
+check('data/donate.json present', existsSync(join(DIST, 'data/donate.json')) && /AI/.test(read('data/donate.json')));
+
 // 4. sitemap & robots sanity
 const sm = read('sitemap.xml');
 check('sitemap lists agents.html', sm.includes('/agents.html'));

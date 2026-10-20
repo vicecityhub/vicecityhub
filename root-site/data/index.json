@@ -1,7 +1,7 @@
 {
   "name": "Vice City Hub",
   "version": "12.0.0",
-  "generated_at": "2026-10-19T19:26:26.838Z",
+  "generated_at": "2026-10-20T11:29:10.050Z",
   "note": "Static snapshots refreshed on every deploy (~6h). For real-time data and purchases use the live Agent API.",
   "feeds": {
     "news": {
@@ -34,6 +34,11 @@
       "count": 8,
       "live": "https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/v1/rp/mods"
     }
+  },
+  "donations": {
+    "purpose": "Donations go to developing AI projects (the Hub's agent-ready tooling, open public APIs and autonomous agents) and to the benefit of AI development in general.",
+    "info": "https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/v1/donate",
+    "static": "https://vicecityhub.github.io/vicecityhub/data/donate.json"
   },
   "agent_api": {
     "base": "https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api",

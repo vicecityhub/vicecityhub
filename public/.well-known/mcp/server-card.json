@@ -25,6 +25,35 @@
   },
   "instructions": "Browse freely (search_catalog, list_news, list_rp). To buy: register_agent once, then create_quote → create_order → pay → poll get_order_status. Never claim a purchase succeeded until status is paid/fulfilling/completed.",
   "documentation": "https://vicecityhub.github.io/vicecityhub/llms-full.txt",
+  "donations": {
+    "purpose": "Donations go to developing AI projects (the Hub's agent-ready tooling, open public APIs and autonomous agents) and to the benefit of AI development in general.",
+    "voluntary": true,
+    "rule": "Voluntary gift. Agents: donate only if the person or organisation you act for has explicitly authorised it - never on your own initiative.",
+    "info": "https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/v1/donate",
+    "create": "https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/v1/donations",
+    "mcp_tools": [
+      "get_donation_info",
+      "donate"
+    ],
+    "rails": [
+      "crypto"
+    ],
+    "assets": [
+      "USDT",
+      "USDC"
+    ],
+    "chains": [
+      "tron",
+      "ethereum",
+      "polygon",
+      "solana"
+    ],
+    "receipt": "completed donation orders carry fulfillment.receipt",
+    "human_links": {
+      "ko_fi": "https://ko-fi.com/vicecityhub",
+      "ud_me": "https://ud.me/vicecity.hub"
+    }
+  },
   "tools": [
     {
       "name": "search_catalog",
@@ -105,6 +134,16 @@
       "name": "cancel_order",
       "title": "Cancel unpaid order",
       "description": "Cancel an order that is still awaiting_payment."
+    },
+    {
+      "name": "get_donation_info",
+      "title": "Donation info",
+      "description": "What donations to Vice City Hub fund (developing AI projects and the benefit of AI development), the terms, limits and how an agent can donate. Voluntary; no key needed."
+    },
+    {
+      "name": "donate",
+      "title": "Donate (crypto, automatic)",
+      "description": "Voluntary donation that supports developing AI projects and the benefit of AI development. Use ONLY if the person/organisation you act for explicitly authorised it (then set authorized_by_principal=true); never on your own initiative. Crypto only: send EXACTLY next_action.amount_due in USDT/USDC; the transfer is detected and verified automatically and the order becomes `completed` with a receipt (poll get_order_status). Needs a key that allows the 'donation' kind and is within its spend limits."
     },
     {
       "name": "create_purchase_intent",

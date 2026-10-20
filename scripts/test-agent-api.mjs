@@ -106,6 +106,22 @@ if (merch) {
     check('merch crypto order cancel', mc.s === 200);
   } else console.log('SKIP  no in-stock merch variant <= $100');
 }
+// donations for AI development (crypto only, automatic; never paid in the smoke test)
+const di = await call('GET', '/v1/donate');
+check('donate info states the purpose', di.s === 200 && /AI/.test(di.j?.purpose || '') && di.j?.voluntary === true && /\/v1\/donations/.test(di.j?.how_to_donate?.endpoint || ''), (di.j?.purpose || '').slice(0, 60));
+const dn0 = await call('POST', '/v1/donations', { body: { amount_usd: 5, authorized_by_principal: true }, idem: 'smoke-don-anon-1' });
+check('donation needs a key', dn0.s === 401, dn0.s);
+const dn1 = await call('POST', '/v1/donations', { key, body: { amount_usd: 5 }, idem: 'smoke-don-noauth-' + Date.now() });
+check('donation needs principal authorisation', dn1.s === 422 && dn1.j?.error?.code === 'authorization_required', dn1.j?.error?.code);
+const dn2 = await call('POST', '/v1/donations', { key, body: { amount_usd: 0.5, authorized_by_principal: true }, idem: 'smoke-don-low-' + Date.now() });
+check('donation below minimum rejected', dn2.s === 422 && dn2.j?.error?.code === 'invalid_amount', dn2.j?.error?.code);
+const dkey = 'smoke-don-' + Date.now();
+const dn3 = await call('POST', '/v1/donations', { key, idem: dkey, body: { amount_usd: 1, authorized_by_principal: true, message: 'smoke test', donor: { agent: 'smoke-test' } } });
+check('donation order created (crypto, auto-detect)', dn3.s === 201 && dn3.j?.next_action?.type === 'send_stablecoin' && dn3.j?.next_action?.auto_detect === true && /^1\.00\d{4}$/.test(dn3.j?.next_action?.amount_due || '') && /AI/.test(dn3.j?.purpose || ''), dn3.j?.next_action?.amount_due || dn3.j?.error?.code);
+const dn4 = await call('POST', '/v1/donations', { key, idem: dkey, body: { amount_usd: 1, authorized_by_principal: true } });
+check('donation idempotent replay', dn4.s === 200 && dn4.j?.id === dn3.j?.id, dn4.s);
+const dnc = await call('POST', `/v1/orders/${dn3.j?.id}/cancel`, { key });
+check('donation order cancel', dnc.s === 200);
 const rc = await call('GET', '/v1/internal/reconcile');
 check('reconciler endpoint', rc.s === 200 && (rc.j?.skipped === 'throttled' || typeof rc.j?.awaiting_orders === 'number'), JSON.stringify(rc.j));
 
@@ -115,6 +131,7 @@ const init = await mcpCall('initialize', { protocolVersion: '2025-06-18', capabi
 check('mcp initialize', init.result?.serverInfo?.name === 'vice-city-hub');
 const tl = await mcpCall('tools/list', {}, 2);
 check('mcp tools/list', tl.result?.tools?.length >= 10, `${tl.result?.tools?.length} tools`);
+check('mcp has donation tools', ['get_donation_info', 'donate'].every((n) => tl.result?.tools?.some((t) => t.name === n)));
 const tc = await mcpCall('tools/call', { name: 'list_news', arguments: { limit: 1 } }, 3);
 check('mcp tools/call list_news', tc.result?.isError === false);
 const ta = await mcpCall('tools/call', { name: 'create_quote', arguments: { items: [{ sku: 'x' }] } }, 4);

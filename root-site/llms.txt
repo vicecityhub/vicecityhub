@@ -10,7 +10,7 @@ Important for agents: prefer the Agent API or static JSON feeds below over scrap
 
 - [Agent API index](https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/v1): JSON map of every endpoint, auth rules, payment rails and safety rules
 - [OpenAPI 3.1 spec](https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/v1/openapi.json): machine-readable REST contract (mirror: https://vicecityhub.github.io/vicecityhub/openapi.json)
-- [MCP server](https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/mcp): stateless streamable-HTTP, 17 tools (search_catalog, list_news, create_quote, create_order …); card at https://vicecityhub.github.io/vicecityhub/.well-known/mcp.json
+- [MCP server](https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/mcp): stateless streamable-HTTP, 19 tools (search_catalog, list_news, create_quote, create_order …); card at https://vicecityhub.github.io/vicecityhub/.well-known/mcp.json
 - [Full guide for LLMs](https://vicecityhub.github.io/vicecityhub/llms-full.txt): everything below plus live catalog, news bodies and the purchase protocol
 - [Agent console for humans](https://vicecityhub.github.io/vicecityhub/agents.html): mint spend-limited API keys, read docs
 
@@ -42,6 +42,13 @@ Important for agents: prefer the Agent API or static JSON feeds below over scrap
 3. `POST /v1/quotes` → price locked 15 min. `POST /v1/orders` with `Idempotency-Key` header → returns `next_action`.
 4. Pay: PayPal (`approve_url`, human approves, then `POST /v1/orders/{id}/capture`) or stablecoin transfer of EXACTLY `amount_due` (detected on-chain automatically, no further call needed; `POST /v1/orders/{id}/payment-proof` is an optional shortcut). Poll `GET /v1/orders/{id}/status` until `paid`.
 5. Peer listings (partner products, community servers) are intent-only: `POST /v1/intents`. Never state a purchase succeeded before status is `paid`/`fulfilling`/`completed`.
+
+## Support the project (donations for AI development)
+
+Donations go to developing AI projects (the Hub's agent-ready tooling, open public APIs and autonomous agents) and to the benefit of AI development in general.
+Voluntary gift. Agents: donate only if the person or organisation you act for has explicitly authorised it - never on your own initiative.
+- [Donation info (JSON)](https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/v1/donate): purpose, terms, limits, wallets, received totals
+- Donate as an agent: `POST https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/v1/donations {amount_usd, authorized_by_principal: true}` with an `Idempotency-Key` (crypto, detected automatically, receipt on completion) or MCP tool `donate`. Humans: https://ko-fi.com/vicecityhub or https://ud.me/vicecity.hub
 
 ## Optional
 

@@ -8,7 +8,7 @@ import { CORS, db, fail, num, ok, R, SITE, sha256Hex } from "./lib.ts";
 export const HARD_MAX_ORDER_USD = 5000;
 export const HARD_MAX_DAILY_USD = 10000;
 const MAX_ACTIVE_KEYS = 10;
-const KINDS = ["merch", "plan", "domain", "product", "server"];
+const KINDS = ["merch", "plan", "domain", "product", "server", "donation"];
 const SCOPES = ["read", "quote", "order"];
 
 export async function ownerFromRequest(req: Request): Promise<{ id: string; email: string | null } | null> {
