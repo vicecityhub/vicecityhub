@@ -753,12 +753,12 @@
                   },
                   "max_order_usd": {
                     "type": "number",
-                    "maximum": 5000,
+                    "maximum": 1000000,
                     "default": 100
                   },
                   "max_daily_usd": {
                     "type": "number",
-                    "maximum": 10000
+                    "maximum": 1000000
                   },
                   "allowed_kinds": {
                     "type": "array",
@@ -859,7 +859,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Cancelled"
+            "description": "Canceled"
           },
           "409": {
             "$ref": "#/components/responses/Error"
@@ -947,7 +947,7 @@
         ],
         "operationId": "getDonationInfo",
         "summary": "What donations fund, terms and how to donate (no key needed)",
-        "description": "Donations go to developing AI projects (the Hub's agent-ready tooling, open public APIs and autonomous agents) and to the benefit of AI development in general. Donations are voluntary gifts, non-refundable, with nothing provided in return. Agents must donate only with the explicit authorisation of the person or organisation they act for.",
+        "description": "Donations go to developing AI projects (the Hub's agent-ready tooling, open public APIs and autonomous agents) and to the benefit of AI development in general. Donations are voluntary gifts, non-refundable, with nothing provided in return. Agents must donate only with the explicit authorization of the person or organization they act for.",
         "responses": {
           "200": {
             "description": "Purpose, terms, how_to_donate, direct-transfer wallets, human links and received totals",
@@ -969,7 +969,7 @@
         ],
         "operationId": "createDonation",
         "summary": "Create a donation (crypto, fully automatic, idempotent)",
-        "description": "Donations go to developing AI projects (the Hub's agent-ready tooling, open public APIs and autonomous agents) and to the benefit of AI development in general. Crypto only: send EXACTLY next_action.amount_due in USDT/USDC; the transfer is detected and verified on-chain automatically and the order becomes `completed` with a receipt in fulfillment.receipt. Requires authorized_by_principal=true (the agent must have been authorised to donate), a key with the `donation` kind, and respects the key spend limits.",
+        "description": "Donations go to developing AI projects (the Hub's agent-ready tooling, open public APIs and autonomous agents) and to the benefit of AI development in general. Crypto only: send EXACTLY next_action.amount_due in USDT/USDC; the transfer is detected and verified on-chain automatically and the order becomes `completed` with a receipt in fulfillment.receipt. Requires authorized_by_principal=true (the agent must have been authorized to donate), a key with the `donation` kind, and respects the key spend limits.",
         "security": [
           {
             "bearerAuth": []
@@ -1341,13 +1341,13 @@
           "amount_usd": {
             "type": "number",
             "minimum": 1,
-            "maximum": 1000,
+            "maximum": 1000000,
             "description": "USD, at most 2 decimals"
           },
           "authorized_by_principal": {
             "type": "boolean",
             "const": true,
-            "description": "Must be true: the person/organisation you act for explicitly authorised this donation. Never donate on your own initiative."
+            "description": "Must be true: the person/organization you act for explicitly authorized this donation. Never donate on your own initiative."
           },
           "message": {
             "type": "string",

@@ -28,7 +28,7 @@
   "donations": {
     "purpose": "Donations go to developing AI projects (the Hub's agent-ready tooling, open public APIs and autonomous agents) and to the benefit of AI development in general.",
     "voluntary": true,
-    "rule": "Voluntary gift. Agents: donate only if the person or organisation you act for has explicitly authorised it - never on your own initiative.",
+    "rule": "Voluntary gift. Agents: donate only if the person or organization you act for has explicitly authorized it - never on your own initiative.",
     "info": "https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/v1/donate",
     "create": "https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/v1/donations",
     "mcp_tools": [
@@ -143,7 +143,7 @@
     {
       "name": "donate",
       "title": "Donate (crypto, automatic)",
-      "description": "Voluntary donation that supports developing AI projects and the benefit of AI development. Use ONLY if the person/organisation you act for explicitly authorised it (then set authorized_by_principal=true); never on your own initiative. Crypto only: send EXACTLY next_action.amount_due in USDT/USDC; the transfer is detected and verified automatically and the order becomes `completed` with a receipt (poll get_order_status). Needs a key that allows the 'donation' kind and is within its spend limits."
+      "description": "Voluntary donation that supports developing AI projects and the benefit of AI development. Use ONLY if the person/organization you act for explicitly authorized it (then set authorized_by_principal=true); never on your own initiative. Crypto only: send EXACTLY next_action.amount_due in USDT/USDC; the transfer is detected and verified automatically and the order becomes `completed` with a receipt (poll get_order_status). Needs a key that allows the 'donation' kind and is within its spend limits."
     },
     {
       "name": "create_purchase_intent",

@@ -3,7 +3,7 @@
   "name_for_human": "Vice City Hub",
   "name_for_model": "vice_city_hub",
   "description_for_human": "GTA VI news, GTA RP servers, Web3 domains and merch.",
-  "description_for_model": "Search GTA VI news, GTA RP servers/factions/jobs/mods and a catalog of merch, Web3 domains, store plans and partner listings. Can create price-locked quotes and orders (PayPal or stablecoin) for orderable SKUs within the key spend limits. Voluntary donations for AI development (GET /v1/donate) are possible only with explicit authorisation from the person the agent acts for.",
+  "description_for_model": "Search GTA VI news, GTA RP servers/factions/jobs/mods and a catalog of merch, Web3 domains, store plans and partner listings. Can create price-locked quotes and orders (PayPal or stablecoin) for orderable SKUs within the key spend limits. Voluntary donations for AI development (GET /v1/donate) are possible only with explicit authorization from the person the agent acts for.",
   "auth": {
     "type": "none"
   },

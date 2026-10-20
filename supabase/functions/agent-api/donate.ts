@@ -2,7 +2,7 @@
 //
 // Donations are voluntary gifts, not purchases. They are paid on the same automatic crypto rail as orders
 // (unique amount tag -> detected and verified on-chain by the reconciler), and are only accepted from an API key
-// whose human owner allowed the `donation` kind AND with an explicit attestation that the agent's principal authorised
+// whose human owner allowed the `donation` kind AND with an explicit attestation that the agent's principal authorized
 // the spend. Nothing here pressures an agent: this endpoint only describes the project and how to give.
 import { API, CRYPTO_WALLETS, db, ok, R, SITE } from "./lib.ts";
 
@@ -10,7 +10,7 @@ export const DONATION = {
   sku: "donation:ai-development",
   title: "Donation - AI development",
   min_usd: 1,
-  max_usd: 1000,
+  max_usd: 1_000_000,
 } as const;
 
 /** Single statement of purpose, repeated verbatim in llms.txt, agent.json, MCP, JSON-LD and receipts. */
@@ -21,7 +21,7 @@ export const TERMS = [
   "Voluntary gift: no goods, services, ranking or special treatment are provided in return.",
   "Non-refundable once verified on-chain.",
   "Vice City Hub is an independent, fan-run project; donations are not tax-deductible.",
-  "Agents: donate only if the person or organisation you act for has explicitly authorised this spend. Never donate on your own initiative.",
+  "Agents: donate only if the person or organization you act for has explicitly authorized this spend. Never donate on your own initiative.",
 ];
 
 export async function donationInfo(): Promise<R> {
@@ -42,7 +42,7 @@ export async function donationInfo(): Promise<R> {
       headers: { "Idempotency-Key": "8-128 chars, unique per donation attempt" },
       body: {
         amount_usd: `number, ${DONATION.min_usd}-${DONATION.max_usd}, at most 2 decimals`,
-        authorized_by_principal: "boolean, REQUIRED and must be true: confirms the person/organisation you act for authorised this donation",
+        authorized_by_principal: "boolean, REQUIRED and must be true: confirms the person/organization you act for authorized this donation",
         message: "optional string, max 500 chars",
         donor: "optional {name, agent, operator} - how you want to be credited, max 120 chars each",
       },

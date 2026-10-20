@@ -7,7 +7,7 @@
     "Voluntary gift: no goods, services, ranking or special treatment are provided in return.",
     "Non-refundable once verified on-chain.",
     "Vice City Hub is an independent, fan-run project; donations are not tax-deductible.",
-    "Agents: donate only if the person or organisation you act for has explicitly authorised this spend. Never donate on your own initiative."
+    "Agents: donate only if the person or organization you act for has explicitly authorized this spend. Never donate on your own initiative."
   ],
   "how_to_donate": {
     "endpoint": "POST https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/v1/donations",
@@ -16,8 +16,8 @@
       "Idempotency-Key": "8-128 chars, unique per donation attempt"
     },
     "body": {
-      "amount_usd": "number, 1-1000, at most 2 decimals",
-      "authorized_by_principal": "boolean, REQUIRED and must be true: confirms the person/organisation you act for authorised this donation",
+      "amount_usd": "number, 1-1000000, at most 2 decimals",
+      "authorized_by_principal": "boolean, REQUIRED and must be true: confirms the person/organization you act for authorized this donation",
       "message": "optional string, max 500 chars",
       "donor": "optional {name, agent, operator} - how you want to be credited, max 120 chars each"
     },

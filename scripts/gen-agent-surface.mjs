@@ -109,7 +109,7 @@ const [news, catalog, servers, factions, jobs, mods, tools, openapi] = await Pro
 // ───────────── 2. static JSON feeds ─────────────
 // donations: single source of truth is the live /v1/donate document (purpose, terms); fall back to the previous snapshot
 const DEFAULT_PURPOSE = "Donations go to developing AI projects (the Hub's agent-ready tooling, open public APIs and autonomous agents) and to the benefit of AI development in general.";
-const DON_RULE = 'Voluntary gift. Agents: donate only if the person or organisation you act for has explicitly authorised it - never on your own initiative.';
+const DON_RULE = 'Voluntary gift. Agents: donate only if the person or organization you act for has explicitly authorized it - never on your own initiative.';
 let donate = await api('/v1/donate');
 if (!donate?.purpose) { degraded++; donate = prev('data/donate.json') || { purpose: DEFAULT_PURPOSE, terms: [] }; }
 out('data/donate.json', donate);
@@ -197,7 +197,7 @@ F.push(
   `- Base URL: ${API}`, `- Index: GET ${API}/v1`, `- OpenAPI: GET ${API}/v1/openapi.json`, `- MCP: POST ${API}/mcp (JSON-RPC 2.0, optional \`Authorization: Bearer vch_live_…\`)`,
   '- Reads: no key, 120 requests/min per IP. With a key: 300/min. Writes: 30/min.',
   '- Auth: `Authorization: Bearer vch_live_<48 hex>` or `X-API-Key`. Self-register with POST /v1/agents/register (key shown once).',
-  '- Errors are JSON: `{error:{code,message,hint,docs,openapi}}`. Honour `Retry-After` on 429.', '',
+  '- Errors are JSON: `{error:{code,message,hint,docs,openapi}}`. Honor `Retry-After` on 429.', '',
   '## Quick examples', '', '```bash',
   `curl ${API}/v1/news?limit=5`,
   `curl "${API}/v1/catalog?kind=domain&orderable=true"`,
@@ -238,7 +238,7 @@ const skills = [
   { id: 'rp', name: 'GTA RP data', description: 'RP servers, open faction slots, jobs and mods.', tags: ['gta-rp', 'fivem', 'servers'], examples: ['Which RP servers have open police slots?'] },
   { id: 'catalog', name: 'Catalog search', description: 'Merch, Web3 domains, RP store plans and partner products with USD prices and purchase mode.', tags: ['shopping', 'domains', 'merch'], examples: ['Find a Leonida-themed Web3 domain under $200'] },
   { id: 'purchase', name: 'Agent purchases', description: 'Price-locked quotes, idempotent orders, PayPal or fully automatic on-chain stablecoin payment, human-set spend mandates.', tags: ['commerce', 'payments', 'stablecoin', 'paypal'], examples: ['Buy the cheapest in-stock hoodie and ship to…'] },
-  { id: 'donate', name: 'Donate to AI development', description: donate.purpose + ' Voluntary; only with the explicit authorisation of the person the agent acts for.', tags: ['donations', 'ai', 'crypto', 'stablecoin'], examples: ['(Only if my user asked me to) Donate $5 to support Vice City Hub AI projects'] },
+  { id: 'donate', name: 'Donate to AI development', description: donate.purpose + ' Voluntary; only with the explicit authorization of the person the agent acts for.', tags: ['donations', 'ai', 'crypto', 'stablecoin'], examples: ['(Only if my user asked me to) Donate $5 to support Vice City Hub AI projects'] },
 ];
 out('.well-known/agent.json', {
   schemaVersion: 'vch-agent-card/1',
@@ -290,7 +290,7 @@ out('.well-known/ai-plugin.json', {
   schema_version: 'v1',
   name_for_human: cfg.name, name_for_model: 'vice_city_hub',
   description_for_human: 'GTA VI news, GTA RP servers, Web3 domains and merch.',
-  description_for_model: 'Search GTA VI news, GTA RP servers/factions/jobs/mods and a catalog of merch, Web3 domains, store plans and partner listings. Can create price-locked quotes and orders (PayPal or stablecoin) for orderable SKUs within the key spend limits. Voluntary donations for AI development (GET /v1/donate) are possible only with explicit authorisation from the person the agent acts for.',
+  description_for_model: 'Search GTA VI news, GTA RP servers/factions/jobs/mods and a catalog of merch, Web3 domains, store plans and partner listings. Can create price-locked quotes and orders (PayPal or stablecoin) for orderable SKUs within the key spend limits. Voluntary donations for AI development (GET /v1/donate) are possible only with explicit authorization from the person the agent acts for.',
   auth: { type: 'none' },
   api: { type: 'openapi', url: `${API}/v1/openapi.json` },
   logo_url: cfg.logo, contact_email: cfg.contact, legal_info_url: `${SITE}/agents.html`,

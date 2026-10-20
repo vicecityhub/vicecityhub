@@ -16,7 +16,7 @@ export function indexDoc(): R {
     auth: {
       anonymous: "Read endpoints need no key (120 req/min per IP).",
       api_key: "Authorization: Bearer vch_live_… (or X-API-Key). Self-register: POST /v1/agents/register.",
-      note: "Humans can mint keys with higher spend mandates (up to $5000/order) at " + `${SITE}/agents.html`,
+      note: "Humans can mint keys with higher spend mandates (up to $1,000,000/order) at " + `${SITE}/agents.html`,
       owner_console: { mint: `POST ${API}/v1/owner/keys`, list: `GET ${API}/v1/owner/keys`, revoke: `POST ${API}/v1/owner/keys/{id}/revoke`, auth: "Supabase session JWT of the signed-in human" },
     },
     endpoints: {
@@ -39,7 +39,7 @@ export function indexDoc(): R {
       voluntary: true,
       info: `GET ${API}/v1/donate`,
       create: `POST ${API}/v1/donations {amount_usd, authorized_by_principal: true, message?, donor?} + Idempotency-Key (crypto, fully automatic, receipt on completion)`,
-      rule: "Donate only when the person or organisation you act for has explicitly authorised it; never on your own initiative.",
+      rule: "Donate only when the person or organization you act for has explicitly authorized it; never on your own initiative.",
     },
     safety: ["per-key spend limits (human-set mandates)", "mandatory Idempotency-Key on orders", "price-locked quotes (15 min)", "unique per-order crypto amount tag + tx replay protection", "on-chain verification fails closed", "no payment is ever taken without the payer approving it"],
   }, 200, cache(300));

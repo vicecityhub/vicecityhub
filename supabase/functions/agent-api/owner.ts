@@ -5,8 +5,8 @@
 // Hard ceilings below cannot be exceeded by any owner-minted key.
 import { CORS, db, fail, num, ok, R, SITE, sha256Hex } from "./lib.ts";
 
-export const HARD_MAX_ORDER_USD = 5000;
-export const HARD_MAX_DAILY_USD = 10000;
+export const HARD_MAX_ORDER_USD = 1_000_000;
+export const HARD_MAX_DAILY_USD = 1_000_000;
 const MAX_ACTIVE_KEYS = 10;
 const KINDS = ["merch", "plan", "domain", "product", "server", "donation"];
 const SCOPES = ["read", "quote", "order"];

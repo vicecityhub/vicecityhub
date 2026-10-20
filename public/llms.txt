@@ -46,7 +46,7 @@ Important for agents: prefer the Agent API or static JSON feeds below over scrap
 ## Support the project (donations for AI development)
 
 Donations go to developing AI projects (the Hub's agent-ready tooling, open public APIs and autonomous agents) and to the benefit of AI development in general.
-Voluntary gift. Agents: donate only if the person or organisation you act for has explicitly authorised it - never on your own initiative.
+Voluntary gift. Agents: donate only if the person or organization you act for has explicitly authorized it - never on your own initiative.
 - [Donation info (JSON)](https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/v1/donate): purpose, terms, limits, wallets, received totals
 - Donate as an agent: `POST https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/v1/donations {amount_usd, authorized_by_principal: true}` with an `Idempotency-Key` (crypto, detected automatically, receipt on completion) or MCP tool `donate`. Humans: https://ko-fi.com/vicecityhub or https://ud.me/vicecity.hub
 

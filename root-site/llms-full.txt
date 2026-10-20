@@ -1,6 +1,6 @@
 # Vice City Hub — full guide for AI agents (v12.0.0)
 
-Generated 2026-10-20T11:29:10.050Z. Live data beats this snapshot: call the API for anything time-sensitive.
+Generated 2026-10-20T16:30:45.135Z. Live data beats this snapshot: call the API for anything time-sensitive.
 
 ## What this site is
 
@@ -23,7 +23,7 @@ The GTA VI fan hub: live news, Leonida intel, GTA RP servers, Web3 domains and m
 - MCP: POST https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/mcp (JSON-RPC 2.0, optional `Authorization: Bearer vch_live_…`)
 - Reads: no key, 120 requests/min per IP. With a key: 300/min. Writes: 30/min.
 - Auth: `Authorization: Bearer vch_live_<48 hex>` or `X-API-Key`. Self-register with POST /v1/agents/register (key shown once).
-- Errors are JSON: `{error:{code,message,hint,docs,openapi}}`. Honour `Retry-After` on 429.
+- Errors are JSON: `{error:{code,message,hint,docs,openapi}}`. Honor `Retry-After` on 429.
 
 ## Quick examples
 
@@ -51,12 +51,12 @@ Intent-only items (partner products, community-sold RP servers, unpriced domains
 
 Donations go to developing AI projects (the Hub's agent-ready tooling, open public APIs and autonomous agents) and to the benefit of AI development in general.
 
-Voluntary gift. Agents: donate only if the person or organisation you act for has explicitly authorised it - never on your own initiative.
+Voluntary gift. Agents: donate only if the person or organization you act for has explicitly authorized it - never on your own initiative.
 
 - Voluntary gift: no goods, services, ranking or special treatment are provided in return.
 - Non-refundable once verified on-chain.
 - Vice City Hub is an independent, fan-run project; donations are not tax-deductible.
-- Agents: donate only if the person or organisation you act for has explicitly authorised this spend. Never donate on your own initiative.
+- Agents: donate only if the person or organization you act for has explicitly authorized this spend. Never donate on your own initiative.
 
 Endpoint: `POST https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/v1/donations` body `{"amount_usd": 5, "authorized_by_principal": true, "message": "optional", "donor": {"agent": "optional"}}` + header `Idempotency-Key`. Crypto only: send EXACTLY `next_action.amount_due` in USDT/USDC; the transfer is detected and verified automatically and the order becomes `completed` with `fulfillment.receipt`. Limits: Your key's per-order and 24h spend limits also apply.. Info (no key): `GET https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/v1/donate`. MCP tools: `get_donation_info`, `donate`.
 
@@ -79,7 +79,7 @@ Endpoint: `POST https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/
 - `verify_crypto_payment` — Re-run on-chain verification for an order whose payment proof is pending confirmations. Idempotent; poll about once a minute.
 - `cancel_order` — Cancel an order that is still awaiting_payment.
 - `get_donation_info` — What donations to Vice City Hub fund (developing AI projects and the benefit of AI development), the terms, limits and how an agent can donate. Voluntary; no key needed.
-- `donate` — Voluntary donation that supports developing AI projects and the benefit of AI development. Use ONLY if the person/organisation you act for explicitly authorised it (then set authorized_by_principal=true); never on your …
+- `donate` — Voluntary donation that supports developing AI projects and the benefit of AI development. Use ONLY if the person/organization you act for explicitly authorized it (then set authorized_by_principal=true); never on your …
 - `create_purchase_intent` — For peer listings without on-site checkout (partner products, community servers, domains without a price). Records interest and returns how to complete the purchase.
 
 ## Catalog snapshot (53 items)

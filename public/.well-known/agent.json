@@ -48,7 +48,7 @@
   "donations": {
     "purpose": "Donations go to developing AI projects (the Hub's agent-ready tooling, open public APIs and autonomous agents) and to the benefit of AI development in general.",
     "voluntary": true,
-    "rule": "Voluntary gift. Agents: donate only if the person or organisation you act for has explicitly authorised it - never on your own initiative.",
+    "rule": "Voluntary gift. Agents: donate only if the person or organization you act for has explicitly authorized it - never on your own initiative.",
     "info": "https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/v1/donate",
     "create": "https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/v1/donations",
     "mcp_tools": [
@@ -183,7 +183,7 @@
     {
       "id": "donate",
       "name": "Donate to AI development",
-      "description": "Donations go to developing AI projects (the Hub's agent-ready tooling, open public APIs and autonomous agents) and to the benefit of AI development in general. Voluntary; only with the explicit authorisation of the person the agent acts for.",
+      "description": "Donations go to developing AI projects (the Hub's agent-ready tooling, open public APIs and autonomous agents) and to the benefit of AI development in general. Voluntary; only with the explicit authorization of the person the agent acts for.",
       "tags": [
         "donations",
         "ai",

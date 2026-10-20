@@ -9,7 +9,7 @@ const PF_STORE = 18377240;
 // Default ON: a Printful order is submitted for production as soon as the payment is verified (PayPal capture or on-chain).
 // Set secret PRINTFUL_AUTO_CONFIRM=0 to create drafts instead, which the operator confirms in the Printful dashboard.
 const PF_AUTO = Deno.env.get("PRINTFUL_AUTO_CONFIRM") !== "0";
-const PF_STATE = PF_AUTO ? "submitted for fulfilment" : "draft (confirm in Printful dashboard)";
+const PF_STATE = PF_AUTO ? "submitted for fulfillment" : "draft (confirm in Printful dashboard)";
 const DEAD = "(cancelled,expired,failed)";
 
 // ───────────── PayPal / Printful plumbing ─────────────
@@ -135,7 +135,7 @@ function nextAction(o: any) {
   if (o.status === "payment_review" && o.payment?.proof?.verification === "pending_confirmations")
     return { type: "poll_verify", detail: o.payment.proof.detail || null, then: `POST ${API}/v1/orders/${id}/verify (retry in ~60s)` };
   if (o.status === "payment_review") return { type: "wait", note: "Payment submitted; the operator verifies it manually (usually within 24h)." };
-  if (o.status === "paid" || o.status === "fulfilling") return { type: "wait", note: "Paid. Fulfilment in progress; poll the status endpoint." };
+  if (o.status === "paid" || o.status === "fulfilling") return { type: "wait", note: "Paid. Fulfillment in progress; poll the status endpoint." };
   if (o.status === "completed" && (o.items || []).every((i: any) => i.kind === "donation")) return { type: "none", note: "Donation received and verified on-chain. Thank you. The receipt is in fulfillment.receipt." };
   return { type: "none" };
 }
@@ -334,7 +334,7 @@ export async function createDonation(key: Key, body: any, idem: string | null): 
   const ex = await db.from("agent_orders").select("*").eq("agent_key_id", key.id).eq("idempotency_key", idem).maybeSingle();
   if (ex.data) return ok(view(ex.data, true), 200, { "Idempotent-Replayed": "true" });
   if (body?.authorized_by_principal !== true)
-    return fail(422, "authorization_required", "Set `authorized_by_principal: true` only if the person or organisation you act for has explicitly authorised this donation.", "Agents must not donate on their own initiative. GET /v1/donate explains the terms.");
+    return fail(422, "authorization_required", "Set `authorized_by_principal: true` only if the person or organization you act for has explicitly authorized this donation.", "Agents must not donate on their own initiative. GET /v1/donate explains the terms.");
   const amount = Number(body?.amount_usd);
   if (!Number.isFinite(amount) || amount < DONATION.min_usd || amount > DONATION.max_usd || Math.abs(amount * 100 - Math.round(amount * 100)) > 1e-6)
     return fail(422, "invalid_amount", `amount_usd must be a number between ${DONATION.min_usd} and ${DONATION.max_usd} with at most 2 decimals.`);
@@ -472,7 +472,7 @@ async function runVerification(o: any, proof: any): Promise<R> {
     const done = { ...proof, verification: "confirmed", verified: true, network: v.network, verified_at: now, paid_units: v.paid_units, block_time: v.block_time };
     const hasMerch = (o.items || []).some((i: any) => i.kind === "merch");
     let fulfillment: any = { ...(o.fulfillment || {}) };
-    // atomic: only ONE concurrent verifier (cron / agent / status poll) may settle and fulfil this order
+    // atomic: only ONE concurrent verifier (cron / agent / status poll) may settle and fulfill this order
     const { data: won } = await db.from("agent_orders").update({ status: "paid", payment: { ...o.payment, proof: done }, fulfillment, updated_at: now }).eq("id", o.id).in("status", ["awaiting_payment", "payment_review"]).select("*").maybeSingle();
     if (!won) { const { data: cur } = await db.from("agent_orders").select("*").eq("id", o.id).single(); return ok(view(cur || o, true)); }
     if (hasMerch) {
@@ -521,7 +521,7 @@ export async function settleFromScan(o: any, c: { chain: string; network: string
   return `verification -> HTTP ${r.status}`;
 }
 
-/** Self-healing fulfilment: a verified-paid merch order that never reached Printful (crash, 5xx, rate limit) is retried by the reconciler. */
+/** Self-healing fulfillment: a verified-paid merch order that never reached Printful (crash, 5xx, rate limit) is retried by the reconciler. */
 export async function retryFulfilment(o: any): Promise<string> {
   const f = o.fulfillment || {};
   if (o.status !== "paid" || f.printful_order_id) return "nothing_to_retry";
@@ -540,7 +540,7 @@ export async function retryFulfilment(o: any): Promise<string> {
   const hasManual = (o.items || []).some((i: any) => i.kind !== "merch");
   const done = !!fulfillment.printful_order_id && !hasManual;
   await db.from("agent_orders").update({ status: done ? "fulfilling" : "paid", fulfillment, updated_at: new Date().toISOString() }).eq("id", o.id);
-  if (!fulfillment.printful_order_id && attempts + 1 >= 6) await notifyOwner("VCH order stuck: Printful fulfilment failed 6x", `${o.public_id} — $${o.total_usd}\n${fulfillment.printful_error || "unknown error"}\nACTION: create the Printful order manually (payment is verified).`);
+  if (!fulfillment.printful_order_id && attempts + 1 >= 6) await notifyOwner("VCH order stuck: Printful fulfillment failed 6x", `${o.public_id} — $${o.total_usd}\n${fulfillment.printful_error || "unknown error"}\nACTION: create the Printful order manually (payment is verified).`);
   return done ? "fulfilled" : "retry_failed";
 }
 

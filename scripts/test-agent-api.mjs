@@ -112,7 +112,7 @@ check('donate info states the purpose', di.s === 200 && /AI/.test(di.j?.purpose 
 const dn0 = await call('POST', '/v1/donations', { body: { amount_usd: 5, authorized_by_principal: true }, idem: 'smoke-don-anon-1' });
 check('donation needs a key', dn0.s === 401, dn0.s);
 const dn1 = await call('POST', '/v1/donations', { key, body: { amount_usd: 5 }, idem: 'smoke-don-noauth-' + Date.now() });
-check('donation needs principal authorisation', dn1.s === 422 && dn1.j?.error?.code === 'authorization_required', dn1.j?.error?.code);
+check('donation needs principal authorization', dn1.s === 422 && dn1.j?.error?.code === 'authorization_required', dn1.j?.error?.code);
 const dn2 = await call('POST', '/v1/donations', { key, body: { amount_usd: 0.5, authorized_by_principal: true }, idem: 'smoke-don-low-' + Date.now() });
 check('donation below minimum rejected', dn2.s === 422 && dn2.j?.error?.code === 'invalid_amount', dn2.j?.error?.code);
 const dkey = 'smoke-don-' + Date.now();

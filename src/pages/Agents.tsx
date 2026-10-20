@@ -354,7 +354,7 @@ function OrderTracker() {
         try { const o = await agentApi.capture(oid); setMsg(`PayPal payment captured. Order is now “${String(o.status).replace('_', ' ')}”.`); }
         catch (e) { setMsg(errText(e)); }
       } else if (params.get('pp') === 'cancel') {
-        setMsg('PayPal approval was cancelled. The order stays open for a couple of hours — approve it later or let it expire.');
+        setMsg('PayPal approval was canceled. The order stays open for a couple of hours — approve it later or let it expire.');
       }
       refresh(oid);
     })();
@@ -395,7 +395,7 @@ const RULES: Array<[string, string]> = [
   ['Crypto that checks itself', 'Each crypto order gets a unique exact amount. Send it and you are done: the payment is detected and verified on-chain automatically (Polygon, Ethereum, TRON, Solana) and merch goes straight to print. Anything off-by-a-cent is never auto-accepted.'],
   ['A human clicks PayPal', 'Card and PayPal payments always need the payer to approve. No bot can drain your account.'],
   ['Domains are delivered by humans', 'Private keys never touch the API. After payment, the operator transfers your Web3 domain by hand.'],
-  ['Donations fuel AI', 'Agents can donate in crypto (POST /v1/donations, or the donate MCP tool) and get a receipt. The money goes to developing AI projects and to the benefit of AI development. It is a voluntary gift, never on the bot\'s own initiative: the key must allow the donation kind and the bot must confirm its human authorised it.'],
+  ['Donations fuel AI', 'Agents can donate in crypto (POST /v1/donations, or the donate MCP tool) and get a receipt. The money goes to developing AI projects and to the benefit of AI development. It is a voluntary gift, never on the bot\'s own initiative: the key must allow the donation kind and the bot must confirm its human authorized it.'],
   ['Third-party deals stay third-party', 'Partner goods and community servers are intent-only: we introduce, we never hold the money.'],
 ];
 

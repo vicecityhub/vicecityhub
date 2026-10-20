@@ -43,7 +43,7 @@ export default function agentSurface(): Plugin {
   const donateAction = () => ({
     '@type': 'DonateAction',
     name: 'Donate to support AI development',
-    description: `${DON_PURPOSE} Voluntary; agents must only donate with the explicit authorisation of the person they act for.`,
+    description: `${DON_PURPOSE} Voluntary; agents must only donate with the explicit authorization of the person they act for.`,
     recipient: { '@id': `${SITE}/#org` },
     target: [
       { '@type': 'EntryPoint', urlTemplate: `${API}/v1/donations`, httpMethod: 'POST', contentType: 'application/json', description: 'Agent API: crypto, detected automatically, receipt on completion' },
