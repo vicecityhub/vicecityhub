@@ -116,7 +116,7 @@ out('data/donate.json', donate);
 const donationsCard = {
   purpose: donate.purpose, voluntary: true, rule: DON_RULE,
   info: `${API}/v1/donate`, create: `${API}/v1/donations`, mcp_tools: ['get_donation_info', 'donate'],
-  rails: ['crypto'], assets: ['USDT', 'USDC'], chains: ['tron', 'ethereum', 'polygon', 'solana'],
+  rails: ['crypto'], assets: ['USDT', 'USDC'], chains: ['tron', 'ethereum', 'polygon', 'base', 'arbitrum', 'optimism', 'solana'],
   receipt: 'completed donation orders carry fulfillment.receipt',
   human_links: { ko_fi: 'https://ko-fi.com/vicecityhub', ud_me: 'https://ud.me/vicecity.hub' },
 };
@@ -209,7 +209,7 @@ F.push(
   '3. `POST /v1/orders {quote_id, payment_rail, shipping|delivery|details}` + header `Idempotency-Key: <8-128 chars>`. Retrying with the same key returns the same order (`Idempotent-Replayed: true`).',
   '4. Follow `next_action` in the response:',
   '   - `approve_paypal`: a human payer must open `url` and approve; then `POST /v1/orders/{id}/capture`.',
-  '   - `send_stablecoin`: send EXACTLY `amount_due` (last 4 digits are a unique order tag) in USDT/USDC on the listed chain/address (Tron, Ethereum, Polygon, Solana), and you are done: the transfer is detected and verified on-chain automatically (usually 1-5 min), no further call needed. Optional shortcuts: `POST /v1/orders/{id}/payment-proof {chain, tx_hash, network?}` and `POST /v1/orders/{id}/verify`.',
+  '   - `send_stablecoin`: send EXACTLY `amount_due` (last 4 digits are a unique order tag) in USDT/USDC on the listed chain/address (Base, Polygon, Arbitrum, Optimism, Ethereum, Tron, Solana), and you are done: the transfer is detected and verified on-chain automatically (usually 1-5 min), no further call needed. Optional shortcuts: `POST /v1/orders/{id}/payment-proof {chain, tx_hash, network?}` and `POST /v1/orders/{id}/verify`.',
   '5. Poll `GET /v1/orders/{id}/status` (no key needed). Merch paid in crypto is sent to Printful automatically; domains and store slots are delivered by the operator after payment.',
   '',
   'Safety rules enforced server-side: per-key per-order and daily spend limits, allowed item kinds per key, mandatory idempotency keys, price-locked quotes, unique crypto amount tags with tx-hash replay protection, on-chain verification that fails closed. The operator never takes payment without the payer approving it.',
@@ -256,7 +256,7 @@ out('.well-known/agent.json', {
   donations: donationsCard,
   commerce: {
     flow: ['quote', 'order', 'pay', 'verify', 'status'],
-    rails: [{ id: 'paypal', for: ['merch', 'plan'] }, { id: 'crypto', automatic: true, for: ['merch', 'domain', 'plan'], assets: ['USDT', 'USDC'], chains: ['tron', 'ethereum', 'polygon', 'solana'] }],
+    rails: [{ id: 'paypal', for: ['merch', 'plan'] }, { id: 'crypto', automatic: true, for: ['merch', 'domain', 'plan'], assets: ['USDT', 'USDC'], chains: ['tron', 'ethereum', 'polygon', 'base', 'arbitrum', 'optimism', 'solana'] }],
     safety: ['human-set spend mandates', 'idempotency keys required', 'price-locked quotes', 'unique per-order amount tags', 'on-chain verification fails closed'],
   },
   defaultInputModes: ['application/json'], defaultOutputModes: ['application/json', 'text/markdown'],

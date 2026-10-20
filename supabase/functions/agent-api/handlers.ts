@@ -31,7 +31,7 @@ export function indexDoc(): R {
     machine_readable: { openapi: `${API}/v1/openapi.json`, llms_txt: `${SITE}/llms.txt`, llms_full_txt: `${SITE}/llms-full.txt`, agent_card: `${SITE}/.well-known/agent.json`, mcp_card: `${SITE}/.well-known/mcp.json`, api_catalog: `${SITE}/.well-known/api-catalog`, static_feeds: `${SITE}/data/index.json`, sitemap: `${SITE}/sitemap.xml` },
     payments: {
       paypal: "merch + store plans: returns approve_url (a human payer approves it), then POST /v1/orders/{id}/capture",
-      crypto: "merch + domains + store plans, FULLY AUTOMATIC: send EXACTLY next_action.amount_due in USDT/USDC (Polygon, Ethereum, TRON, Solana). The transfer is detected and verified on-chain with no further call (usually 1-5 min): just poll GET /v1/orders/{id}/status. POST /v1/orders/{id}/payment-proof and /verify are optional shortcuts. Merch then goes to Printful automatically; domains and store slots are delivered by the operator.",
+      crypto: "merch + domains + store plans, FULLY AUTOMATIC: send EXACTLY next_action.amount_due in USDT/USDC (Base, Polygon, Arbitrum, Optimism, Ethereum, TRON, Solana). The transfer is detected and verified on-chain with no further call (usually 1-5 min): just poll GET /v1/orders/{id}/status. POST /v1/orders/{id}/payment-proof and /verify are optional shortcuts. Merch then goes to Printful automatically; domains and store slots are delivered by the operator.",
       third_party: "partner products and community server sales are intent-only: Vice City Hub does not custody funds for them",
     },
     donations: {

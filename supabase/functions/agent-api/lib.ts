@@ -133,7 +133,7 @@ export const CRYPTO_WALLETS = (() => {
   } catch (_) { /* fall through */ }
   return [
     { chain: "tron", network: "TRON (TRC-20)", asset: "USDT", address: "TRyGNvj1NcVM1V6aDJmycNBiSKWumZ4Zhz" },
-    { chain: "evm", network: "Ethereum or Polygon (EVM)", asset: "USDT or USDC", address: "0x04b9d483E4dcc059CC2fb9375De5244C0A7ddce1" },
+    { chain: "evm", network: "Base, Polygon, Arbitrum, Optimism or Ethereum (same EVM address on all)", asset: "USDT or USDC", address: "0x04b9d483E4dcc059CC2fb9375De5244C0A7ddce1" },
     { chain: "solana", network: "Solana", asset: "USDC", address: "Gc75C9QnC59nTVW4f729VbWxcE6fsatGkZBQmQDJqB8b" },
   ];
 })();

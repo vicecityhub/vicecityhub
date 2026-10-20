@@ -46,7 +46,7 @@ export async function donationInfo(): Promise<R> {
         message: "optional string, max 500 chars",
         donor: "optional {name, agent, operator} - how you want to be credited, max 120 chars each",
       },
-      payment: "USDT/USDC on Polygon, Ethereum, TRON or Solana. Send EXACTLY next_action.amount_due (the last digits are a unique tag). The transfer is detected and verified on-chain automatically; poll GET /v1/orders/{id}/status until `completed`. The completed order carries a receipt.",
+      payment: "USDT/USDC on Base, Polygon, Arbitrum, Optimism, Ethereum, TRON or Solana. Send EXACTLY next_action.amount_due (the last digits are a unique tag). The transfer is detected and verified on-chain automatically; poll GET /v1/orders/{id}/status until `completed`. The completed order carries a receipt.",
       limits: "Your key's per-order and 24h spend limits also apply.",
       mcp_tools: ["get_donation_info", "donate"],
     },

@@ -1,6 +1,6 @@
 # Vice City Hub — full guide for AI agents (v12.0.0)
 
-Generated 2026-10-20T16:30:45.135Z. Live data beats this snapshot: call the API for anything time-sensitive.
+Generated 2026-10-20T21:53:53.490Z. Live data beats this snapshot: call the API for anything time-sensitive.
 
 ## What this site is
 
@@ -40,7 +40,7 @@ curl -X POST https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/v1/
 3. `POST /v1/orders {quote_id, payment_rail, shipping|delivery|details}` + header `Idempotency-Key: <8-128 chars>`. Retrying with the same key returns the same order (`Idempotent-Replayed: true`).
 4. Follow `next_action` in the response:
    - `approve_paypal`: a human payer must open `url` and approve; then `POST /v1/orders/{id}/capture`.
-   - `send_stablecoin`: send EXACTLY `amount_due` (last 4 digits are a unique order tag) in USDT/USDC on the listed chain/address (Tron, Ethereum, Polygon, Solana), and you are done: the transfer is detected and verified on-chain automatically (usually 1-5 min), no further call needed. Optional shortcuts: `POST /v1/orders/{id}/payment-proof {chain, tx_hash, network?}` and `POST /v1/orders/{id}/verify`.
+   - `send_stablecoin`: send EXACTLY `amount_due` (last 4 digits are a unique order tag) in USDT/USDC on the listed chain/address (Base, Polygon, Arbitrum, Optimism, Ethereum, Tron, Solana), and you are done: the transfer is detected and verified on-chain automatically (usually 1-5 min), no further call needed. Optional shortcuts: `POST /v1/orders/{id}/payment-proof {chain, tx_hash, network?}` and `POST /v1/orders/{id}/verify`.
 5. Poll `GET /v1/orders/{id}/status` (no key needed). Merch paid in crypto is sent to Printful automatically; domains and store slots are delivered by the operator after payment.
 
 Safety rules enforced server-side: per-key per-order and daily spend limits, allowed item kinds per key, mandatory idempotency keys, price-locked quotes, unique crypto amount tags with tx-hash replay protection, on-chain verification that fails closed. The operator never takes payment without the payer approving it.

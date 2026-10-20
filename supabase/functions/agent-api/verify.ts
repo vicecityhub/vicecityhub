@@ -18,7 +18,7 @@ export type Verdict =
 
 const TRANSFER_SIG = "ddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef";
 
-export const EVM_NETWORKS: Record<string, { rpc: string; confirmations: number; tokens: Record<string, string> }> = {
+export const EVM_NETWORKS: Record<string, { rpc: string; confirmations: number; blockSec?: number; cap?: number; step?: number; tokens: Record<string, string> }> = {
   polygon: {
     rpc: Deno.env.get("EVM_RPC_POLYGON") || "https://polygon-bor-rpc.publicnode.com",
     confirmations: 128,
@@ -34,6 +34,28 @@ export const EVM_NETWORKS: Record<string, { rpc: string; confirmations: number; 
     tokens: {
       "0xdac17f958d2ee523a2206206994597c13d831ec7": "USDT",
       "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48": "USDC",
+    },
+  },
+  // L2s where most agent payments (x402 etc.) settle. All listed tokens use 6 decimals.
+  base: {
+    rpc: Deno.env.get("EVM_RPC_BASE") || "https://base-rpc.publicnode.com",
+    confirmations: 20, blockSec: 2.05, cap: 6000,
+    tokens: { "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913": "USDC" },
+  },
+  arbitrum: {
+    rpc: Deno.env.get("EVM_RPC_ARBITRUM") || "https://arb1.arbitrum.io/rpc",
+    confirmations: 60, blockSec: 0.26, cap: 30000, step: 10000,
+    tokens: {
+      "0xaf88d065e77c8cc2239327c5edb3a432268e5831": "USDC",
+      "0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9": "USDT",
+    },
+  },
+  optimism: {
+    rpc: Deno.env.get("EVM_RPC_OPTIMISM") || "https://optimism-rpc.publicnode.com",
+    confirmations: 20, blockSec: 2.05, cap: 6000,
+    tokens: {
+      "0x0b2c639c533813f4aa9d7837caf62653d097ff85": "USDC",
+      "0x94b008aa00579c1307b0ef2c499ad98a8ce58e58": "USDT",
     },
   },
 };
@@ -205,11 +227,12 @@ async function scanEvm(sinceMs: number, errors: string[]): Promise<Incoming[]> {
   for (const [name, n] of Object.entries(EVM_NETWORKS)) {
     try {
       const latest = parseInt(await jrpc(n.rpc, "eth_blockNumber", []), 16);
-      const blockSec = name === "polygon" ? 2.1 : 12.1;
-      const cap = name === "polygon" ? 8000 : 1500;
+      const blockSec = n.blockSec ?? (name === "polygon" ? 2.1 : 12.1);
+      const cap = n.cap ?? (name === "polygon" ? 8000 : 1500);
       const back = Math.min(cap, Math.ceil((Date.now() - sinceMs) / 1000 / blockSec) + 60);
-      for (let a = Math.max(0, latest - back); a <= latest; a += 1000) {
-        const logs = await jrpc(n.rpc, "eth_getLogs", [{ fromBlock: hex(a), toBlock: hex(Math.min(latest, a + 999)), address: Object.keys(n.tokens), topics: ["0x" + TRANSFER_SIG, null, topicTo] }]);
+      const step = n.step ?? 1000;
+      for (let a = Math.max(0, latest - back); a <= latest; a += step) {
+        const logs = await jrpc(n.rpc, "eth_getLogs", [{ fromBlock: hex(a), toBlock: hex(Math.min(latest, a + step - 1)), address: Object.keys(n.tokens), topics: ["0x" + TRANSFER_SIG, null, topicTo] }]);
         for (const l of logs || []) if (!l.removed) out.push({ chain: "evm", network: name, tx: String(l.transactionHash), units: BigInt(l.data) });
       }
     } catch (e) { errors.push(`${name}: ${(e as Error).message}`); }

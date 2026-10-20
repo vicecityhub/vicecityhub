@@ -46,6 +46,9 @@
       "tron",
       "ethereum",
       "polygon",
+      "base",
+      "arbitrum",
+      "optimism",
       "solana"
     ],
     "receipt": "completed donation orders carry fulfillment.receipt",
