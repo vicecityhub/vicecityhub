@@ -53,6 +53,15 @@ export async function donationInfo(): Promise<R> {
     direct_transfer: {
       note: "You may also send any amount directly (no order, no receipt). Prefer the endpoint above when you need a receipt.",
       wallets: CRYPTO_WALLETS,
+      native_coins: {
+        note: "Native coins are accepted as direct gifts too, but they are not auto-detected and get no receipt. Prefer USDT/USDC through the endpoint above.",
+        wallets: [
+          { asset: "BTC", network: "Bitcoin", address: "bc1qtauw5d569vqmy26w32u6c7076pl5r069xhnsdn" },
+          { asset: "ETH", network: "Ethereum, Base, Arbitrum, Optimism", address: "0x04b9d483E4dcc059CC2fb9375De5244C0A7ddce1" },
+          { asset: "SOL", network: "Solana", address: "Gc75C9QnC59nTVW4f729VbWxcE6fsatGkZBQmQDJqB8b" },
+          { asset: "TRX", network: "TRON", address: "TRyGNvj1NcVM1V6aDJmycNBiSKWumZ4Zhz" },
+        ],
+      },
     },
     human_links: { ko_fi: "https://ko-fi.com/vicecityhub", ud_me: "https://ud.me/vicecity.hub", site: SITE },
     received,

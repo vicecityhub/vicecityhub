@@ -49,7 +49,32 @@
         "asset": "USDC",
         "address": "Gc75C9QnC59nTVW4f729VbWxcE6fsatGkZBQmQDJqB8b"
       }
-    ]
+    ],
+    "native_coins": {
+      "note": "Native coins are accepted as direct gifts too, but they are not auto-detected and get no receipt. Prefer USDT/USDC through the endpoint above.",
+      "wallets": [
+        {
+          "asset": "BTC",
+          "network": "Bitcoin",
+          "address": "bc1qtauw5d569vqmy26w32u6c7076pl5r069xhnsdn"
+        },
+        {
+          "asset": "ETH",
+          "network": "Ethereum, Base, Arbitrum, Optimism",
+          "address": "0x04b9d483E4dcc059CC2fb9375De5244C0A7ddce1"
+        },
+        {
+          "asset": "SOL",
+          "network": "Solana",
+          "address": "Gc75C9QnC59nTVW4f729VbWxcE6fsatGkZBQmQDJqB8b"
+        },
+        {
+          "asset": "TRX",
+          "network": "TRON",
+          "address": "TRyGNvj1NcVM1V6aDJmycNBiSKWumZ4Zhz"
+        }
+      ]
+    }
   },
   "human_links": {
     "ko_fi": "https://ko-fi.com/vicecityhub",
