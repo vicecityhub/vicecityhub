@@ -1,0 +1,26 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.vicecityhub/vicecityhub",
+  "title": "Vice City Hub",
+  "description": "GTA VI news, GTA RP servers, Web3 domains and merch for AI agents, plus crypto donations.",
+  "version": "12.0.0",
+  "websiteUrl": "https://vicecityhub.github.io/vicecityhub/agents.html",
+  "repository": {
+    "url": "https://github.com/vicecityhub/vicecityhub",
+    "source": "github"
+  },
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/mcp",
+      "headers": [
+        {
+          "name": "Authorization",
+          "description": "Optional. Read tools are anonymous. For order and donation tools use 'Bearer vch_live_...' (call register_agent first).",
+          "isRequired": false,
+          "isSecret": true
+        }
+      ]
+    }
+  ]
+}
