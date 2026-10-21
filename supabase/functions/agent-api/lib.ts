@@ -11,9 +11,9 @@ export const db = createClient(SUPABASE_URL, Deno.env.get("SUPABASE_SERVICE_ROLE
 export const CORS: Record<string, string> = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
-    "authorization, content-type, x-api-key, idempotency-key, x-client-info, apikey, mcp-session-id, mcp-protocol-version",
+    "authorization, content-type, x-api-key, idempotency-key, x-client-info, apikey, mcp-session-id, mcp-protocol-version, payment-signature, x-payment",
   "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-  "Access-Control-Expose-Headers": "retry-after, idempotent-replayed",
+  "Access-Control-Expose-Headers": "retry-after, idempotent-replayed, payment-required, payment-response",
 };
 
 // Every handler returns R; the router turns it into a Response.

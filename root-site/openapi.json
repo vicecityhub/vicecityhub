@@ -1019,6 +1019,49 @@
           }
         }
       }
+    },
+    "/v1/donate/x402": {
+      "get": {
+        "tags": [
+          "Donations"
+        ],
+        "operationId": "donateX402",
+        "summary": "Donate with x402 (HTTP 402, USDC on Base or Solana)",
+        "description": "Voluntary donation that supports developing AI projects and the benefit of AI development. Without a payment header the server answers 402 with a base64 PAYMENT-REQUIRED header and the same JSON body. Retry with a base64 JSON x402 v2 payment in the PAYMENT-SIGNATURE header; on success you get 200, a receipt and a PAYMENT-RESPONSE header. Signing the payment is your wallet's authorization. No API key needed. POST is accepted too.",
+        "parameters": [
+          {
+            "name": "amount_usd",
+            "in": "query",
+            "schema": {
+              "type": "number",
+              "minimum": 1,
+              "maximum": 1000000,
+              "default": 1
+            }
+          },
+          {
+            "name": "PAYMENT-SIGNATURE",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Base64 JSON x402 v2 PaymentPayload"
+          }
+        ],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Donation settled. Receipt in body, PAYMENT-RESPONSE header."
+          },
+          "402": {
+            "description": "Payment required or payment invalid. PAYMENT-REQUIRED header lists accepted options."
+          },
+          "422": {
+            "description": "invalid_amount"
+          }
+        }
+      }
     }
   },
   "components": {

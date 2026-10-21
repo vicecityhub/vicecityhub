@@ -28,6 +28,16 @@
       "donate"
     ]
   },
+  "x402": {
+    "enabled": true,
+    "endpoint": "GET or POST https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/v1/donate/x402?amount_usd=<1-1000000>",
+    "protocol": "x402 v2 (HTTP 402). Without a payment header you get 402 + PAYMENT-REQUIRED; retry with PAYMENT-SIGNATURE.",
+    "networks": [
+      "Base (USDC)",
+      "Solana (USDC)"
+    ],
+    "note": "Signing the payment is your wallet's authorization. Payments settle directly to the Hub wallets; no API key needed."
+  },
   "direct_transfer": {
     "note": "You may also send any amount directly (no order, no receipt). Prefer the endpoint above when you need a receipt.",
     "wallets": [

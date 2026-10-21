@@ -51,6 +51,7 @@
     "rule": "Voluntary gift. Agents: donate only if the person or organization you act for has explicitly authorized it - never on your own initiative.",
     "info": "https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/v1/donate",
     "create": "https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/v1/donations",
+    "x402": "https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/v1/donate/x402",
     "mcp_tools": [
       "get_donation_info",
       "donate"

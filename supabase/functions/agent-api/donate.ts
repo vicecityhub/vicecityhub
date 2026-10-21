@@ -5,6 +5,7 @@
 // whose human owner allowed the `donation` kind AND with an explicit attestation that the agent's principal authorized
 // the spend. Nothing here pressures an agent: this endpoint only describes the project and how to give.
 import { API, CRYPTO_WALLETS, db, ok, R, SITE } from "./lib.ts";
+import { x402Enabled } from "./x402.ts";
 
 export const DONATION = {
   sku: "donation:ai-development",
@@ -28,7 +29,9 @@ export async function donationInfo(): Promise<R> {
   let received = { donations: 0, total_usd: 0 };
   try {
     const { data } = await db.from("agent_orders").select("total_usd").eq("status", "completed").contains("items", JSON.stringify([{ kind: "donation" }])).limit(1000);
-    received = { donations: (data || []).length, total_usd: Math.round((data || []).reduce((s: number, o: any) => s + Number(o.total_usd), 0) * 100) / 100 };
+    const { data: dd } = await db.from("agent_direct_donations").select("amount_usd").limit(1000);
+    const sum = (data || []).reduce((s: number, o: any) => s + Number(o.total_usd), 0) + (dd || []).reduce((s: number, o: any) => s + Number(o.amount_usd), 0);
+    received = { donations: (data || []).length + (dd || []).length, total_usd: Math.round(sum * 100) / 100 };
   } catch (_) { /* stats are best effort */ }
   return ok({
     name: "Support Vice City Hub - donations for AI development",
@@ -49,6 +52,13 @@ export async function donationInfo(): Promise<R> {
       payment: "USDT/USDC on Base, Polygon, Arbitrum, Optimism, Ethereum, TRON or Solana. Send EXACTLY next_action.amount_due (the last digits are a unique tag). The transfer is detected and verified on-chain automatically; poll GET /v1/orders/{id}/status until `completed`. The completed order carries a receipt.",
       limits: "Your key's per-order and 24h spend limits also apply.",
       mcp_tools: ["get_donation_info", "donate"],
+    },
+    x402: {
+      enabled: x402Enabled(),
+      endpoint: `GET or POST ${API}/v1/donate/x402?amount_usd=<1-1000000>`,
+      protocol: "x402 v2 (HTTP 402). Without a payment header you get 402 + PAYMENT-REQUIRED; retry with PAYMENT-SIGNATURE.",
+      networks: ["Base (USDC)", "Solana (USDC)"],
+      note: "Signing the payment is your wallet's authorization. Payments settle directly to the Hub wallets; no API key needed.",
     },
     direct_transfer: {
       note: "You may also send any amount directly (no order, no receipt). Prefer the endpoint above when you need a receipt.",

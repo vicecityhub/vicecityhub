@@ -3,6 +3,7 @@
 import { authenticate, CORS, clientIpHash, db, fail, rate, toResponse, R } from "./lib.ts";
 import { catalogItem, catalogList, indexDoc, newsItem, newsList, rpList, search } from "./handlers.ts";
 import { donationInfo } from "./donate.ts";
+import { x402Donate } from "./x402.ts";
 import { cancelOrder, captureOrder, createDonation, createIntent, createOrder, createQuote, getOrder, orderStatus, registerAgent, submitProof, verifyOrder, whoAmI } from "./orders.ts";
 import { ownerRoute } from "./owner.ts";
 import { mcpHandle } from "./mcp.ts";
@@ -75,6 +76,7 @@ async function route(req: Request, url: URL, path: string, key: any, ipHash: str
     if ((g = path.match(/^\/v1\/catalog\/(.+)$/))) return catalogItem(decodeURIComponent(g[1]));
     if (path === "/v1/internal/reconcile") return reconcile(); // pg_cron every minute: auto-detects + settles crypto payments
     if (path === "/v1/donate") return donationInfo();
+    if (path === "/v1/donate/x402") return x402Donate(req, p, {}, ipHash);
     if (path === "/v1/search") return search(p);
     if (path === "/v1/news") return newsList(p);
     if ((g = path.match(/^\/v1\/news\/(\d+)$/))) return newsItem(g[1]);
@@ -95,6 +97,7 @@ async function route(req: Request, url: URL, path: string, key: any, ipHash: str
     if (path === "/v1/quotes") return need(key) || createQuote(key, body);
     if (path === "/v1/orders") return need(key) || createOrder(key, body, req.headers.get("idempotency-key"));
     if (path === "/v1/intents") return need(key) || createIntent(key, body);
+    if (path === "/v1/donate/x402") return x402Donate(req, p, body, ipHash);
     if (path === "/v1/donations") return need(key) || createDonation(key, body, req.headers.get("idempotency-key"));
     if ((g = path.match(/^\/v1\/orders\/([\w]+)\/capture$/))) return captureOrder(g[1]);
     if ((g = path.match(/^\/v1\/orders\/([\w]+)\/payment-proof$/))) return need(key) || submitProof(key, g[1], body);

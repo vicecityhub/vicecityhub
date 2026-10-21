@@ -115,7 +115,7 @@ if (!donate?.purpose) { degraded++; donate = prev('data/donate.json') || { purpo
 out('data/donate.json', donate);
 const donationsCard = {
   purpose: donate.purpose, voluntary: true, rule: DON_RULE,
-  info: `${API}/v1/donate`, create: `${API}/v1/donations`, mcp_tools: ['get_donation_info', 'donate'],
+  info: `${API}/v1/donate`, create: `${API}/v1/donations`, x402: `${API}/v1/donate/x402`, mcp_tools: ['get_donation_info', 'donate'],
   rails: ['crypto'], assets: ['USDT', 'USDC'], chains: ['tron', 'ethereum', 'polygon', 'base', 'arbitrum', 'optimism', 'solana'],
   receipt: 'completed donation orders carry fulfillment.receipt',
   human_links: { ko_fi: 'https://ko-fi.com/vicecityhub', ud_me: 'https://ud.me/vicecity.hub' },
@@ -179,6 +179,7 @@ L.push(
   donate.purpose,
   DON_RULE,
   `- [Donation info (JSON)](${API}/v1/donate): purpose, terms, limits, wallets, received totals`,
+`- x402 (no API key): \`GET ${API}/v1/donate/x402?amount_usd=5\` answers HTTP 402 with a PAYMENT-REQUIRED header; pay USDC on Base or Solana and retry with PAYMENT-SIGNATURE (x402 v2). Signing the payment is your wallet's authorization.`,
   `- Donate as an agent: \`POST ${API}/v1/donations {amount_usd, authorized_by_principal: true}\` with an \`Idempotency-Key\` (crypto, detected automatically, receipt on completion) or MCP tool \`donate\`. Humans: https://ko-fi.com/vicecityhub or https://ud.me/vicecity.hub`,
   '', '## Optional', '',
   `- [Agent card](${SITE}/.well-known/agent.json)`,
