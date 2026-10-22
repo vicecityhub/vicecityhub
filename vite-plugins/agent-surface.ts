@@ -111,6 +111,7 @@ export default function agentSurface(): Plugin {
     const t = [
       `<link rel="alternate" type="text/markdown" href="${SITE}/llms.txt" title="LLM-readable site guide">`,
       `<link rel="alternate" type="application/json" href="${SITE}/data/index.json" title="Static JSON feeds">`,
+      `<link rel="alternate" type="application/rss+xml" href="${SITE}/feed.xml" title="The Wire (RSS)">`,
       `<link rel="api-catalog" href="${SITE}/.well-known/api-catalog">`,
       `<link rel="service-desc" type="application/openapi+json" href="${API}/v1/openapi.json">`,
       `<link rel="service-doc" type="text/html" href="${SITE}/agents.html">`,
@@ -136,6 +137,11 @@ export default function agentSurface(): Plugin {
       li(`${API}/v1/openapi.json`, 'OpenAPI 3.1'),
       li(`${API}/mcp`, 'MCP server', 'streamable-http, JSON-RPC 2.0'),
       li(`${SITE}/data/index.json`, 'Static JSON feeds'),
+      li(`${SITE}/n/`, 'GTA 6 news archive', 'static, indexable page per story'),
+      li(`${SITE}/vehicles/`, 'GTA 6 vehicles', 'every confirmed car, bike and boat'),
+      li(`${SITE}/gta-6-release-date/`, 'GTA 6 release date', 'countdown, platforms, FAQ'),
+      li(`${SITE}/supporters/`, 'Wall of Legends', 'supporters and agent hall of fame'),
+      li(`${SITE}/feed.xml`, 'RSS feed'),
       li(`${API}/v1/donate`, 'Donations for AI development', DON_PURPOSE),
     ].join('');
     let data = '';

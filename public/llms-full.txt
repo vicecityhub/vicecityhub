@@ -1,6 +1,6 @@
 # Vice City Hub — full guide for AI agents (v12.0.0)
 
-Generated 2026-10-21T09:06:53.737Z. Live data beats this snapshot: call the API for anything time-sensitive.
+Generated 2026-10-22T23:13:18.129Z. Live data beats this snapshot: call the API for anything time-sensitive.
 
 ## What this site is
 
@@ -447,106 +447,160 @@ Endpoint: `POST https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/
 - **Vision RP** [WHITELIST_OPEN] 0/128 players — Quality over quantity. Gang and MC slots open. Legal businesses available for takeover. Whitelist sessions Mon–Fri 18h–20h. Every scene leaves a mark.
 - **American Dream RP** [ONLINE] 35/64 players — Serious US-style RP. WL server. Custom businesses, exclusive features, reactive staff. Legal and illegal recruitment open. 30–40 active players nightly. Beginn…
 
-## Latest news (17)
+## Latest news (26)
+
+### Rockstar Drops the GTA 6 Launch Trailer: Jason and Lucia, a Justice Score and a November 19 Date
+- Category: Official · Stars: 5/5 · Published: 2026-10-21T14:03:13.538289+00:00
+- Page: https://vicecityhub.github.io/vicecityhub/n/4389-rockstar-drops-the-gta-6-launch-trailer-jason-and-lucia-a-justice-scor/ · Source: https://www.videogameschronicle.com/news/rockstar-has-revealed-the-official-launch-trailer-for-grand-theft-auto-6/
+
+Rockstar released the official GTA 6 launch trailer on October 15, a roughly 90-second look that finally lays out the setup. In Vice City, USA, an easy score goes wrong and Jason and Lucia get dragged into a criminal conspiracy across the state of Leonida. French duo Justice composed the original score and wrote a new single, "Flower in a Hurricane," featuring Tame Impala, SZA and King Gizzard & The Lizard Wizard, which is headed to GTA 6: The Album. Rockstar says the whole trailer was captured on PlayStation 5, without saying whether that means base or Pro. The release date stays November 19 on PlayStation 5 and Xbox Series X/S, and there is still no announced PC version. Early reports say the video passed 1 million YouTube views in about half an hour.
+
+### GTA 6 Will Be Eligible for The Game Awards 2026
+- Category: Community · Stars: 3/5 · Published: 2026-10-21T14:03:13.538289+00:00
+- Page: https://vicecityhub.github.io/vicecityhub/n/4397-gta-6-will-be-eligible-for-the-game-awards-2026/ · Source: https://vgtimes.com/games/gta-6/news/
+
+GTA 6 falls inside The Game Awards 2026 eligibility window, landing one day before the main cutoff. With a November 19 release, it counts for this year's ceremony.
+
+### CYBERLEEK Says He's Done Leaking GTA 6 'For Now' After One More Unofficial Clip
+- Category: Leaks · Stars: 2/5 · Published: 2026-10-21T14:03:13.538289+00:00
+- Page: https://vicecityhub.github.io/vicecityhub/n/4396-cyberleek-says-he-s-done-leaking-gta-6-for-now-after-one-more-unoffici/ · Source: https://vgtimes.com/games/gta-6/news/
+
+The leaker known as CYBERLEEK says he is pausing further leaks "for now" after another unofficial gameplay video appeared on October 14. Rockstar has not commented and none of the material is verified. The clip is unofficial, so we're not linking it or describing it in detail.
+
+### GTA 6-Themed Cars, Including a Vice Beach Police Lamborghini, Cruise Through Miami
+- Category: Community · Stars: 2/5 · Published: 2026-10-21T14:03:13.538289+00:00
+- Page: https://vicecityhub.github.io/vicecityhub/n/4395-gta-6-themed-cars-including-a-vice-beach-police-lamborghini-cruise-thr/ · Source: https://vgtimes.com/games/gta-6/news/
+
+Rockstar's marketing push put a convoy of GTA 6-themed cars on the streets of Miami on October 16, including a Vice Beach Police Lamborghini. It's a real-world preview of Vice City's look ahead of the November 19 launch.
+
+### Miami-Dade Commissioners Question Rockstar's $975,000 Rooftop Ad Deal for GTA 6
+- Category: Community · Stars: 2/5 · Published: 2026-10-21T14:03:13.538289+00:00
+- Page: https://vicecityhub.github.io/vicecityhub/n/4394-miami-dade-commissioners-question-rockstar-s-975-000-rooftop-ad-deal-f/ · Source: https://vgtimes.com/games/gta-6/news/
+
+Miami-Dade County commissioners are asking whether a $975,000 rooftop advertising deal with Rockstar for GTA VI should have gone before the full commission. As of now this is a question about process, not a ruling against the deal.
+
+### Rockstar Reportedly Asked Daft Punk to Reunite for GTA 6 Before Landing on Justice
+- Category: Rumors · Stars: 3/5 · Published: 2026-10-21T14:03:13.538289+00:00
+- Page: https://vicecityhub.github.io/vicecityhub/n/4393-rockstar-reportedly-asked-daft-punk-to-reunite-for-gta-6-before-landin/ · Source: https://vgtimes.com/games/gta-6/news/
+
+A report claims Rockstar approached Daft Punk about a reunion for the GTA 6 soundtrack before choosing Justice. Neither side has commented, so treat it as an unconfirmed rumor. Justice ended up writing the score and the trailer's new single.
+
+### Rockstar Spent Years Testing Alternatives to GTA 6's Weapon Wheel Before Going Back to the Circle
+- Category: Official · Stars: 3/5 · Published: 2026-10-21T14:03:13.538289+00:00
+- Page: https://vicecityhub.github.io/vicecityhub/n/4392-rockstar-spent-years-testing-alternatives-to-gta-6-s-weapon-wheel-befo/ · Source: https://vgtimes.com/games/gta-6/news/
+
+According to reports from preview coverage, Rockstar tried several weapon-selection layouts for GTA 6 over a period of years before returning to the familiar circular weapon wheel. The takeaway: the classic wheel survived a long internal shootout against its own replacements.
+
+### GTA 6 Pre-Orders Are 148% Ahead of Modern Warfare 2, Sensor Tower Data Suggests
+- Category: Community · Stars: 3/5 · Published: 2026-10-21T14:03:13.538289+00:00
+- Page: https://vicecityhub.github.io/vicecityhub/n/4391-gta-6-pre-orders-are-148-ahead-of-modern-warfare-2-sensor-tower-data-s/ · Source: https://vgtimes.com/games/gta-6/news/
+
+Analysts using Sensor Tower data estimate that GTA 6 pre-orders are running 148% higher than those of Call of Duty: Modern Warfare 2. These are third-party estimates, not figures from Rockstar or Take-Two. Activision, for its part, has called GTA 6 and Call of Duty: Modern Warfare 4 the two biggest games of 2026.
+
+### Rockstar Bosses Tell Bloomberg There Won't Be Another Eight-Year Wait After GTA 6
+- Category: Official · Stars: 4/5 · Published: 2026-10-21T14:03:13.538289+00:00
+- Page: https://vicecityhub.github.io/vicecityhub/n/4390-rockstar-bosses-tell-bloomberg-there-won-t-be-another-eight-year-wait/ · Source: https://www.videogameschronicle.com/news/rockstar-has-revealed-the-official-launch-trailer-for-grand-theft-auto-6/
+
+In a Bloomberg feature published around October 14, Rockstar studio heads Phil Hooker and Aaron Garbut opened up about GTA 6's development, the leaks and the challenges the studio has faced since Red Dead Redemption 2. Their headline promise: there won't be another eight-year gap before Rockstar's next game. The engine, tools and team built for GTA 6 carry over, which should speed up whatever comes next. GTA 6 is Rockstar's first major new single-player release since Red Dead Redemption 2 in 2018.
 
 ### Leaker CYBERLEEK Threatens a Full GTA 6 Build Drop Unless Rockstar Reverses Its Disc Decision
 - Category: Rumors · Stars: 3/5 · Published: 2026-10-13T08:23:45.725355+00:00
-- Page: https://vicecityhub.github.io/vicecityhub/news.html?id=4388 · Source: https://www.pushsquare.com
+- Page: https://vicecityhub.github.io/vicecityhub/n/4388-leaker-cyberleek-threatens-a-full-gta-6-build-drop-unless-rockstar-rev/ · Source: https://www.pushsquare.com
 
 The leaker known as CYBERLEEK is threatening to release a full GTA 6 build unless Rockstar reverses its decision on physical discs, and is pointing to a disputed 17th clip as supposed proof. None of this is confirmed. Rockstar hasn't responded, and the clip's authenticity is contested. Treat it as an unverified claim and don't go hunting for files.
 
 ### Australia's Workplace Watchdog Publishes a Guide to Taking Unpaid Leave for GTA 6 Launch Day
 - Category: Community · Stars: 2/5 · Published: 2026-10-13T08:23:45.725355+00:00
-- Page: https://vicecityhub.github.io/vicecityhub/news.html?id=4387 · Source: https://www.fairwork.gov.au
+- Page: https://vicecityhub.github.io/vicecityhub/n/4387-australia-s-workplace-watchdog-publishes-a-guide-to-taking-unpaid-leav/ · Source: https://www.fairwork.gov.au
 
 Australia's Fair Work Ombudsman has put out guidance on how employees can request unpaid leave around the GTA 6 launch. It covers the basics of asking your employer and what your rights look like. It's a light-hearted sign of how big the release is, not a sign that anyone is handing out days off.
 
 ### Rockstar Reveals GTA 6 Radio Lineup: Six Stations, Bad Bunny, Lana Del Rey and Slayer Alumni
 - Category: Official · Stars: 5/5 · Published: 2026-10-13T08:23:45.725355+00:00
-- Page: https://vicecityhub.github.io/vicecityhub/news.html?id=4383 · Source: https://www.purexbox.com
+- Page: https://vicecityhub.github.io/vicecityhub/n/4383-rockstar-reveals-gta-6-radio-lineup-six-stations-bad-bunny-lana-del-re/ · Source: https://www.purexbox.com
 
 Rockstar has pulled back the curtain on Vice City's airwaves. Six stations were announced on October 8: Back Country Radio, Cocoteo FM, AfroBank FM, The Chamber 106.6, Flash FM and Dirty South Classics. The hosts and artists attached to the dial include Bad Bunny, Lana Del Rey, Morgan Wallen, Burna Boy and members of Slayer, so the genre spread runs from country to afrobeats to thrash. Rockstar also confirmed on-demand podcasts, plus headphone and earbud support for listening. Next up on the reveal calendar is the dynamic score, the music that reacts to what you're doing on screen.
 
 ### Boxed GTA 6 Is Already Selling Out: Code-in-Box Edition Gone at Amazon US and Some Target Stores
 - Category: Community · Stars: 4/5 · Published: 2026-10-13T08:23:45.725355+00:00
-- Page: https://vicecityhub.github.io/vicecityhub/news.html?id=4384 · Source: https://screenrant.com
+- Page: https://vicecityhub.github.io/vicecityhub/n/4384-boxed-gta-6-is-already-selling-out-code-in-box-edition-gone-at-amazon/ · Source: https://screenrant.com
 
 The code-in-box edition of GTA 6 has reportedly sold out at Amazon US as of October 11, and some Target stores are out of stock too. Remember, this is the box with a download code inside rather than a disc, which became the plan after Rockstar's physical-media decision. Demand for anything with the GTA 6 logo on it is clearly not the problem. Stock can come back through restocks, so keep an eye on retailer pages if you want a physical shelf copy.
 
 ### Xbox Exec Says No Exclusive Cloud Streaming Deal for GTA 6 - And No PC Streaming Either
 - Category: Official · Stars: 4/5 · Published: 2026-10-13T08:23:45.725355+00:00
-- Page: https://vicecityhub.github.io/vicecityhub/news.html?id=4385 · Source: https://www.purexbox.com
+- Page: https://vicecityhub.github.io/vicecityhub/n/4385-xbox-exec-says-no-exclusive-cloud-streaming-deal-for-gta-6-and-no-pc-s/ · Source: https://www.purexbox.com
 
 Xbox's Matthew Ball addressed the cloud question on October 7, denying that there is any exclusive cloud streaming arrangement for GTA 6. He also said PC streaming is not part of the picture. That puts a lid on the theory that Xbox Cloud Gaming would get special treatment at launch. If you were planning to play Vice City on a potato through the cloud, plan on a console instead.
 
 ### Nintendo of America Boss Dodges the GTA 6 Switch 2 Question
 - Category: Official · Stars: 3/5 · Published: 2026-10-13T08:23:45.725355+00:00
-- Page: https://vicecityhub.github.io/vicecityhub/news.html?id=4386 · Source: https://planetgta6.com
+- Page: https://vicecityhub.github.io/vicecityhub/n/4386-nintendo-of-america-boss-dodges-the-gta-6-switch-2-question/ · Source: https://planetgta6.com
 
 Nintendo of America's Devon Pritchard was asked about GTA 6 on Switch 2 and gave no commitment either way. There is no announcement of a Switch 2 version, and nothing here suggests one is coming at launch. Treat it as a non-answer, not a tease.
 
 ### The Man Who Leaked GTA 6 Is Heading to Trial the Same Month It Finally Launches
 - Category: Leaks · Stars: 4/5 · Published: 2026-10-12T21:47:31.713859+00:00
-- Page: https://vicecityhub.github.io/vicecityhub/news.html?id=4382 · Source: https://www.ghacks.net/2026/07/17/gta-6-hacker-arion-kurtaj-moved-from-secure-hospital-to-prison-ahead-of-november-2026-retrial/
+- Page: https://vicecityhub.github.io/vicecityhub/n/4382-the-man-who-leaked-gta-6-is-heading-to-trial-the-same-month-it-finally/ · Source: https://www.ghacks.net/2026/07/17/gta-6-hacker-arion-kurtaj-moved-from-secure-hospital-to-prison-ahead-of-november-2026-retrial/
 
 Arion Kurtaj, the hacker behind the September 2022 leak of over 90 Grand Theft Auto VI gameplay clips and the game's source code, has been moved from a secure hospital to a standard prison ahead of a retrial scheduled for November 2026, according to BBC correspondent Joe Tidy. Kurtaj, a member of the Lapsus$ hacking group, was previously deemed unfit for trial in 2023 due to a severe autism diagnosis. Rockstar previously said the leak cost the company roughly $5 million and thousands of staff hours.
 
-### Rockstar Says GTA 6's Cops Will Be Much Harder to Shake Than GTA 5's
-- Category: Official · Stars: 3/5 · Published: 2026-10-12T21:47:31.713859+00:00
-- Page: https://vicecityhub.github.io/vicecityhub/news.html?id=4381 · Source: https://vgtimes.com/games/gta-6/news/
-
-Rockstar North co-studio head Rob Nelson said Grand Theft Auto VI will make police pursuits significantly harder to shake off compared to previous entries in the series, according to VGTimes. The comment builds on earlier statements from Rockstar describing an overhauled police AI and reputation system for the November 19, 2026 release, suggesting players will need to rely on genuine evasion tactics rather than simply outrunning a wanted level.
-
 ### GTA 6 Pre-Loading Opens November 12 - A Full Week Before Launch
 - Category: Official · Stars: 3/5 · Published: 2026-10-12T21:47:31.713859+00:00
-- Page: https://vicecityhub.github.io/vicecityhub/news.html?id=4380 · Source: https://beebom.com/gta-6/
+- Page: https://vicecityhub.github.io/vicecityhub/n/4380-gta-6-pre-loading-opens-november-12-a-full-week-before-launch/ · Source: https://beebom.com/gta-6/
 
 Pre-loading for Grand Theft Auto VI will open on November 12, 2026, a full week ahead of its November 19, 2026 launch, according to Beebom. Separately, players who purchase the Standard Edition can upgrade to the Ultimate Edition at any time for $20 through eligible storefronts, offering a lower-commitment entry point than buying the $99.99 Ultimate Edition outright. The physical Standard Edition will ship with a download code rather than a disc.
 
-### GTA 6 Has a Real Relationship System Between Jason and Lucia - But Rockstar Says Don't Overhype It
-- Category: Official · Stars: 3/5 · Published: 2026-10-12T16:43:42.320974+00:00
-- Page: https://vicecityhub.github.io/vicecityhub/news.html?id=4379 · Source: https://vgtimes.com/games/gta-6/news/
+### Rockstar Says GTA 6's Cops Will Be Much Harder to Shake Than GTA 5's
+- Category: Official · Stars: 3/5 · Published: 2026-10-12T21:47:31.713859+00:00
+- Page: https://vicecityhub.github.io/vicecityhub/n/4381-rockstar-says-gta-6-s-cops-will-be-much-harder-to-shake-than-gta-5-s/ · Source: https://vgtimes.com/games/gta-6/news/
 
-Grand Theft Auto VI will feature a relationship system tracking the dynamic between protagonists Lucia and Jason, according to VGTimes, though Rockstar Games has urged fans not to overstate its significance to the overall game. The confirmation adds mechanical weight to the Bonnie-and-Clyde-style partnership the pair has displayed across the game's trailers and Extended Look footage, without suggesting it will function as a deep, branching relationship simulator.
+Rockstar North co-studio head Rob Nelson said Grand Theft Auto VI will make police pursuits significantly harder to shake off compared to previous entries in the series, according to VGTimes. The comment builds on earlier statements from Rockstar describing an overhauled police AI and reputation system for the November 19, 2026 release, suggesting players will need to rely on genuine evasion tactics rather than simply outrunning a wanted level.
 
 ### GTA 6 Just Confirmed Its First Officially Revealed Cast Member
 - Category: Official · Stars: 4/5 · Published: 2026-10-12T16:43:42.320974+00:00
-- Page: https://vicecityhub.github.io/vicecityhub/news.html?id=4378 · Source: https://vgtimes.com/games/gta-6/news/
+- Page: https://vicecityhub.github.io/vicecityhub/n/4378-gta-6-just-confirmed-its-first-officially-revealed-cast-member/ · Source: https://vgtimes.com/games/gta-6/news/
 
 An actor has confirmed they voice a character named Brian Heder in Grand Theft Auto VI, making them the first cast member officially revealed for the game ahead of its November 19, 2026 release, according to VGTimes. Rockstar Games has historically kept its voice cast tightly under wraps until close to launch, making this early confirmation notable. Details about Brian Heder's role in the story have not been disclosed.
 
-### Take-Two Just Signed a New Long-Term Xbox Deal - But It Won't Change Anything About GTA 6
-- Category: Official · Stars: 3/5 · Published: 2026-10-12T16:43:42.320974+00:00
-- Page: https://vicecityhub.github.io/vicecityhub/news.html?id=4376 · Source: https://www.gtaboom.com/take-two-signed-a-new-long-term-xbox-publishing-deal-covering-all-devices-21cd
-
-Take-Two Interactive and Microsoft signed a new long-term Xbox Publisher License Agreement, effective September 17, 2026, covering the development, publishing, marketing, and sale of Xbox-compatible products across all Xbox devices, according to multiple outlets including GTA BOOM. The agreement replaces all of Take-Two's prior Xbox publishing arrangements and includes standard terms around revenue sharing and content approval, but reporting has been consistent that the deal is routine contract housekeeping rather than anything specific to Grand Theft Auto VI, which remains on track for a multiplatform release on both PS5 and Xbox Series X/S on November 19, 2026.
-
 ### Sony Just Showed Off a Limited-Edition GTA 6 DualSense Controller
 - Category: Official · Stars: 4/5 · Published: 2026-10-12T16:43:42.320974+00:00
-- Page: https://vicecityhub.github.io/vicecityhub/news.html?id=4377 · Source: https://vgtimes.com/games/gta-6/news/
+- Page: https://vicecityhub.github.io/vicecityhub/n/4377-sony-just-showed-off-a-limited-edition-gta-6-dualsense-controller/ · Source: https://vgtimes.com/games/gta-6/news/
 
 Sony unveiled a limited-edition Grand Theft Auto VI DualSense controller, with the black colorway available exclusively through PlayStation Direct. The controller adds to a growing lineup of official Grand Theft Auto VI hardware and accessories ahead of the game's November 19, 2026 release, giving PS5 owners a themed option to match the game on launch day.
 
-### New Rockstar Character Art Is Already Showing Up in a Spotify Ad Collaboration
-- Category: Official · Stars: 4/5 · Published: 2026-10-06T08:32:18.273186+00:00
-- Page: https://vicecityhub.github.io/vicecityhub/news.html?id=4374 · Source: https://lpglkglhjdqnktybksth.supabase.co/storage/v1/object/public/post_news/photo_2026-09-16_23-16-07.jpg
+### GTA 6 Has a Real Relationship System Between Jason and Lucia - But Rockstar Says Don't Overhype It
+- Category: Official · Stars: 3/5 · Published: 2026-10-12T16:43:42.320974+00:00
+- Page: https://vicecityhub.github.io/vicecityhub/n/4379-gta-6-has-a-real-relationship-system-between-jason-and-lucia-but-rocks/ · Source: https://vgtimes.com/games/gta-6/news/
 
-New promotional artwork attributed to Rockstar Games has surfaced showing Grand Theft Auto VI character art being used across a co-branded advertising push tied to Spotify, ahead of the game's November 19, 2026 launch. The material features the game's signature Vice City visual style paired with Spotify branding, pointing toward a music-streaming tie-in likely connected to the game's licensed radio soundtrack. Neither Rockstar Games nor Spotify has issued a formal statement detailing the scope of the partnership as of this writing.
+Grand Theft Auto VI will feature a relationship system tracking the dynamic between protagonists Lucia and Jason, according to VGTimes, though Rockstar Games has urged fans not to overstate its significance to the overall game. The confirmation adds mechanical weight to the Bonnie-and-Clyde-style partnership the pair has displayed across the game's trailers and Extended Look footage, without suggesting it will function as a deep, branching relationship simulator.
 
-### GTA 6's Game Informer Cover Story Confirms a Map Twice the Size of GTA 5 - And Over 170 Animal Species
-- Category: Official · Stars: 5/5 · Published: 2026-10-06T08:32:18.273186+00:00
-- Page: https://vicecityhub.github.io/vicecityhub/news.html?id=4372 · Source: https://www.gtaboom.com/everything-new-we-learned-about-gta-6-from-the-game-informer-cover-story-4d76
+### Take-Two Just Signed a New Long-Term Xbox Deal - But It Won't Change Anything About GTA 6
+- Category: Official · Stars: 3/5 · Published: 2026-10-12T16:43:42.320974+00:00
+- Page: https://vicecityhub.github.io/vicecityhub/n/4376-take-two-just-signed-a-new-long-term-xbox-deal-but-it-won-t-change-any/ · Source: https://www.gtaboom.com/take-two-signed-a-new-long-term-xbox-publishing-deal-covering-all-devices-21cd
 
-Game Informer's 14-page Grand Theft Auto VI cover story went live September 29, 2026, confirming the game's map is approximately twice the size of Grand Theft Auto V's, according to Rockstar art director Aaron Garbut. The issue, built on interviews with Rockstar's lead designers, details six named regions: Vice City, the Leonida Keys, Grassrivers, Port Gellhorn, Ambrosia, and Mount Kalaga National Park. The cover story also confirms a re-engineered, localized weather system capable of producing tropical storms and hurricanes, and more than 170 animal species across land, air, and sea, including manatees, flamingos, alligators, and multiple shark species, some tagged by rarity, ahead of the game's November 19, 2026 release.
+Take-Two Interactive and Microsoft signed a new long-term Xbox Publisher License Agreement, effective September 17, 2026, covering the development, publishing, marketing, and sale of Xbox-compatible products across all Xbox devices, according to multiple outlets including GTA BOOM. The agreement replaces all of Take-Two's prior Xbox publishing arrangements and includes standard terms around revenue sharing and content approval, but reporting has been consistent that the deal is routine contract housekeeping rather than anything specific to Grand Theft Auto VI, which remains on track for a multiplatform release on both PS5 and Xbox Series X/S on November 19, 2026.
 
 ### GTA 6 Is Officially Rated Mature - And Its Store Listing Specifically Flags 'Sex Scenes'
 - Category: Official · Stars: 4/5 · Published: 2026-10-06T08:32:18.273186+00:00
-- Page: https://vicecityhub.github.io/vicecityhub/news.html?id=4373 · Source: https://www.gtaboom.com/gta-6-ratings-sex-scenes-in-game-purchases-c8c7
+- Page: https://vicecityhub.github.io/vicecityhub/n/4373-gta-6-is-officially-rated-mature-and-its-store-listing-specifically-fl/ · Source: https://www.gtaboom.com/gta-6-ratings-sex-scenes-in-game-purchases-c8c7
 
 Grand Theft Auto VI has received an official Mature 17+ rating from the ESRB in the United States and a PEGI 18 rating in Europe, with regional PlayStation Store listings in Australia and New Zealand going further by explicitly naming 'Sex Scenes' as a content descriptor, according to GTA BOOM and GHacks. The wording marks a shift from Grand Theft Auto V's Australian rating, which listed only 'Sex' despite the earlier game containing scripted sexual content. US listings use the phrase 'Strong Sexual Content' instead. The ESRB has not yet published its longer rating summary, and a store rating is not confirmation the game has gone gold ahead of its November 19, 2026 release.
 
 ### Rockstar's Official Goodtime State Vice City Collection Just Dropped
 - Category: Official · Stars: 3/5 · Published: 2026-10-06T08:32:18.273186+00:00
-- Page: https://vicecityhub.github.io/vicecityhub/news.html?id=4375 · Source: https://store.rockstargames.com/ru/merchandise/gtavi-goodtime-state-vice-city-collection
+- Page: https://vicecityhub.github.io/vicecityhub/n/4375-rockstar-s-official-goodtime-state-vice-city-collection-just-dropped/ · Source: https://store.rockstargames.com/ru/merchandise/gtavi-goodtime-state-vice-city-collection
 
 Rockstar Games launched its official Goodtime State Vice City Collection through the Rockstar Warehouse, giving fans a line of licensed Vice City-themed merchandise ahead of Grand Theft Auto VI's November 19, 2026 release. The collection is available now in limited quantities through Rockstar's official store.
+
+### New Rockstar Character Art Is Already Showing Up in a Spotify Ad Collaboration
+- Category: Official · Stars: 4/5 · Published: 2026-10-06T08:32:18.273186+00:00
+- Page: https://vicecityhub.github.io/vicecityhub/n/4374-new-rockstar-character-art-is-already-showing-up-in-a-spotify-ad-colla/ · Source: https://lpglkglhjdqnktybksth.supabase.co/storage/v1/object/public/post_news/photo_2026-09-16_23-16-07.jpg
+
+New promotional artwork attributed to Rockstar Games has surfaced showing Grand Theft Auto VI character art being used across a co-branded advertising push tied to Spotify, ahead of the game's November 19, 2026 launch. The material features the game's signature Vice City visual style paired with Spotify branding, pointing toward a music-streaming tie-in likely connected to the game's licensed radio soundtrack. Neither Rockstar Games nor Spotify has issued a formal statement detailing the scope of the partnership as of this writing.
+
+### GTA 6's Game Informer Cover Story Confirms a Map Twice the Size of GTA 5 - And Over 170 Animal Species
+- Category: Official · Stars: 5/5 · Published: 2026-10-06T08:32:18.273186+00:00
+- Page: https://vicecityhub.github.io/vicecityhub/n/4372-gta-6-s-game-informer-cover-story-confirms-a-map-twice-the-size-of-gta/ · Source: https://www.gtaboom.com/everything-new-we-learned-about-gta-6-from-the-game-informer-cover-story-4d76
+
+Game Informer's 14-page Grand Theft Auto VI cover story went live September 29, 2026, confirming the game's map is approximately twice the size of Grand Theft Auto V's, according to Rockstar art director Aaron Garbut. The issue, built on interviews with Rockstar's lead designers, details six named regions: Vice City, the Leonida Keys, Grassrivers, Port Gellhorn, Ambrosia, and Mount Kalaga National Park. The cover story also confirms a re-engineered, localized weather system capable of producing tropical storms and hurricanes, and more than 170 animal species across land, air, and sea, including manatees, flamingos, alligators, and multiple shark species, some tagged by rarity, ahead of the game's November 19, 2026 release.

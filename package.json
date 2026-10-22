@@ -7,8 +7,9 @@
   "scripts": {
     "dev": "vite",
     "gen:agent": "node scripts/gen-agent-surface.mjs",
+    "gen:seo": "node scripts/gen-seo-pages.mjs",
     "gen:root": "node scripts/gen-root-site.mjs",
-    "prebuild": "node scripts/gen-agent-surface.mjs",
+    "prebuild": "node scripts/gen-agent-surface.mjs && node scripts/gen-seo-pages.mjs",
     "build": "tsc -b && vite build",
     "typecheck": "tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.node.json",
     "test:agent": "node scripts/test-agent-api.mjs",

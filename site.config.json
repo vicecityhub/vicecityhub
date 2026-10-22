@@ -9,6 +9,7 @@
   "twitter": "@ViceCityHub",
   "logo": "https://lpglkglhjdqnktybksth.supabase.co/storage/v1/object/public/photos/Official_Cover_Art_landscape.12.uu2irr.2_a%20(1).jpg",
   "language": "en",
+  "release": { "date": "2026-11-19", "verified": "2026-10-23", "$comment": "Update when Rockstar moves the date. Used by the release-date page, its countdown and JSON-LD." },
   "pages": [
     { "file": "index.html", "title": "Home", "kind": "WebPage", "priority": "1.0", "freq": "daily", "index": true,
       "description": "Landing page: featured GTA VI news, media cards, community highlights and the arcade game." },

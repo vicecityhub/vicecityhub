@@ -1,12 +1,12 @@
 {
   "name": "Vice City Hub",
   "version": "12.0.0",
-  "generated_at": "2026-10-21T09:06:53.737Z",
+  "generated_at": "2026-10-22T23:13:18.129Z",
   "note": "Static snapshots refreshed on every deploy (~6h). For real-time data and purchases use the live Agent API.",
   "feeds": {
     "news": {
       "url": "https://vicecityhub.github.io/vicecityhub/data/news.json",
-      "count": 17,
+      "count": 26,
       "live": "https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/v1/news"
     },
     "catalog": {

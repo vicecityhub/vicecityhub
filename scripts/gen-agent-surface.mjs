@@ -22,6 +22,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { newsUrl } from './lib/seo.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const PUB = join(ROOT, 'public');
@@ -72,7 +73,8 @@ async function loadNews() {
   const list = await api('/v1/news?limit=50');
   if (!list?.items) { degraded++; return prev('data/news.json')?.items || []; }
   const full = await pool(list.items, 5, async (n) => (await api(`/v1/news/${n.id}`)) || n);
-  return full;
+  // v13: news live on static, indexable pages (/n/<id>-<slug>/); keep the SPA link as app_url
+  return full.map((n) => ({ ...n, app_url: n.app_url || n.url, url: newsUrl(n) }));
 }
 async function loadCatalog() {
   const items = [];
@@ -307,7 +309,7 @@ const urls = [];
 for (const p of pages) urls.push({ loc: `${SITE}/${p.file}`, lastmod: day(), freq: p.freq, prio: p.priority });
 urls.push({ loc: `${SITE}/llms.txt`, lastmod: day(), freq: 'daily', prio: '0.6' });
 urls.push({ loc: `${SITE}/data/index.json`, lastmod: day(), freq: 'daily', prio: '0.4' });
-for (const n of news) urls.push({ loc: `${SITE}/news.html?id=${n.id}`, lastmod: day(n.published_at), freq: 'never', prio: '0.5' });
+for (const n of news) urls.push({ loc: n.url, lastmod: day(n.published_at), freq: 'never', prio: '0.5' });
 out('sitemap.xml', `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.map((u) => `  <url>\n    <loc>${xml(u.loc)}</loc>\n    <lastmod>${u.lastmod}</lastmod>\n    <changefreq>${u.freq}</changefreq>\n    <priority>${u.prio}</priority>\n  </url>`).join('\n')}\n</urlset>\n`);
 
 console.log(`[surface] v${VERSION}: ${news.length} news · ${catalog.length} catalog · ${servers.length} servers · ${tools.length} MCP tools · ${urls.length} sitemap URLs${degraded ? ` · ${degraded} source(s) fell back to previous data` : ''}`);

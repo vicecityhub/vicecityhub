@@ -123,3 +123,17 @@ jobs:
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
           NEWS_API_KEY: ${{ secrets.NEWS_API_KEY }}
         run: node scripts/news-agent.mjs
+
+  # Tells Bing/Yandex about fresh URLs right after a successful deploy. Never blocks anything.
+  indexnow:
+    name: Ping IndexNow
+    needs: deploy
+    if: ${{ always() && needs.deploy.result == 'success' }}
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node scripts/indexnow.mjs
