@@ -4,7 +4,7 @@ import { Volume2, VolumeX, Menu, X, Radio, Map, LogIn, User, Trash2, Edit3, Save
 
 // Loaded dynamically from the Supabase Storage bucket 'muz'
 // Falls back to 2 default tracks if the fetch fails
-import { getOrCreateAudio } from '../lib/AudioManager';
+import { getOrCreateAudio, getTrackIndex } from '../lib/AudioManager';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -316,7 +316,7 @@ export default function Layout({ children, activePage }: LayoutProps) {
     const interval = setInterval(() => {
       if (audioRef.current && !audioRef.current.paused) {
         localStorage.setItem('radioTime', audioRef.current.currentTime.toString());
-        localStorage.setItem('radioTrackIndex', String(0));
+        localStorage.setItem('radioTrackIndex', String(getTrackIndex()));
       }
     }, 1000);
 
@@ -324,7 +324,7 @@ export default function Layout({ children, activePage }: LayoutProps) {
     const handleUnload = () => {
       if (audioRef.current && !audioRef.current.paused) {
         localStorage.setItem('radioTime', audioRef.current.currentTime.toString());
-        localStorage.setItem('radioTrackIndex', String(0));
+        localStorage.setItem('radioTrackIndex', String(getTrackIndex()));
       }
     };
     window.addEventListener('beforeunload', handleUnload);
@@ -688,13 +688,14 @@ export default function Layout({ children, activePage }: LayoutProps) {
       </div>
 
       {/* Navigation Header */}
-      <nav className="sticky top-0 z-[500] h-[75px] bg-[#07070f]/90 backdrop-blur-xl border-b border-white/5 flex items-center justify-between px-6 lg:px-12 shadow-2xl">
+      <nav className="sticky top-0 z-[500] bg-[#07070f]/90 backdrop-blur-xl border-b border-white/5 flex flex-wrap items-center justify-between px-6 lg:px-12 py-[17px] lg:pt-3.5 lg:pb-0 shadow-2xl">
+        <div className="gradient-line absolute left-0 right-0 bottom-0 pointer-events-none" />
         <a className="font-orbitron font-extrabold text-2xl tracking-widest bg-gradient-to-r from-neonPink to-neonCyan bg-clip-text text-transparent hover:scale-105 transition-transform" href="./index.html">
           VICE CITY HUB
         </a>
 
         {/* Desktop Nav Links */}
-        <div className="hidden lg:flex gap-10 items-center font-bold tracking-widest text-xs uppercase">
+        <div className="hidden lg:grid order-last basis-full w-full max-w-[1000px] mx-auto grid-cols-6 gap-x-6 gap-y-1 pt-1 pb-3 text-center font-bold tracking-widest text-xs uppercase">
           <a href="./index.html" className={`hover:text-neonCyan transition-all ${activePage === 'home' ? 'text-neonCyan neon-text-cyan' : 'text-gray-500'}`}>Home</a>
           <a href="./news.html" className={`hover:text-neonCyan transition-all ${activePage === 'news' ? 'text-neonCyan neon-text-cyan' : 'text-gray-500'}`}>The Wire</a>
           <a href="./market.html" className={`hover:text-neonCyan transition-all ${activePage === 'market' ? 'text-neonCyan neon-text-cyan' : 'text-gray-500'}`}>Market</a>
@@ -706,7 +707,7 @@ export default function Layout({ children, activePage }: LayoutProps) {
             <a href="./vehicles/" className="hover:text-neonCyan transition-all text-gray-500">Vehicles</a>
             <a href="./gta-6-release-date/" className="hover:text-neonCyan transition-all text-gray-500">GTA 6 Date</a>
             <a href="./supporters/" className="hover:text-neonCyan transition-all text-gray-500">Wall of Legends</a>
-          <a href="./rp.html" className={`hover:text-neonPink transition-all flex items-center gap-1.5 font-bold ${activePage === 'rp' ? 'text-neonPink neon-text-pink' : 'text-gray-500'}`}><span className="text-[8px] px-1.5 py-0.5 rounded border border-neonPink/60 bg-neonPink/10 text-neonPink font-orbitron font-black">NEW</span>RP Hub</a>
+          <a href="./rp.html" className={`hover:text-neonPink transition-all flex items-center justify-center gap-1.5 font-bold ${activePage === 'rp' ? 'text-neonPink neon-text-pink' : 'text-gray-500'}`}><span className="text-[8px] px-1.5 py-0.5 rounded border border-neonPink/60 bg-neonPink/10 text-neonPink font-orbitron font-black">NEW</span>RP Hub</a>
         </div>
 
         {/* Music Player & Auth Controls */}
@@ -752,7 +753,7 @@ export default function Layout({ children, activePage }: LayoutProps) {
 
         {/* Mobile Dropdown Nav Menu */}
         {mobileMenuOpen && (
-          <div className="absolute top-[75px] left-0 w-full bg-[#050508] border-b border-white/10 flex flex-col items-center gap-6 py-8 font-bold tracking-widest text-sm uppercase lg:hidden animate-fade-in shadow-2xl z-[999]">
+          <div className="absolute top-full left-0 w-full bg-[#050508] border-b border-white/10 flex flex-col items-center gap-6 py-8 font-bold tracking-widest text-sm uppercase lg:hidden animate-fade-in shadow-2xl z-[999]">
             <a href="./index.html" onClick={() => setMobileMenuOpen(false)} className={`hover:text-neonCyan transition-all ${activePage === 'home' ? 'text-neonCyan neon-text-cyan' : 'text-gray-300'}`}>Home</a>
             <a href="./news.html" onClick={() => setMobileMenuOpen(false)} className={`hover:text-neonCyan transition-all ${activePage === 'news' ? 'text-neonCyan neon-text-cyan' : 'text-gray-300'}`}>The Wire</a>
             <a href="./market.html" onClick={() => setMobileMenuOpen(false)} className={`hover:text-neonCyan transition-all ${activePage === 'market' ? 'text-neonCyan neon-text-cyan' : 'text-gray-300'}`}>Market</a>
@@ -760,6 +761,10 @@ export default function Layout({ children, activePage }: LayoutProps) {
             <a href="./realestate.html" onClick={() => setMobileMenuOpen(false)} className={`hover:text-neonCyan transition-all ${activePage === 'realestate' ? 'text-neonCyan neon-text-cyan' : 'text-gray-300'}`}>Dynasty 8</a>
             <a href="./document.html" onClick={() => setMobileMenuOpen(false)} className={`hover:text-neonCyan transition-all ${activePage === 'document' ? 'text-neonCyan neon-text-cyan' : 'text-gray-300'}`}>Leonida Database</a>
             <a href="./agents.html" onClick={() => setMobileMenuOpen(false)} className={`hover:text-neonCyan transition-all ${activePage === 'agents' ? 'text-neonCyan neon-text-cyan' : 'text-gray-300'}`}>Agents</a>
+            <a href="./n/" onClick={() => setMobileMenuOpen(false)} className="hover:text-neonCyan transition-all text-gray-300">News Archive</a>
+            <a href="./vehicles/" onClick={() => setMobileMenuOpen(false)} className="hover:text-neonCyan transition-all text-gray-300">Vehicles</a>
+            <a href="./gta-6-release-date/" onClick={() => setMobileMenuOpen(false)} className="hover:text-neonCyan transition-all text-gray-300">GTA 6 Date</a>
+            <a href="./supporters/" onClick={() => setMobileMenuOpen(false)} className="hover:text-neonCyan transition-all text-gray-300">Wall of Legends</a>
             <a href="./rp.html" onClick={() => setMobileMenuOpen(false)} className={`hover:text-neonPink transition-all flex items-center gap-2 font-bold ${activePage === 'rp' ? 'text-neonPink neon-text-pink' : 'text-gray-300'}`}><span className="text-[8px] px-1.5 py-0.5 rounded border border-neonPink/60 bg-neonPink/10 text-neonPink font-orbitron font-black">NEW</span>RP Hub</a>
             <div className="flex md:hidden flex-col items-center gap-4 mt-2">
               {session ? (
@@ -802,6 +807,10 @@ export default function Layout({ children, activePage }: LayoutProps) {
             <a href="./realestate.html" className="text-[10px] text-gray-600 hover:text-neonCyan transition-colors uppercase tracking-wider font-bold">🏢 Dynasty 8</a>
             <a href="./document.html" className="text-[10px] text-gray-600 hover:text-neonCyan transition-colors uppercase tracking-wider font-bold">📁 Leonida DB</a>
             <a href="./agents.html" className="text-[10px] text-gray-600 hover:text-neonCyan transition-colors uppercase tracking-wider font-bold">🤖 Agents</a>
+            <a href="./n/" className="text-[10px] text-gray-600 hover:text-neonCyan transition-colors uppercase tracking-wider font-bold">&#128240; News Archive</a>
+            <a href="./vehicles/" className="text-[10px] text-gray-600 hover:text-neonCyan transition-colors uppercase tracking-wider font-bold">&#128663; Vehicles</a>
+            <a href="./gta-6-release-date/" className="text-[10px] text-gray-600 hover:text-neonCyan transition-colors uppercase tracking-wider font-bold">&#9200; GTA 6 Date</a>
+            <a href="./supporters/" className="text-[10px] text-gray-600 hover:text-neonCyan transition-colors uppercase tracking-wider font-bold">&#127942; Wall of Legends</a>
             <a href="./rp.html" className="text-[10px] text-neonPink/60 hover:text-neonPink transition-colors uppercase tracking-wider font-bold">🎮 RP Hub ✦</a>
           </div>
         </div>

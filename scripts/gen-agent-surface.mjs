@@ -234,7 +234,7 @@ F.push('');
 for (const m of catalog.filter((i) => i.kind === 'merch' && i.variants?.length)) {
   F.push(`### Variants of ${m.title} (${m.sku})`, '', ...m.variants.map((v) => `- \`${v.sku}\` ${[v.size, v.color].filter(Boolean).join(' / ') || v.name} — ${v.price_usd !== null ? '$' + Number(v.price_usd).toFixed(2) : 'n/a'} — ${v.availability}`), '');
 }
-F.push(`## RP servers (${servers.length})`, '', ...servers.map((s) => `- **${s.name}** [${s.status || 'n/a'}] ${s.online_count ?? '?'}/${s.max_players ?? '?'} players — ${trunc(s.description, 160)}${s.connect_url ? ' — connect: ' + s.connect_url : ''}`), '');
+F.push(`## RP servers (${servers.length})`, '', ...servers.map((s) => `- **${s.name}** ${s.status ? '[' + s.status + '] ' : ''}— ${trunc(s.description, 160)}${s.connect_url ? ' — connect: ' + s.connect_url : ''}`), '');
 F.push(`## Latest news (${news.length})`, '');
 for (const n of news) {
   F.push(`### ${one(n.title)}`, `- Category: ${n.category || 'n/a'} · Stars: ${n.stars ?? 'n/a'}/5 · Published: ${n.published_at || 'n/a'}`, `- Page: ${n.url || SITE + '/news.html?id=' + n.id}${n.source_url ? ' · Source: ' + n.source_url : ''}`, '', one(n.body || n.summary), '');

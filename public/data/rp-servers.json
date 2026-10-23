@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-23T06:55:47.885Z",
+  "generated_at": "2026-10-23T22:32:18.493Z",
   "source": "https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/v1/rp/servers",
   "count": 6,
   "items": [
@@ -8,7 +8,7 @@
       "name": "Mafia City RP",
       "status": "WHITELIST_OPEN",
       "online_count": null,
-      "max_players": 200,
+      "max_players": null,
       "tags": [
         "Hard RP",
         "Voice Only",
@@ -26,7 +26,7 @@
       "name": "Vice City Online",
       "status": "IN_DEVELOPMENT",
       "online_count": null,
-      "max_players": 500,
+      "max_players": null,
       "tags": [
         "FiveM",
         "Custom UI",
@@ -44,7 +44,7 @@
       "name": "Leonida State RP",
       "status": "IN_DEVELOPMENT",
       "online_count": null,
-      "max_players": 400,
+      "max_players": null,
       "tags": [
         "Hard RP",
         "Custom UI",
@@ -60,9 +60,9 @@
     {
       "id": "56e10813-6d7a-47c6-b0e9-e2b54aac2279",
       "name": "SRTG RP",
-      "status": "ONLINE",
+      "status": null,
       "online_count": null,
-      "max_players": 128,
+      "max_players": null,
       "tags": [
         "Hard RP",
         "Voice Only",
@@ -81,7 +81,7 @@
       "name": "Vision RP",
       "status": "WHITELIST_OPEN",
       "online_count": null,
-      "max_players": 128,
+      "max_players": null,
       "tags": [
         "Hard RP",
         "Whitelisted",
@@ -98,9 +98,9 @@
     {
       "id": "65d6fad3-2b05-4c5d-8e77-daf75c2d60ab",
       "name": "American Dream RP",
-      "status": "ONLINE",
+      "status": null,
       "online_count": null,
-      "max_players": 64,
+      "max_players": null,
       "tags": [
         "Hard RP",
         "Whitelisted",

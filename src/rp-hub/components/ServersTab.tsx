@@ -2,11 +2,11 @@
 import { supa } from '../../lib/SupabaseClient';
 import PromoteServer from './PromoteServer';
 
-type ServerStatus = 'ONLINE' | 'IN_DEVELOPMENT' | 'WHITELIST_OPEN' | 'OFFLINE';
+type ServerStatus = 'IN_DEVELOPMENT' | 'WHITELIST_OPEN';
 
 interface IServer {
-  id: string; name: string; color?: string; status: ServerStatus;
-  online_count: number | null; max_players: number; tags: string[];
+  id: string; name: string; color?: string; status?: string | null;
+  tags: string[];
   description: string; connect_url?: string; discord_url?: string;
   promo_tier?: 'bump' | 'featured' | 'headline' | null; promo_until?: string | null;
 }
@@ -15,11 +15,10 @@ interface IServerNews {
   category: string; is_pinned: boolean; created_at: string;
 }
 
-const STATUS_CFG: Record<ServerStatus, { label: string; color: string; dot: string }> = {
-  ONLINE:         { label: 'ONLINE',  color: '#4ade80', dot: 'bg-emerald-400 animate-pulse' },
+// Only statuses the owner can actually know. There is no verified source for online/offline or player counts, so none are shown.
+const STATUS_CFG: Record<string, { label: string; color: string; dot: string }> = {
   IN_DEVELOPMENT: { label: 'IN DEV',  color: '#facc15', dot: 'bg-yellow-400' },
   WHITELIST_OPEN: { label: 'WL OPEN', color: '#00FFFF', dot: 'bg-cyan-400 animate-pulse' },
-  OFFLINE:        { label: 'OFFLINE', color: '#f87171', dot: 'bg-red-400' },
 };
 
 const NEWS_C: Record<string,string> = {
@@ -77,7 +76,7 @@ function ConnectModal({ server, onClose }: { server: IServer; onClose: () => voi
 }
 
 function ServerCard({ server, onConnect }: { server: IServer; onConnect: (s: IServer) => void }) {
-  const st = STATUS_CFG[server.status] || STATUS_CFG.OFFLINE;
+  const st = server.status ? STATUS_CFG[server.status] : undefined;
   const c = server.color || '#b44fff';
   const promo = activePromo(server);
   return (
@@ -95,18 +94,14 @@ function ServerCard({ server, onConnect }: { server: IServer; onConnect: (s: ISe
           </div>
           <div>
             <h3 className="font-black text-sm text-white tracking-wide leading-tight">{server.name}</h3>
-            <div className="flex items-center gap-1.5 mt-0.5">
-              <div className={`w-1.5 h-1.5 rounded-full ${st.dot}`} />
-              <span className="text-[10px] font-bold tracking-widest" style={{ color:st.color }}>{st.label}</span>
-            </div>
+            {st && (
+              <div className="flex items-center gap-1.5 mt-0.5">
+                <div className={`w-1.5 h-1.5 rounded-full ${st.dot}`} />
+                <span className="text-[10px] font-bold tracking-widest" style={{ color:st.color }}>{st.label}</span>
+              </div>
+            )}
           </div>
         </div>
-        {server.status === 'ONLINE' && (
-          <div className="text-right flex-shrink-0">
-            <div className="font-black text-sm text-neonCyan">{server.online_count ?? '—'}</div>
-            <div className="text-[10px] text-white/40">/ {server.max_players}</div>
-          </div>
-        )}
       </div>
       <p className="text-white/55 text-xs leading-relaxed mb-3 flex-1 line-clamp-2">{server.description}</p>
       <div className="flex flex-wrap gap-1 mb-3">
@@ -195,7 +190,7 @@ export default function ServersTab() {
       <div className="mb-6">
         <h2 className="font-orbitron font-black text-2xl tracking-widest mb-1 neon-text-pink">◈ SERVER INTEL DATABASE</h2>
         <p className="text-white/40 text-xs tracking-wider font-bold">
-          LIVE FEED  -  {servers.filter(s=>s.status==='ONLINE').length} SERVERS BROADCASTING
+          SERVER LIST  -  {servers.length} SERVERS LISTED
         </p>
       </div>
       <div className="flex flex-col lg:flex-row gap-6">
@@ -205,7 +200,7 @@ export default function ServersTab() {
               className="w-full bg-transparent text-white text-sm font-bold tracking-wider placeholder-white/25 outline-none pb-2 mb-4"
               style={{borderBottom:'1px solid rgba(255,0,255,0.3)'}} />
             <div className="flex flex-wrap gap-2 mb-3">
-              {['ALL','ONLINE','WHITELIST_OPEN','IN_DEVELOPMENT'].map(s => (
+              {['ALL','WHITELIST_OPEN','IN_DEVELOPMENT'].map(s => (
                 <button key={s} onClick={() => setStatusFilter(s)}
                   className={`text-[10px] px-3 py-1 rounded font-orbitron font-black tracking-wider transition-all border ${statusFilter===s?'border-neonPink/60 bg-neonPink/15 text-neonPink':'border-white/15 text-white/40 hover:border-white/30'}`}>
                   {s==='ALL'?'ALL STATUS':STATUS_CFG[s as ServerStatus]?.label||s}

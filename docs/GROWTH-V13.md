@@ -8,7 +8,7 @@ What exists, what you must configure, and how to run it.
 |---|---|---|
 | `growth` | `POST /promo`, `POST /kofi`, `GET /wall` (newsletter routes still exist but nothing in the UI calls them) | RP server promo requests, Ko-fi webhook, public data for the Wall of Legends / Agent Hall of Fame |
 | `agent-premium` | `GET /`, `GET /intel/preview`, `GET /intel` | x402 pay-per-request intel brief, $0.02 USDC (Base or Solana) |
-| `rp-online` | `GET /`, `GET /?code=<cfx code>` | Real RP server player counts from the public FiveM API (every 10 min via pg_cron) |
+| `rp-online` | retired (answers 410) | Was a player-count checker. Removed: there is no verified source for player counts. |
 
 Base URL: `https://lpglkglhjdqnktybksth.supabase.co/functions/v1/<function>`
 
@@ -17,7 +17,7 @@ Base URL: `https://lpglkglhjdqnktybksth.supabase.co/functions/v1/<function>`
 - `subscribers` (empty, unused since the newsletter was removed), `supporters`, `agent_premium_sales`, `server_promo_requests`: RLS on, no policies (service role only).
 - `hustle_scores`: public read, bounded public insert (honor system, score 1..1,000,000, name 1..16 chars).
 - `server_promo_plans`: public read. Prices are edited here, no deploy needed. Current: Street Bump $100 / 7 days, Kingpin Listing $200 / 30 days, Front Page Heist $300 / 30 days.
-- `rp_servers`: `promo_tier` / `promo_until` (set by hand after a request is paid), `cfx_code` (Cfx.re join code), `online_checked_at`.
+- `rp_servers`: `promo_tier` / `promo_until` (set by hand after a request is paid).
 
 ## The three promotion plans (what a server owner buys)
 
@@ -35,14 +35,9 @@ update rp_servers set promo_tier = 'featured', promo_until = now() + interval '3
 update server_promo_requests set status = 'LIVE' where id = '<request id>';
 ```
 
-## Real online counts
+## RP server player counts and online status
 
-- `online_count = NULL` means unknown and the UI shows a dash. Nothing is invented.
-- To get a live count for a server, give it a Cfx.re join code (the part after `cfx.re/join/` in its FiveM link):
-  ```sql
-  update rp_servers set cfx_code = 'abc123' where name = 'SRTG RP';
-  ```
-- `rp-online` checks every row with a code every 10 minutes. A code that does not exist marks the server OFFLINE with 0 players. Test a code without writing anything: `.../functions/v1/rp-online?code=abc123` (one call per minute).
+Not shown anywhere (RP Hub UI, agent feeds, llms-full). `online_count`, `max_players` and ONLINE/OFFLINE `status` are NULL. If a verified source appears later (for example Cfx.re join codes), add it back deliberately.
 
 ## Ko-fi webhook (turns Ko-fi supporters into Wall of Legends entries automatically)
 
@@ -53,7 +48,7 @@ Only supporters who tick "show publicly" appear on the wall.
 
 ## Search Console
 
-Open https://search.google.com/search-console, add a "URL prefix" property `https://vicecityhub.github.io/vicecityhub/`, choose the "HTML tag" method and send the `content="..."` value; it goes into the page head and then Verify + submit `sitemap.xml`.
+The verification tag is in `index.html`. After deploy press Verify in Search Console, then submit `sitemap.xml`.
 
 ## Moderation
 
