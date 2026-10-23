@@ -84,14 +84,11 @@ var c=document.getElementById('count');if(c){var t=new Date(+c.dataset.y,+c.data
 var s=Math.floor(d/1000);c.querySelector('[data-k=d]').textContent=Math.floor(s/86400);c.querySelector('[data-k=h]').textContent=String(Math.floor(s%86400/3600)).padStart(2,'0');c.querySelector('[data-k=m]').textContent=String(Math.floor(s%3600/60)).padStart(2,'0');c.querySelector('[data-k=s]').textContent=String(s%60).padStart(2,'0');setTimeout(tick,1000)})()}
 })();`;
 
-export const nlBlock = (src) => `<section class="card" aria-labelledby="nl-h">
-<h2 id="nl-h" style="margin-top:0">The Vice City Daily</h2>
-<p class="mut" style="margin:.2em 0 0">GTA VI news with a side of sarcasm, only when there is something worth the electricity. Join the list before launch week. Unsubscribe in one click.</p>
-<form class="nl" data-nl data-src="${esc(src)}" data-api="${GROWTH}/newsletter/subscribe" novalidate>
-<input class="hp" type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
-<input type="email" name="email" required placeholder="you@leonida.example" autocomplete="email" aria-label="Email address">
-<button class="btn" type="submit">Get the Daily</button>
-<p class="msg" role="status" style="flex-basis:100%"></p></form></section>`;
+// The email newsletter was removed (no sending domain). Same name and call sites, now a follow block with no form.
+export const nlBlock = () => `<section class="card" aria-labelledby="fl-h">
+<h2 id="fl-h" style="margin-top:0">Follow the chaos</h2>
+<p class="mut" style="margin:.2em 0 .9em">New GTA VI intel lands here first. Grab it however you like: on X, or in any RSS reader.</p>
+<a class="btn" href="https://twitter.com/ViceCityHub" rel="noopener" target="_blank">Follow on X</a> <a class="btn alt" href="${SITE}/feed.xml">RSS feed</a></section>`;
 
 export const kofiBlock = () => `<section class="card" aria-labelledby="kf-h" style="margin-top:14px">
 <h2 id="kf-h" style="margin-top:0">Fund the heist (no actual crime involved)</h2>

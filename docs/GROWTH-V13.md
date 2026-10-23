@@ -6,33 +6,54 @@ What exists, what you must configure, and how to run it.
 
 | Function | Routes | Purpose |
 |---|---|---|
-| `growth` | `POST /newsletter/subscribe`, `GET /newsletter/confirm`, `GET /newsletter/unsubscribe`, `POST /promo`, `POST /kofi`, `GET /wall` | Newsletter list, RP server promo requests, Ko-fi webhook, public data for the Wall of Legends / Agent Hall of Fame |
+| `growth` | `POST /promo`, `POST /kofi`, `GET /wall` (newsletter routes still exist but nothing in the UI calls them) | RP server promo requests, Ko-fi webhook, public data for the Wall of Legends / Agent Hall of Fame |
 | `agent-premium` | `GET /`, `GET /intel/preview`, `GET /intel` | x402 pay-per-request intel brief, $0.02 USDC (Base or Solana) |
+| `rp-online` | `GET /`, `GET /?code=<cfx code>` | Real RP server player counts from the public FiveM API (every 10 min via pg_cron) |
 
 Base URL: `https://lpglkglhjdqnktybksth.supabase.co/functions/v1/<function>`
 
-## Database (applied as migrations `growth_features_v13` and `server_promo_requests`)
+## Database
 
-- `subscribers`, `supporters`, `agent_premium_sales`, `server_promo_requests`: RLS on, no policies (service role only).
+- `subscribers` (empty, unused since the newsletter was removed), `supporters`, `agent_premium_sales`, `server_promo_requests`: RLS on, no policies (service role only).
 - `hustle_scores`: public read, bounded public insert (honor system, score 1..1,000,000, name 1..16 chars).
-- `server_promo_plans`: public read. **Edit the prices here** (seeded with placeholders: Street Bump $9/7d, Kingpin Listing $29/30d, Front Page Heist $59/30d).
-- `rp_servers.promo_tier` / `promo_until`: set by hand after a request is paid.
+- `server_promo_plans`: public read. Prices are edited here, no deploy needed. Current: Street Bump $100 / 7 days, Kingpin Listing $200 / 30 days, Front Page Heist $300 / 30 days.
+- `rp_servers`: `promo_tier` / `promo_until` (set by hand after a request is paid), `cfx_code` (Cfx.re join code), `online_checked_at`.
 
-## Things only you can do
+## The three promotion plans (what a server owner buys)
 
-1. **Ko-fi webhook** (turns Ko-fi supporters into Wall of Legends entries automatically)
-   - Ko-fi: Settings > API > Webhooks. Webhook URL: `https://lpglkglhjdqnktybksth.supabase.co/functions/v1/growth/kofi`
-   - Copy the verification token from the same page and store it as the Supabase secret `KOFI_VERIFICATION_TOKEN`.
-   - Only supporters who tick "show publicly" appear on the wall.
-2. **Newsletter sending needs a verified domain in Resend.** The Resend account currently has no verified domain, so mail can only go to the account owner. Until then the signup form stores addresses as `pending` and promises nothing it cannot deliver.
-   - Verify a regular domain in Resend (the `.hub` UD name cannot receive or send email), then set the Supabase secret `NEWSLETTER_FROM` to `Vice City Hub <hello@your-domain>`.
-   - After that, new signups receive a confirmation email and become `confirmed` on click.
-3. **Activate a paid RP promotion** after payment:
-   ```sql
-   update rp_servers set promo_tier = 'featured', promo_until = now() + interval '30 days' where id = '<server id>';
-   update server_promo_requests set status = 'LIVE' where id = '<request id>';
-   ```
-4. **Search Console / Bing Webmaster**: verify `https://vicecityhub.github.io/vicecityhub/` and submit `sitemap.xml`. Until you do there is no traffic data other than the Agent API tables.
+They only affect the RP Hub server list. After payment you set the plan on the server's row:
+
+| Plan | What the server gets |
+|---|---|
+| Street Bump | Jumps to the top of the list, "BUMPED" badge, for 7 days |
+| Kingpin Listing | Pinned above normal servers, neon FEATURED frame, 30 days |
+| Front Page Heist | Everything above plus a spotlight in the RP Hub header and a mention in a Wire news item, 30 days |
+
+Activate after payment:
+```sql
+update rp_servers set promo_tier = 'featured', promo_until = now() + interval '30 days' where name = 'Server Name';
+update server_promo_requests set status = 'LIVE' where id = '<request id>';
+```
+
+## Real online counts
+
+- `online_count = NULL` means unknown and the UI shows a dash. Nothing is invented.
+- To get a live count for a server, give it a Cfx.re join code (the part after `cfx.re/join/` in its FiveM link):
+  ```sql
+  update rp_servers set cfx_code = 'abc123' where name = 'SRTG RP';
+  ```
+- `rp-online` checks every row with a code every 10 minutes. A code that does not exist marks the server OFFLINE with 0 players. Test a code without writing anything: `.../functions/v1/rp-online?code=abc123` (one call per minute).
+
+## Ko-fi webhook (turns Ko-fi supporters into Wall of Legends entries automatically)
+
+1. Ko-fi: Settings > API. Webhook URL: `https://lpglkglhjdqnktybksth.supabase.co/functions/v1/growth/kofi`
+2. On the same Ko-fi page copy the Verification Token.
+3. Supabase dashboard > Edge Functions > Secrets: add `KOFI_VERIFICATION_TOKEN` with that value.
+Only supporters who tick "show publicly" appear on the wall.
+
+## Search Console
+
+Open https://search.google.com/search-console, add a "URL prefix" property `https://vicecityhub.github.io/vicecityhub/`, choose the "HTML tag" method and send the `content="..."` value; it goes into the page head and then Verify + submit `sitemap.xml`.
 
 ## Moderation
 
@@ -41,5 +62,5 @@ Base URL: `https://lpglkglhjdqnktybksth.supabase.co/functions/v1/<function>`
 
 ## Keeping the pieces in sync
 
-- `slugify()` in `scripts/lib/seo.mjs` and `slug()` in `agent-premium` must stay identical (canonical URLs in the paid brief point at the static news pages).
-- The release date lives in `site.config.json` (`release.date`). Update it when Rockstar moves the date.
+- `slugify()` in `scripts/lib/seo.mjs` and `slug()` in `agent-premium` must stay identical.
+- The release date lives in `site.config.json` (`release.date`).

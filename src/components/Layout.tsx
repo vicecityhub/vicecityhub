@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-import NewsletterSignup from './NewsletterSignup';
 import { supa } from '../lib/SupabaseClient';
 import { Volume2, VolumeX, Menu, X, Radio, Map, LogIn, User, Trash2, Edit3, Save, ExternalLink, Heart, Copy, Check, Upload } from 'lucide-react';
 
@@ -809,8 +808,6 @@ export default function Layout({ children, activePage }: LayoutProps) {
         <div className="text-[10px] text-gray-600 tracking-widest uppercase mb-8">
           Grand Theft Auto VI™ is a registered trademark of Take-Two Interactive Software, Inc.
         </div>
-
-        <NewsletterSignup source="footer" />
 
         {/* Contact Links Box */}
         <div className="glass-card max-w-[700px] w-full p-8 flex flex-col items-center gap-4 border border-neonPink/20 shadow-2xl">

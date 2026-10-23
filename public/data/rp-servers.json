@@ -1,49 +1,13 @@
 {
-  "generated_at": "2026-10-23T06:44:25.829Z",
+  "generated_at": "2026-10-23T06:55:47.885Z",
   "source": "https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/v1/rp/servers",
-  "count": 9,
+  "count": 6,
   "items": [
-    {
-      "id": "4dda1ab2-6298-4064-88d7-e94e76acb83e",
-      "name": "NoPixel 4.0",
-      "status": "ONLINE",
-      "online_count": 247,
-      "max_players": 300,
-      "tags": [
-        "Hard RP",
-        "Whitelisted",
-        "Custom UI",
-        "NoPixel Style"
-      ],
-      "description": "The legendary whitelist server. Home of the biggest streamers. Zero tolerance for fail RP.",
-      "connect_url": "fivem://connect/cfx.re/join/nopixel",
-      "discord_url": "https://discord.gg/nopixel",
-      "is_featured": true,
-      "logo_url": null
-    },
-    {
-      "id": "067ee63f-3b8b-4bda-9fc7-f3cffa9eedbc",
-      "name": "Eclipse RP",
-      "status": "ONLINE",
-      "online_count": 891,
-      "max_players": 1000,
-      "tags": [
-        "Voice Only",
-        "Public",
-        "FiveM",
-        "Economy Sim"
-      ],
-      "description": "Biggest public RP server in North America. Serious rules, serious economy, serious drama.",
-      "connect_url": "fivem://connect/cfx.re/join/eclipse",
-      "discord_url": "https://discord.gg/eclipserp",
-      "is_featured": true,
-      "logo_url": null
-    },
     {
       "id": "e12404b0-56f6-4fef-8fd3-65c30ceb2ea2",
       "name": "Mafia City RP",
       "status": "WHITELIST_OPEN",
-      "online_count": 0,
+      "online_count": null,
       "max_players": 200,
       "tags": [
         "Hard RP",
@@ -61,7 +25,7 @@
       "id": "234814f1-6410-4293-abe7-b075ea8a857f",
       "name": "Vice City Online",
       "status": "IN_DEVELOPMENT",
-      "online_count": 0,
+      "online_count": null,
       "max_players": 500,
       "tags": [
         "FiveM",
@@ -76,27 +40,10 @@
       "logo_url": null
     },
     {
-      "id": "5018f6bb-d3d1-44c3-8607-7688c3691692",
-      "name": "Badlands RP",
-      "status": "ONLINE",
-      "online_count": 134,
-      "max_players": 200,
-      "tags": [
-        "Public",
-        "FiveM",
-        "Voice Only"
-      ],
-      "description": "Mid-tier public server with solid economy scripts. Good for learning RP before going whitelist.",
-      "connect_url": "fivem://connect/cfx.re/join/badlands",
-      "discord_url": null,
-      "is_featured": false,
-      "logo_url": null
-    },
-    {
       "id": "bf6b3f40-4e22-4716-bf92-e037f2854f1d",
       "name": "Leonida State RP",
       "status": "IN_DEVELOPMENT",
-      "online_count": 0,
+      "online_count": null,
       "max_players": 400,
       "tags": [
         "Hard RP",
@@ -114,7 +61,7 @@
       "id": "56e10813-6d7a-47c6-b0e9-e2b54aac2279",
       "name": "SRTG RP",
       "status": "ONLINE",
-      "online_count": 67,
+      "online_count": null,
       "max_players": 128,
       "tags": [
         "Hard RP",
@@ -133,7 +80,7 @@
       "id": "7033864f-26a6-4a13-b7d6-1ae59c04f25c",
       "name": "Vision RP",
       "status": "WHITELIST_OPEN",
-      "online_count": 0,
+      "online_count": null,
       "max_players": 128,
       "tags": [
         "Hard RP",
@@ -152,7 +99,7 @@
       "id": "65d6fad3-2b05-4c5d-8e77-daf75c2d60ab",
       "name": "American Dream RP",
       "status": "ONLINE",
-      "online_count": 35,
+      "online_count": null,
       "max_players": 64,
       "tags": [
         "Hard RP",

@@ -29,7 +29,7 @@ Important for agents: prefer the Agent API or static JSON feeds below over scrap
 
 - [news](https://vicecityhub.github.io/vicecityhub/data/news.json): 26 items — live version: https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/v1/news
 - [catalog](https://vicecityhub.github.io/vicecityhub/data/catalog.json): 53 items — live version: https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/v1/catalog
-- [rp_servers](https://vicecityhub.github.io/vicecityhub/data/rp-servers.json): 9 items — live version: https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/v1/rp/servers
+- [rp_servers](https://vicecityhub.github.io/vicecityhub/data/rp-servers.json): 6 items — live version: https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/v1/rp/servers
 - [rp_factions](https://vicecityhub.github.io/vicecityhub/data/rp-factions.json): 15 items — live version: https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/v1/rp/factions
 - [rp_jobs](https://vicecityhub.github.io/vicecityhub/data/rp-jobs.json): 6 items — live version: https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/v1/rp/jobs
 - [rp_mods](https://vicecityhub.github.io/vicecityhub/data/rp-mods.json): 8 items — live version: https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/v1/rp/mods

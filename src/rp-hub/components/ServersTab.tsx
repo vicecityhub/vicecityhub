@@ -6,7 +6,7 @@ type ServerStatus = 'ONLINE' | 'IN_DEVELOPMENT' | 'WHITELIST_OPEN' | 'OFFLINE';
 
 interface IServer {
   id: string; name: string; color?: string; status: ServerStatus;
-  online_count: number; max_players: number; tags: string[];
+  online_count: number | null; max_players: number; tags: string[];
   description: string; connect_url?: string; discord_url?: string;
   promo_tier?: 'bump' | 'featured' | 'headline' | null; promo_until?: string | null;
 }
@@ -103,7 +103,7 @@ function ServerCard({ server, onConnect }: { server: IServer; onConnect: (s: ISe
         </div>
         {server.status === 'ONLINE' && (
           <div className="text-right flex-shrink-0">
-            <div className="font-black text-sm text-neonCyan">{server.online_count}</div>
+            <div className="font-black text-sm text-neonCyan">{server.online_count ?? '—'}</div>
             <div className="text-[10px] text-white/40">/ {server.max_players}</div>
           </div>
         )}

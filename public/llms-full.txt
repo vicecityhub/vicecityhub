@@ -1,6 +1,6 @@
 # Vice City Hub — full guide for AI agents (v12.0.0)
 
-Generated 2026-10-23T06:44:25.829Z. Live data beats this snapshot: call the API for anything time-sensitive.
+Generated 2026-10-23T06:55:47.885Z. Live data beats this snapshot: call the API for anything time-sensitive.
 
 ## What this site is
 
@@ -439,17 +439,14 @@ Catalog: GET https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-premium
 - `merchv:5372556284` 4XL / White — $43.25 — in_stock
 - `merchv:5372556285` 5XL / White — $44.95 — in_stock
 
-## RP servers (9)
+## RP servers (6)
 
-- **NoPixel 4.0** [ONLINE] 247/300 players — The legendary whitelist server. Home of the biggest streamers. Zero tolerance for fail RP. — connect: fivem://connect/cfx.re/join/nopixel
-- **Eclipse RP** [ONLINE] 891/1000 players — Biggest public RP server in North America. Serious rules, serious economy, serious drama. — connect: fivem://connect/cfx.re/join/eclipse
-- **Mafia City RP** [WHITELIST_OPEN] 0/200 players — Applications open now. Dedicated to organized crime RP. If you spit wrong, you're out.
-- **Vice City Online** [IN_DEVELOPMENT] 0/500 players — Set in Vice City map. 80s aesthetics, drug trade mechanics, Scarface energy. Q2 2025 launch.
-- **Badlands RP** [ONLINE] 134/200 players — Mid-tier public server with solid economy scripts. Good for learning RP before going whitelist. — connect: fivem://connect/cfx.re/join/badlands
-- **Leonida State RP** [IN_DEVELOPMENT] 0/400 players — GTA 6 Leonida map when it drops. Building the framework now. Whitelist applications pre-open.
-- **SRTG RP** [ONLINE] 67/128 players — Free Access. No pay to win. Custom scripts built in-house. Gang, LSPD, EMS, Civilian — every role shapes the city. Your story starts small and ends at the top.
-- **Vision RP** [WHITELIST_OPEN] 0/128 players — Quality over quantity. Gang and MC slots open. Legal businesses available for takeover. Whitelist sessions Mon–Fri 18h–20h. Every scene leaves a mark.
-- **American Dream RP** [ONLINE] 35/64 players — Serious US-style RP. WL server. Custom businesses, exclusive features, reactive staff. Legal and illegal recruitment open. 30–40 active players nightly. Beginn…
+- **Mafia City RP** [WHITELIST_OPEN] ?/200 players — Applications open now. Dedicated to organized crime RP. If you spit wrong, you're out.
+- **Vice City Online** [IN_DEVELOPMENT] ?/500 players — Set in Vice City map. 80s aesthetics, drug trade mechanics, Scarface energy. Q2 2025 launch.
+- **Leonida State RP** [IN_DEVELOPMENT] ?/400 players — GTA 6 Leonida map when it drops. Building the framework now. Whitelist applications pre-open.
+- **SRTG RP** [ONLINE] ?/128 players — Free Access. No pay to win. Custom scripts built in-house. Gang, LSPD, EMS, Civilian — every role shapes the city. Your story starts small and ends at the top.
+- **Vision RP** [WHITELIST_OPEN] ?/128 players — Quality over quantity. Gang and MC slots open. Legal businesses available for takeover. Whitelist sessions Mon–Fri 18h–20h. Every scene leaves a mark.
+- **American Dream RP** [ONLINE] ?/64 players — Serious US-style RP. WL server. Custom businesses, exclusive features, reactive staff. Legal and illegal recruitment open. 30–40 active players nightly. Beginn…
 
 ## Latest news (26)
 

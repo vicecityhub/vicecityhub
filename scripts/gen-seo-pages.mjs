@@ -10,7 +10,6 @@
  *   public/vehicles/...               index + one page per GTA VI vehicle from src/pages/Document.tsx (FAQPage JSON-LD)
  *   public/gta-6-release-date/        countdown + facts + FAQPage (facts live in site.config.json -> release)
  *   public/supporters/                Wall of Legends (Ko-fi supporters) + Agent Hall of Fame (from the growth edge function)
- *   public/newsletter/                landing page for confirm / unsubscribe redirects (noindex)
  *   public/feed.xml                   RSS 2.0
  *   public/sitemap.xml                full sitemap (replaces the one gen-agent-surface.mjs writes)
  *
@@ -306,16 +305,6 @@ ${ag.length ? `<ul class="list">${ag.map((a) => `<li class="card"><b style="colo
     }));
   }
 }
-
-// ---------------------------------------------------------------- newsletter landing (confirm / unsubscribe redirects)
-out('newsletter/index.html', shell({
-  title: 'Vice City Daily | Vice City Hub', description: 'Subscription status for the Vice City Daily newsletter.', path: 'newsletter/', noindex: true,
-  ld: [],
-  body: `<h1>Vice City Daily</h1>
-<p id="st" class="lead">Pick up the Daily before launch week.</p>
-<script>(function(){var s=new URLSearchParams(location.search).get('s'),m={confirmed:'Confirmed. Welcome to the underworld.',unsubscribed:'Unsubscribed. No hard feelings, we are dead inside anyway.',error:'That link did not work. It may have expired. Try subscribing again below.'};if(s&&m[s])document.getElementById('st').textContent=m[s]})();</script>
-${nlBlock('newsletter-page')}`,
-}));
 
 // ---------------------------------------------------------------- RSS
 if (news.length) {
