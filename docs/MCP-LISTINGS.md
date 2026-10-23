@@ -21,3 +21,11 @@ Category: Gaming / E-commerce
 1. Official MCP Registry: `mcp-publisher publish` (server.json in repo root). PulseMCP ingests it automatically.
 2. Glama: https://glama.ai/mcp/servers (Add server -> paste repository URL). Needs a Glama account.
 3. Smithery: https://smithery.ai/new (Remote server -> paste the MCP endpoint above). Needs a Smithery account.
+4. Awesome-MCP style GitHub lists: open a PR adding the one-line description above with the repository URL.
+
+## Paid x402 endpoint (for agent marketplaces that list pay-per-call APIs)
+
+Catalog (free): https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-premium
+Product: GET /intel?hours=72 - $0.02 USDC on Base or Solana, x402 v2, no API key. Free preview at /intel/preview.
+Short description: GTA VI intel brief as one entity-tagged JSON document, pay per request in USDC.
+Note: discovery through the Coinbase x402 Bazaar needs the bazaar extension declared in the 402 response. That is NOT implemented yet; the endpoint is currently discoverable through llms.txt, agent.json and the directories above only.

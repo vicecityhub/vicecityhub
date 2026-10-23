@@ -1,4 +1,5 @@
 import React, { useRef, useEffect, useCallback, useState } from "react";
+import HustleLeaderboard from "./HustleLeaderboard";
 
 const W = 320, H = 420;
 const HORIZON_Y = 132, PY = H - 76;
@@ -604,6 +605,7 @@ export default function ViceArcadeGame() {
         <div className="absolute top-12 left-4 font-orbitron font-black text-xs text-blue-300"
           style={{textShadow:"0 0 8px rgba(68,136,255,0.9)"}}>SHIELD READY</div>
       )}
+      <HustleLeaderboard score={disp.score} levelName={disp.levelName} gameOver={disp.gameOver} />
     </div>
   );
 }

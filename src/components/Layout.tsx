@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import NewsletterSignup from './NewsletterSignup';
 import { supa } from '../lib/SupabaseClient';
 import { Volume2, VolumeX, Menu, X, Radio, Map, LogIn, User, Trash2, Edit3, Save, ExternalLink, Heart, Copy, Check, Upload } from 'lucide-react';
 
@@ -702,6 +703,10 @@ export default function Layout({ children, activePage }: LayoutProps) {
           <a href="./realestate.html" className={`hover:text-neonCyan transition-all ${activePage === 'realestate' ? 'text-neonCyan neon-text-cyan' : 'text-gray-500'}`}>Dynasty 8</a>
           <a href="./document.html" className={`hover:text-neonCyan transition-all ${activePage === 'document' ? 'text-neonCyan neon-text-cyan' : 'text-gray-500'}`}>Leonida Database</a>
           <a href="./agents.html" className={`hover:text-neonCyan transition-all ${activePage === 'agents' ? 'text-neonCyan neon-text-cyan' : 'text-gray-500'}`}>Agents</a>
+            <a href="./n/" className="hover:text-neonCyan transition-all text-gray-500">News Archive</a>
+            <a href="./vehicles/" className="hover:text-neonCyan transition-all text-gray-500">Vehicles</a>
+            <a href="./gta-6-release-date/" className="hover:text-neonCyan transition-all text-gray-500">GTA 6 Date</a>
+            <a href="./supporters/" className="hover:text-neonCyan transition-all text-gray-500">Wall of Legends</a>
           <a href="./rp.html" className={`hover:text-neonPink transition-all flex items-center gap-1.5 font-bold ${activePage === 'rp' ? 'text-neonPink neon-text-pink' : 'text-gray-500'}`}><span className="text-[8px] px-1.5 py-0.5 rounded border border-neonPink/60 bg-neonPink/10 text-neonPink font-orbitron font-black">NEW</span>RP Hub</a>
         </div>
 
@@ -804,6 +809,8 @@ export default function Layout({ children, activePage }: LayoutProps) {
         <div className="text-[10px] text-gray-600 tracking-widest uppercase mb-8">
           Grand Theft Auto VI™ is a registered trademark of Take-Two Interactive Software, Inc.
         </div>
+
+        <NewsletterSignup source="footer" />
 
         {/* Contact Links Box */}
         <div className="glass-card max-w-[700px] w-full p-8 flex flex-col items-center gap-4 border border-neonPink/20 shadow-2xl">

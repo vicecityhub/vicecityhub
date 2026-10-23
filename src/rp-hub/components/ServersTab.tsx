@@ -1,5 +1,6 @@
 ﻿import React, { useState, useMemo, useEffect } from 'react';
 import { supa } from '../../lib/SupabaseClient';
+import PromoteServer from './PromoteServer';
 
 type ServerStatus = 'ONLINE' | 'IN_DEVELOPMENT' | 'WHITELIST_OPEN' | 'OFFLINE';
 
@@ -7,6 +8,7 @@ interface IServer {
   id: string; name: string; color?: string; status: ServerStatus;
   online_count: number; max_players: number; tags: string[];
   description: string; connect_url?: string; discord_url?: string;
+  promo_tier?: 'bump' | 'featured' | 'headline' | null; promo_until?: string | null;
 }
 interface IServerNews {
   id: string; server_name: string; title: string; body: string;
@@ -27,6 +29,12 @@ const NEWS_C: Record<string,string> = {
 };
 
 const ALL_TAGS = ['Hard RP','Voice Only','Custom UI','Economy Sim','Whitelisted','Public','FiveM','NoPixel Style'];
+
+const PROMO_LABEL = { bump: 'BUMPED', featured: 'FEATURED', headline: 'HEADLINE' } as const;
+const PROMO_RANK = { bump: 1, featured: 2, headline: 3 } as const;
+const activePromo = (s: IServer) =>
+  s.promo_tier && s.promo_until && new Date(s.promo_until).getTime() > Date.now() ? s.promo_tier : null;
+const promoRank = (s: IServer) => { const t = activePromo(s); return t ? PROMO_RANK[t] : 0; };
 
 function ConnectModal({ server, onClose }: { server: IServer; onClose: () => void }) {
   const [copied, setCopied] = useState(false);
@@ -71,8 +79,14 @@ function ConnectModal({ server, onClose }: { server: IServer; onClose: () => voi
 function ServerCard({ server, onConnect }: { server: IServer; onConnect: (s: IServer) => void }) {
   const st = STATUS_CFG[server.status] || STATUS_CFG.OFFLINE;
   const c = server.color || '#b44fff';
+  const promo = activePromo(server);
   return (
-    <div className="glass-card rounded-lg p-4 flex flex-col h-full">
+    <div className="glass-card rounded-lg p-4 flex flex-col h-full relative"
+      style={promo ? { boxShadow: '0 0 0 1px #FF2D78, 0 0 22px rgba(255,45,120,0.35)' } : undefined}>
+      {promo && (
+        <span className="absolute -top-2 right-3 text-[8px] px-2 py-0.5 rounded font-orbitron font-black tracking-widest"
+          style={{ background: '#FF2D78', color: '#fff' }} title="Paid promotion">PROMOTED · {PROMO_LABEL[promo]}</span>
+      )}
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-lg flex items-center justify-center text-base font-black flex-shrink-0"
@@ -173,7 +187,7 @@ export default function ServersTab() {
     return (s.name.toLowerCase().includes(q) || (s.description||'').toLowerCase().includes(q))
       && (!tagFilter || (s.tags||[]).includes(tagFilter))
       && (statusFilter==='ALL' || s.status===statusFilter);
-  }), [servers, search, tagFilter, statusFilter]);
+  }).sort((a, b) => promoRank(b) - promoRank(a)), [servers, search, tagFilter, statusFilter]);
 
   return (
     <div className="slide-in">
@@ -227,6 +241,7 @@ export default function ServersTab() {
               style={{borderBottom:'1px solid rgba(0,255,255,0.2)'}}>◈ INCOMING TRANSMISSIONS</h3>
             {news.length>0 ? news.map(n=><NewsCard key={n.id} news={n}/>) : <p className="text-xs text-white/25 text-center py-4">No transmissions yet</p>}
           </div>
+          <PromoteServer />
           <div className="glass-card-static rounded-lg p-4 border border-white/[0.05]">
             <h3 className="text-[11px] font-orbitron font-black tracking-widest mb-3" style={{color:'var(--neon-purple)'}}>◈ LIVE STREAMERS</h3>
             <div className="space-y-2">

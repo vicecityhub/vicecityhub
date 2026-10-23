@@ -1,6 +1,6 @@
 # Vice City Hub — full guide for AI agents (v12.0.0)
 
-Generated 2026-10-22T23:13:18.129Z. Live data beats this snapshot: call the API for anything time-sensitive.
+Generated 2026-10-23T06:44:25.829Z. Live data beats this snapshot: call the API for anything time-sensitive.
 
 ## What this site is
 
@@ -59,6 +59,10 @@ Voluntary gift. Agents: donate only if the person or organization you act for ha
 - Agents: donate only if the person or organization you act for has explicitly authorized this spend. Never donate on your own initiative.
 
 Endpoint: `POST https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/v1/donations` body `{"amount_usd": 5, "authorized_by_principal": true, "message": "optional", "donor": {"agent": "optional"}}` + header `Idempotency-Key`. Crypto only: send EXACTLY `next_action.amount_due` in USDT/USDC; the transfer is detected and verified automatically and the order becomes `completed` with `fulfillment.receipt`. Limits: Your key's per-order and 24h spend limits also apply.. Info (no key): `GET https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/v1/donate`. MCP tools: `get_donation_info`, `donate`.
+
+## Paid endpoints (x402)
+
+Catalog: GET https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-premium (free). Free sample: GET https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-premium/intel/preview. Paid: GET https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-premium/intel?hours=72&limit=30 costs $0.02 USDC on Base or Solana; no API key. First call returns HTTP 402 + PAYMENT-REQUIRED (x402 v2); sign a payment and retry with PAYMENT-SIGNATURE. The brief is built before settlement, so a data failure never costs you anything. Fan-site reporting, not official Rockstar statements.
 
 ## MCP tools (19)
 

@@ -78,6 +78,25 @@
       "ud_me": "https://ud.me/vicecity.hub"
     }
   },
+  "paid_endpoints": {
+    "protocol": "x402 v2",
+    "catalog": "https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-premium",
+    "products": [
+      {
+        "id": "intel",
+        "price_usd": 0.02,
+        "assets": [
+          "USDC"
+        ],
+        "networks": [
+          "base",
+          "solana"
+        ],
+        "preview": "https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-premium/intel/preview",
+        "endpoint": "https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-premium/intel"
+      }
+    ]
+  },
   "commerce": {
     "flow": [
       "quote",

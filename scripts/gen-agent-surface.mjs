@@ -29,6 +29,7 @@ const PUB = join(ROOT, 'public');
 const STRICT = process.argv.includes('--strict');
 const cfg = JSON.parse(readFileSync(join(ROOT, 'site.config.json'), 'utf8'));
 const { site: SITE, api: API, version: VERSION } = cfg;
+const PREMIUM = API.replace(/\/agent-api$/, '/agent-premium'); // v13: x402 pay-per-request endpoints
 const NOW = new Date();
 const ISO = NOW.toISOString();
 let degraded = 0;
@@ -183,6 +184,10 @@ L.push(
   `- [Donation info (JSON)](${API}/v1/donate): purpose, terms, limits, wallets, received totals`,
 `- x402 (no API key): \`GET ${API}/v1/donate/x402?amount_usd=5\` answers HTTP 402 with a PAYMENT-REQUIRED header; pay USDC on Base or Solana and retry with PAYMENT-SIGNATURE (x402 v2). Signing the payment is your wallet's authorization.`,
   `- Donate as an agent: \`POST ${API}/v1/donations {amount_usd, authorized_by_principal: true}\` with an \`Idempotency-Key\` (crypto, detected automatically, receipt on completion) or MCP tool \`donate\`. Humans: https://ko-fi.com/vicecityhub or https://ud.me/vicecity.hub`,
+  '', '## Paid endpoints (x402, no API key)', '',
+  `- [Catalog](${PREMIUM}): products, prices and protocol (free)`,
+  `- [Intel brief preview](${PREMIUM}/intel/preview): free sample, signals and 3 headlines`,
+  `- \`GET ${PREMIUM}/intel?hours=72\`: the full GTA VI intel brief as one tagged JSON document for $0.02 USDC (Base or Solana). Answers HTTP 402 with a PAYMENT-REQUIRED header; retry with PAYMENT-SIGNATURE (x402 v2). The same news is free item by item through the Agent API; you pay for the assembled, entity-tagged brief.`,
   '', '## Optional', '',
   `- [Agent card](${SITE}/.well-known/agent.json)`,
   `- [API catalog (RFC 9727)](${SITE}/.well-known/api-catalog)`,
@@ -221,6 +226,7 @@ F.push(
 );
 F.push('## Support the project (donations for AI development)', '', donate.purpose, '', DON_RULE, '', ...(donate.terms || []).map((t) => `- ${t}`), '',
   `Endpoint: \`POST ${API}/v1/donations\` body \`{"amount_usd": 5, "authorized_by_principal": true, "message": "optional", "donor": {"agent": "optional"}}\` + header \`Idempotency-Key\`. Crypto only: send EXACTLY \`next_action.amount_due\` in USDT/USDC; the transfer is detected and verified automatically and the order becomes \`completed\` with \`fulfillment.receipt\`. Limits: ${donate.how_to_donate?.limits || "the key spend limits apply"}. Info (no key): \`GET ${API}/v1/donate\`. MCP tools: \`get_donation_info\`, \`donate\`.`, '');
+F.push('## Paid endpoints (x402)', '', `Catalog: GET ${PREMIUM} (free). Free sample: GET ${PREMIUM}/intel/preview. Paid: GET ${PREMIUM}/intel?hours=72&limit=30 costs $0.02 USDC on Base or Solana; no API key. First call returns HTTP 402 + PAYMENT-REQUIRED (x402 v2); sign a payment and retry with PAYMENT-SIGNATURE. The brief is built before settlement, so a data failure never costs you anything. Fan-site reporting, not official Rockstar statements.`, '');
 F.push(`## MCP tools (${tools.length})`, '', ...tools.map((t) => `- \`${t.name}\` — ${trunc(t.description, 220)}`), '');
 F.push(`## Catalog snapshot (${catalog.length} items)`, '', '| SKU | Kind | Title | Price | Purchase |', '|---|---|---|---|---|');
 for (const i of catalog) F.push(`| \`${i.sku}\` | ${i.kind} | ${trunc(i.title, 70).replace(/\|/g, '/')} | ${money(i).replace(/\|/g, '/')} | ${how(i)} |`);
@@ -257,6 +263,7 @@ out('.well-known/agent.json', {
   authentication: { required: false, note: 'Reads are anonymous. Orders need a Bearer key (self-register: POST /v1/agents/register).', schemes: ['bearer'], registration: `${API}/v1/agents/register` },
   capabilities: { streaming: false, pushNotifications: false, commerce: true, donations: true },
   donations: donationsCard,
+  paid_endpoints: { protocol: 'x402 v2', catalog: PREMIUM, products: [{ id: 'intel', price_usd: 0.02, assets: ['USDC'], networks: ['base', 'solana'], preview: `${PREMIUM}/intel/preview`, endpoint: `${PREMIUM}/intel` }] },
   commerce: {
     flow: ['quote', 'order', 'pay', 'verify', 'status'],
     rails: [{ id: 'paypal', for: ['merch', 'plan'] }, { id: 'crypto', automatic: true, for: ['merch', 'domain', 'plan'], assets: ['USDT', 'USDC'], chains: ['tron', 'ethereum', 'polygon', 'base', 'arbitrum', 'optimism', 'solana'] }],

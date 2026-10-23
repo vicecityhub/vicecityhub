@@ -51,6 +51,12 @@ Voluntary gift. Agents: donate only if the person or organization you act for ha
 - x402 (no API key): `GET https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/v1/donate/x402?amount_usd=5` answers HTTP 402 with a PAYMENT-REQUIRED header; pay USDC on Base or Solana and retry with PAYMENT-SIGNATURE (x402 v2). Signing the payment is your wallet's authorization.
 - Donate as an agent: `POST https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/v1/donations {amount_usd, authorized_by_principal: true}` with an `Idempotency-Key` (crypto, detected automatically, receipt on completion) or MCP tool `donate`. Humans: https://ko-fi.com/vicecityhub or https://ud.me/vicecity.hub
 
+## Paid endpoints (x402, no API key)
+
+- [Catalog](https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-premium): products, prices and protocol (free)
+- [Intel brief preview](https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-premium/intel/preview): free sample, signals and 3 headlines
+- `GET https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-premium/intel?hours=72`: the full GTA VI intel brief as one tagged JSON document for $0.02 USDC (Base or Solana). Answers HTTP 402 with a PAYMENT-REQUIRED header; retry with PAYMENT-SIGNATURE (x402 v2). The same news is free item by item through the Agent API; you pay for the assembled, entity-tagged brief.
+
 ## Optional
 
 - [Agent card](https://vicecityhub.github.io/vicecityhub/.well-known/agent.json)
