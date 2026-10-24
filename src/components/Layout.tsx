@@ -5,6 +5,7 @@ import { Volume2, VolumeX, Menu, X, Radio, Map, LogIn, User, Trash2, Edit3, Save
 // Loaded dynamically from the Supabase Storage bucket 'muz'
 // Falls back to 2 default tracks if the fetch fails
 import { getOrCreateAudio, getTrackIndex } from '../lib/AudioManager';
+import { trackPageView } from '../lib/analytics';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -365,6 +366,8 @@ export default function Layout({ children, activePage }: LayoutProps) {
       }
     };
   }, []);
+
+  useEffect(() => { trackPageView(); }, []);
 
   const toggleRadio = (e: React.MouseEvent) => {
     e.stopPropagation();

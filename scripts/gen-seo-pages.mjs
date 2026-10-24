@@ -74,7 +74,8 @@ function newsCard(n) {
 
 function newsPage(n) {
   const url = newsUrl(n);
-  const img = (Array.isArray(n.images) && n.images[0]) || cfg.logo;
+  const card = existsSync(join(ROOT, 'public', 'og', `${n.id}.png`)) ? `${SITE}/og/${n.id}.png` : null; // branded share card from scripts/gen-og.mjs
+  const img = card || (Array.isArray(n.images) && n.images[0]) || cfg.logo;
   const paras = String(n.body || n.summary || '').split(/\n+/).map(one).filter(Boolean);
   const related = news.filter((x) => x.id !== n.id)
     .sort((a, b) => (b.category === n.category) - (a.category === n.category) || new Date(b.published_at) - new Date(a.published_at))
@@ -215,6 +216,51 @@ ${classes.map((c) => `<h2>${esc(c)}</h2><ul class="grid list" style="display:gri
   }));
 }
 
+// ---------------------------------------------------------------- "Is GTA 6 out yet?" page (one-word answer, high-intent query)
+{
+  const [Y, M, D] = String(RELEASE.date).split('-').map(Number);
+  const pretty = longDate(`${RELEASE.date}T12:00:00Z`);
+  const target = Date.UTC(Y, M - 1, D);
+  const isOut = Date.now() >= target;
+  const daysLeft = Math.max(0, Math.ceil((target - Date.now()) / 86400000));
+  const plural = daysLeft === 1 ? '' : 's';
+  const faq = [
+    ['Is GTA 6 out yet?', isOut
+      ? `Yes. Grand Theft Auto VI was scheduled to launch on ${pretty}.`
+      : `No. Grand Theft Auto VI is scheduled for ${pretty}, which is ${daysLeft} day${plural} from the last update of this page.`],
+    ['Can I play GTA 6 right now?', isOut
+      ? 'If you own it on PlayStation 5 or Xbox Series X|S, yes. Go outside afterwards. Or do not.'
+      : 'Not legitimately. Rockstar has not announced a public beta or early access. Anyone offering you a download today is offering you malware.'],
+    ['Which platforms is GTA 6 coming to?', 'PlayStation 5 and Xbox Series X|S. Rockstar has not announced a PC version.'],
+    ['What time does GTA 6 unlock?', 'Rockstar has not announced an exact unlock time. We update this page the moment it does.'],
+    ['Has the GTA 6 release date moved before?', `Yes, it has been rescheduled before. This page follows the current date from Rockstar and Take-Two announcements and shows when we last verified it (${RELEASE.verified}).`],
+  ];
+  const ld = [
+    { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faq.map(([q, a]) => ({ '@type': 'Question', name: q, acceptedAnswer: { '@type': 'Answer', text: a } })) },
+    crumbs([['Home', SITE + '/'], ['Is GTA 6 Out Yet?', SITE + '/is-gta-6-out-yet/']]),
+  ];
+  const latest = news.slice(0, 4);
+  const body = `<p class="crumbs"><a href="${SITE}/">Home</a> / Is GTA 6 out yet?</p>
+<h1>Is GTA 6 out yet?</h1>
+<p id="yn" class="yn ${isOut ? 'yes' : 'no'}" role="status">${isOut ? 'YES' : 'NO'}</p>
+<p class="lead" style="text-align:center">${isOut ? 'It is out. Your free time is not.' : `Launch is ${esc(pretty)}. Check back in ${daysLeft} day${plural}, or keep refreshing, we will not judge.`}</p>
+<div id="count" class="count" data-y="${Y}" data-m="${M}" data-d="${D}" aria-live="off">
+<div><b data-k="d">--</b><span>Days</span></div><div><b data-k="h">--</b><span>Hours</span></div><div><b data-k="m">--</b><span>Min</span></div><div><b data-k="s">--</b><span>Sec</span></div></div>
+<script>(function(){var e=document.getElementById('yn');if(!e)return;var t=Date.UTC(${Y},${M - 1},${D});function u(){var o=Date.now()>=t;e.textContent=o?'YES':'NO';e.className='yn '+(o?'yes':'no')}u();setInterval(u,30000)})();</script>
+<p class="mut small" style="text-align:center">Date last verified ${esc(RELEASE.verified)}. Details, platforms and the full FAQ: <a href="${SITE}/gta-6-release-date/">GTA 6 release date</a>.</p>
+<h2>Quick answers</h2>
+${faq.map(([q, a]) => `<details open><summary>${esc(q)}</summary><p>${esc(a)}</p></details>`).join('')}
+${shareBar(`${SITE}/is-gta-6-out-yet/`, 'Is GTA 6 out yet? Short answer inside.')}
+${latest.length ? `<h2>Latest from the Wire</h2><ul class="list">${latest.map(newsCard).join('')}</ul>` : ''}
+<div style="margin-top:22px">${kofiBlock()}</div>`;
+  out('is-gta-6-out-yet/index.html', shell({
+  ogImage: existsSync(join(ROOT, 'public', 'og', 'is-out.png')) ? `${SITE}/og/is-out.png` : undefined,
+    title: `Is GTA 6 Out Yet? ${isOut ? 'Yes' : 'Not Yet'} - Live Answer & Countdown | Vice City Hub`,
+    description: isOut ? 'Yes, GTA 6 is out. Platforms, PC status and the quick answers.' : `Is GTA 6 out yet? No. It launches ${pretty} on PS5 and Xbox Series X|S. Live countdown and quick answers, updated when Rockstar moves the date.`,
+    path: 'is-gta-6-out-yet/', ld, body,
+  }));
+}
+
 // ---------------------------------------------------------------- release date page
 {
   const [Y, M, D] = String(RELEASE.date).split('-').map(Number);
@@ -236,7 +282,7 @@ ${classes.map((c) => `<h2>${esc(c)}</h2><ul class="grid list" style="display:gri
   const latest = news.slice(0, 5);
   const body = `<p class="crumbs"><a href="${SITE}/">Home</a> / GTA 6 release date</p>
 <h1>GTA 6 Release Date: ${esc(pretty)}</h1>
-<p class="lead">PlayStation 5 and Xbox Series X|S. No PC date. Your boss has not been told yet.</p>
+<p class="lead">PlayStation 5 and Xbox Series X|S. No PC date. Your boss has not been told yet. Want the one-word version? <a href="${SITE}/is-gta-6-out-yet/">Is GTA 6 out yet?</a></p>
 <div id="count" class="count" data-y="${Y}" data-m="${M}" data-d="${D}" aria-live="off">
 <div><b data-k="d">--</b><span>Days</span></div><div><b data-k="h">--</b><span>Hours</span></div><div><b data-k="m">--</b><span>Min</span></div><div><b data-k="s">--</b><span>Sec</span></div></div>
 <noscript><p class="lead">Release day: ${esc(pretty)}.</p></noscript>
@@ -256,6 +302,7 @@ ${shareBar(`${SITE}/gta-6-release-date/`, `GTA 6 launches ${pretty}. Count the d
 ${latest.length ? `<h2>Latest from the Wire</h2><ul class="list">${latest.map(newsCard).join('')}</ul>` : ''}
 <div style="margin-top:22px">${nlBlock('release-date')}${kofiBlock()}</div>`;
   out('gta-6-release-date/index.html', shell({
+  ogImage: existsSync(join(ROOT, 'public', 'og', 'release.png')) ? `${SITE}/og/release.png` : undefined,
     title: `GTA 6 Release Date: ${pretty} - Countdown, Platforms & FAQ | Vice City Hub`,
     description: `GTA 6 launches ${pretty} on PS5 and Xbox Series X|S. Live countdown, platforms, PC status and answers to the questions everyone keeps asking.`,
     path: 'gta-6-release-date/', ld, body,
@@ -338,6 +385,7 @@ ${items}
   const add = (loc, lastmod, freq, prio) => urls.push({ loc, lastmod, freq, prio });
   for (const p of cfg.pages.filter((p) => p.index)) add(`${SITE}/${p.file}`, day(ISO), p.freq, p.priority);
   add(`${SITE}/gta-6-release-date/`, day(ISO), 'daily', '0.9');
+add(`${SITE}/is-gta-6-out-yet/`, day(ISO), 'daily', '0.9');
   add(`${SITE}/n/`, day(news[0]?.published_at || ISO), 'daily', '0.8');
   add(`${SITE}/vehicles/`, day(ISO), 'weekly', '0.7');
   add(`${SITE}/supporters/`, day(ISO), 'daily', '0.4');

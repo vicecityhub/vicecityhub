@@ -1,8 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import { supa } from '../lib/SupabaseClient';
 import { Play, Flame, ExternalLink, Calendar, MapPin, MessageSquare, ChevronLeft, ChevronRight, Pencil, Trash2, Plus, X } from 'lucide-react';
 import YouTubePlayer from '../components/YouTubePlayer';
-import ViceArcadeGame from '../components/ViceArcadeGame';
+import OnView from '../components/OnView';
+// The arcade game is large and sits near the bottom of the page: load it only when the visitor scrolls close to it.
+const ViceArcadeGame = lazy(() => import('../components/ViceArcadeGame'));
 import LazyVideo from '../components/LazyVideo';
 
 interface HomeProps {
@@ -781,7 +783,7 @@ export default function Home({ onOpenModal, session }: HomeProps) {
           {/* PLAY GTA VI RIGHT NOW - Arcade Game Block (replaces old composite map card) */}
           <div className="glass-card overflow-hidden border border-neonPink/30 hover:border-neonPink shadow-2xl flex flex-col md:flex-row">
             <div className="w-full md:w-[420px] flex-shrink-0 flex items-center justify-center p-6 bg-black/40 border-r border-white/5">
-              <ViceArcadeGame />
+              <OnView minHeight={420}><Suspense fallback={null}><ViceArcadeGame /></Suspense></OnView>
             </div>
             <div className="p-8 flex flex-col justify-center flex-grow">
               <div>

@@ -47,6 +47,7 @@ const FONT_FACES = [['Orbitron', '400 900', 'orbitron-latin'], ['Rajdhani', 300,
   .map(([fam, w, f]) => `@font-face{font-family:'${fam}';font-style:normal;font-weight:${w};font-display:swap;src:url(${SITE}/fonts/${f}.woff2) format('woff2')}`).join('');
 const CSS = FONT_FACES + `:root{--pink:#FF00FF;--cyan:#00FFFF;--yellow:#FFE135;--orange:#FF6B35;--darker:#050508;--mut:#9ca3af;--ink:#e4e4f0}
 *{box-sizing:border-box}html{scroll-behavior:smooth}
+.yn{font-family:Orbitron,Impact,sans-serif;font-weight:900;font-size:clamp(72px,18vw,168px);line-height:1;text-align:center;margin:.15em 0;letter-spacing:.04em}.yn.no{color:var(--pink);text-shadow:0 0 28px rgba(255,0,255,.65),0 0 60px rgba(255,0,255,.25)}.yn.yes{color:var(--cyan);text-shadow:0 0 28px rgba(0,255,255,.65),0 0 60px rgba(0,255,255,.25)}
 body{margin:0;min-height:100vh;display:flex;flex-direction:column;overflow-x:hidden;color:var(--ink);font-family:Rajdhani,system-ui,-apple-system,"Segoe UI",sans-serif;font-weight:500;font-size:17px;line-height:1.6;background:radial-gradient(ellipse at 20% 20%,rgba(255,0,255,.12) 0%,transparent 50%),radial-gradient(ellipse at 80% 80%,rgba(0,255,255,.08) 0%,transparent 50%),radial-gradient(ellipse at 50% 50%,rgba(255,107,53,.04) 0%,transparent 70%),var(--darker);background-attachment:fixed}
 body:before{content:"";position:fixed;inset:0;pointer-events:none;z-index:1000;opacity:.25;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.15) 2px,rgba(0,0,0,.15) 4px)}
 *{scrollbar-width:thin;scrollbar-color:var(--pink) var(--darker)}
@@ -164,6 +165,7 @@ document.querySelectorAll('.addr').forEach(function(c){c.addEventListener('click
 document.querySelectorAll('.addr').forEach(function(c){c.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();c.click()}})});
 var c=document.getElementById('count');if(c){var t=new Date(+c.dataset.y,+c.dataset.m-1,+c.dataset.d).getTime();(function tick(){var d=t-Date.now();if(d<=0){c.innerHTML='<p class="lead">It is out. Touch grass later.</p>';return}
 var s=Math.floor(d/1000);c.querySelector('[data-k=d]').textContent=Math.floor(s/86400);c.querySelector('[data-k=h]').textContent=String(Math.floor(s%86400/3600)).padStart(2,'0');c.querySelector('[data-k=m]').textContent=String(Math.floor(s%3600/60)).padStart(2,'0');c.querySelector('[data-k=s]').textContent=String(s%60).padStart(2,'0');setTimeout(tick,1000)})()}
+try{if(navigator.doNotTrack!=='1'&&ls('vch_ignore')!=='1'){if(/[?&]notrack/.test(location.search)){ls('vch_ignore','1')}else{var q=new URLSearchParams(location.search);fetch(SB+'/functions/v1/hit',{method:'POST',body:JSON.stringify({p:location.pathname,r:document.referrer,s:q.get('utm_source')||q.get('ref')||''}),headers:{'Content-Type':'text/plain'},keepalive:true}).catch(function(){})}}}catch(e){}
 })();`;
 
 // Contact, donation and crypto blocks live in the footer (same as the hub). These two stay as no-ops so call sites keep working.

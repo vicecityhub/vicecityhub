@@ -37,7 +37,7 @@ export default defineConfig({
             return 'vendor';
           }
           if (id.includes('src/rp-hub')) return 'rp-hub';
-          if (id.includes('src/pages')) return 'pages';
+          // pages are no longer forced into one shared chunk: every HTML entry now loads only the code it needs
         },
         // Asset naming для кэширования
         chunkFileNames: 'assets/js/[name]-[hash].js',

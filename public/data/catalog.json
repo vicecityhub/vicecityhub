@@ -1,16 +1,18 @@
 {
-  "generated_at": "2026-10-24T08:35:40.316Z",
+  "generated_at": "2026-10-24T19:02:25.701Z",
   "source": "https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/v1/catalog",
   "count": 53,
   "items": [
     {
       "sku": "merch:445021895",
-      "url": "https://vicecityhub.github.io/vicecityhub/market.html",
       "kind": "merch",
-      "image": "https://files.cdn.printful.com/files/825/825246a89ae0b5251f37094dc6f578b9_preview.png",
       "title": "VCH be Vice Unisex oversized hoodie",
-      "seller": "Vice City Hub",
+      "description": "Official Vice City Hub merch, printed on demand by Printful. Order by variant SKU.",
+      "price_usd": 52,
+      "price_note": "from (lowest variant)",
       "currency": "USD",
+      "seller": "Vice City Hub",
+      "availability": "in_stock",
       "purchase": {
         "mode": "order",
         "rails": [
@@ -21,13 +23,11 @@
           "shipping"
         ]
       },
-      "price_usd": 52,
+      "url": "https://vicecityhub.github.io/vicecityhub/market.html",
+      "image": "https://files.cdn.printful.com/files/825/825246a89ae0b5251f37094dc6f578b9_preview.png",
       "attributes": {
         "fulfillment": "Printful print-on-demand"
       },
-      "price_note": "from (lowest variant)",
-      "description": "Official Vice City Hub merch, printed on demand by Printful. Order by variant SKU.",
-      "availability": "in_stock",
       "variants_count": 66,
       "variants_hint": "GET https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/v1/catalog/merch:445021895 for variant SKUs",
       "variants": [
@@ -563,12 +563,14 @@
     },
     {
       "sku": "merch:445021656",
-      "url": "https://vicecityhub.github.io/vicecityhub/market.html",
       "kind": "merch",
-      "image": "https://files.cdn.printful.com/files/41d/41dafa6f40c82554171f1c86b5474d7b_preview.png",
       "title": "VCH be Vice Crop Hoodie",
-      "seller": "Vice City Hub",
+      "description": "Official Vice City Hub merch, printed on demand by Printful. Order by variant SKU.",
+      "price_usd": 47,
+      "price_note": "from (lowest variant)",
       "currency": "USD",
+      "seller": "Vice City Hub",
+      "availability": "in_stock",
       "purchase": {
         "mode": "order",
         "rails": [
@@ -579,13 +581,11 @@
           "shipping"
         ]
       },
-      "price_usd": 47,
+      "url": "https://vicecityhub.github.io/vicecityhub/market.html",
+      "image": "https://files.cdn.printful.com/files/41d/41dafa6f40c82554171f1c86b5474d7b_preview.png",
       "attributes": {
         "fulfillment": "Printful print-on-demand"
       },
-      "price_note": "from (lowest variant)",
-      "description": "Official Vice City Hub merch, printed on demand by Printful. Order by variant SKU.",
-      "availability": "in_stock",
       "variants_count": 15,
       "variants_hint": "GET https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/v1/catalog/merch:445021656 for variant SKUs",
       "variants": [
@@ -713,12 +713,14 @@
     },
     {
       "sku": "merch:445021472",
-      "url": "https://vicecityhub.github.io/vicecityhub/market.html",
       "kind": "merch",
-      "image": "https://files.cdn.printful.com/files/54d/54d1041ce9255192352ff90d08e20f59_preview.png",
       "title": "VCH be Vice Men’s premium heavyweight tee",
-      "seller": "Vice City Hub",
+      "description": "Official Vice City Hub merch, printed on demand by Printful. Order by variant SKU.",
+      "price_usd": 23.5,
+      "price_note": "from (lowest variant)",
       "currency": "USD",
+      "seller": "Vice City Hub",
+      "availability": "in_stock",
       "purchase": {
         "mode": "order",
         "rails": [
@@ -729,13 +731,11 @@
           "shipping"
         ]
       },
-      "price_usd": 23.5,
+      "url": "https://vicecityhub.github.io/vicecityhub/market.html",
+      "image": "https://files.cdn.printful.com/files/54d/54d1041ce9255192352ff90d08e20f59_preview.png",
       "attributes": {
         "fulfillment": "Printful print-on-demand"
       },
-      "price_note": "from (lowest variant)",
-      "description": "Official Vice City Hub merch, printed on demand by Printful. Order by variant SKU.",
-      "availability": "in_stock",
       "variants_count": 49,
       "variants_hint": "GET https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/v1/catalog/merch:445021472 for variant SKUs",
       "variants": [
@@ -1135,12 +1135,14 @@
     },
     {
       "sku": "merch:445021179",
-      "url": "https://vicecityhub.github.io/vicecityhub/market.html",
       "kind": "merch",
-      "image": "https://files.cdn.printful.com/files/541/5417d6fd490b651cce7e9312bb100532_preview.png",
       "title": "VCH be Vice Unisex Hoodie",
-      "seller": "Vice City Hub",
+      "description": "Official Vice City Hub merch, printed on demand by Printful. Order by variant SKU.",
+      "price_usd": 43.5,
+      "price_note": "from (lowest variant)",
       "currency": "USD",
+      "seller": "Vice City Hub",
+      "availability": "in_stock",
       "purchase": {
         "mode": "order",
         "rails": [
@@ -1151,13 +1153,11 @@
           "shipping"
         ]
       },
-      "price_usd": 43.5,
+      "url": "https://vicecityhub.github.io/vicecityhub/market.html",
+      "image": "https://files.cdn.printful.com/files/541/5417d6fd490b651cce7e9312bb100532_preview.png",
       "attributes": {
         "fulfillment": "Printful print-on-demand"
       },
-      "price_note": "from (lowest variant)",
-      "description": "Official Vice City Hub merch, printed on demand by Printful. Order by variant SKU.",
-      "availability": "in_stock",
       "variants_count": 30,
       "variants_hint": "GET https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/v1/catalog/merch:445021179 for variant SKUs",
       "variants": [
@@ -1405,12 +1405,14 @@
     },
     {
       "sku": "merch:444141796",
-      "url": "https://vicecityhub.github.io/vicecityhub/market.html",
       "kind": "merch",
-      "image": "https://files.cdn.printful.com/files/03e/03ee01fee79fe9589ed2157c75cead60_preview.png",
       "title": "VCH Macca 3/4 sleeve raglan shirt",
-      "seller": "Vice City Hub",
+      "description": "Official Vice City Hub merch, printed on demand by Printful. Order by variant SKU.",
+      "price_usd": 34.95,
+      "price_note": "from (lowest variant)",
       "currency": "USD",
+      "seller": "Vice City Hub",
+      "availability": "in_stock",
       "purchase": {
         "mode": "order",
         "rails": [
@@ -1421,13 +1423,11 @@
           "shipping"
         ]
       },
-      "price_usd": 34.95,
+      "url": "https://vicecityhub.github.io/vicecityhub/market.html",
+      "image": "https://files.cdn.printful.com/files/03e/03ee01fee79fe9589ed2157c75cead60_preview.png",
       "attributes": {
         "fulfillment": "Printful print-on-demand"
       },
-      "price_note": "from (lowest variant)",
-      "description": "Official Vice City Hub merch, printed on demand by Printful. Order by variant SKU.",
-      "availability": "in_stock",
       "variants_count": 34,
       "variants_hint": "GET https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/v1/catalog/merch:444141796 for variant SKUs",
       "variants": [
@@ -1707,12 +1707,14 @@
     },
     {
       "sku": "merch:443138617",
-      "url": "https://vicecityhub.github.io/vicecityhub/market.html",
       "kind": "merch",
-      "image": "https://files.cdn.printful.com/files/f97/f97b4d897abeb6f75344d8534aeeb5eb_preview.png",
       "title": "VCH Macca Men’s premium tank top",
-      "seller": "Vice City Hub",
+      "description": "Official Vice City Hub merch, printed on demand by Printful. Order by variant SKU.",
+      "price_usd": 34.5,
+      "price_note": "from (lowest variant)",
       "currency": "USD",
+      "seller": "Vice City Hub",
+      "availability": "in_stock",
       "purchase": {
         "mode": "order",
         "rails": [
@@ -1723,13 +1725,11 @@
           "shipping"
         ]
       },
-      "price_usd": 34.5,
+      "url": "https://vicecityhub.github.io/vicecityhub/market.html",
+      "image": "https://files.cdn.printful.com/files/f97/f97b4d897abeb6f75344d8534aeeb5eb_preview.png",
       "attributes": {
         "fulfillment": "Printful print-on-demand"
       },
-      "price_note": "from (lowest variant)",
-      "description": "Official Vice City Hub merch, printed on demand by Printful. Order by variant SKU.",
-      "availability": "in_stock",
       "variants_count": 6,
       "variants_hint": "GET https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/v1/catalog/merch:443138617 for variant SKUs",
       "variants": [
@@ -1785,12 +1785,13 @@
     },
     {
       "sku": "merch:443036590",
-      "url": "https://vicecityhub.github.io/vicecityhub/market.html",
       "kind": "merch",
-      "image": "https://files.cdn.printful.com/files/0ad/0ad4e85fbf33b7e628f62eccd80238cc_preview.png",
       "title": "VCH Macca Dad hat",
-      "seller": "Vice City Hub",
+      "description": "Official Vice City Hub merch, printed on demand by Printful. Order by variant SKU.",
+      "price_usd": 28.99,
       "currency": "USD",
+      "seller": "Vice City Hub",
+      "availability": "in_stock",
       "purchase": {
         "mode": "order",
         "rails": [
@@ -1801,12 +1802,11 @@
           "shipping"
         ]
       },
-      "price_usd": 28.99,
+      "url": "https://vicecityhub.github.io/vicecityhub/market.html",
+      "image": "https://files.cdn.printful.com/files/0ad/0ad4e85fbf33b7e628f62eccd80238cc_preview.png",
       "attributes": {
         "fulfillment": "Printful print-on-demand"
       },
-      "description": "Official Vice City Hub merch, printed on demand by Printful. Order by variant SKU.",
-      "availability": "in_stock",
       "variants_count": 1,
       "variants_hint": "GET https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/v1/catalog/merch:443036590 for variant SKUs",
       "variants": [
@@ -1822,12 +1822,14 @@
     },
     {
       "sku": "merch:443025464",
-      "url": "https://vicecityhub.github.io/vicecityhub/market.html",
       "kind": "merch",
-      "image": "https://files.cdn.printful.com/files/a02/a026b8064ae778931f79b42d3f5aacd9_preview.png",
       "title": "VCH Macca Unisex eco raglan hoodie",
-      "seller": "Vice City Hub",
+      "description": "Official Vice City Hub merch, printed on demand by Printful. Order by variant SKU.",
+      "price_usd": 58.95,
+      "price_note": "from (lowest variant)",
       "currency": "USD",
+      "seller": "Vice City Hub",
+      "availability": "in_stock",
       "purchase": {
         "mode": "order",
         "rails": [
@@ -1838,13 +1840,11 @@
           "shipping"
         ]
       },
-      "price_usd": 58.95,
+      "url": "https://vicecityhub.github.io/vicecityhub/market.html",
+      "image": "https://files.cdn.printful.com/files/a02/a026b8064ae778931f79b42d3f5aacd9_preview.png",
       "attributes": {
         "fulfillment": "Printful print-on-demand"
       },
-      "price_note": "from (lowest variant)",
-      "description": "Official Vice City Hub merch, printed on demand by Printful. Order by variant SKU.",
-      "availability": "in_stock",
       "variants_count": 7,
       "variants_hint": "GET https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/v1/catalog/merch:443025464 for variant SKUs",
       "variants": [
@@ -1908,12 +1908,14 @@
     },
     {
       "sku": "merch:443023417",
-      "url": "https://vicecityhub.github.io/vicecityhub/market.html",
       "kind": "merch",
-      "image": "https://files.cdn.printful.com/files/9cd/9cd985c01a37f93bd50fe0814a91394c_preview.png",
       "title": "VCH Macca MagSafe® tough case for iPhone®",
-      "seller": "Vice City Hub",
+      "description": "Official Vice City Hub merch, printed on demand by Printful. Order by variant SKU.",
+      "price_usd": 34.61,
+      "price_note": "from (lowest variant)",
       "currency": "USD",
+      "seller": "Vice City Hub",
+      "availability": "in_stock",
       "purchase": {
         "mode": "order",
         "rails": [
@@ -1924,13 +1926,11 @@
           "shipping"
         ]
       },
-      "price_usd": 34.61,
+      "url": "https://vicecityhub.github.io/vicecityhub/market.html",
+      "image": "https://files.cdn.printful.com/files/9cd/9cd985c01a37f93bd50fe0814a91394c_preview.png",
       "attributes": {
         "fulfillment": "Printful print-on-demand"
       },
-      "price_note": "from (lowest variant)",
-      "description": "Official Vice City Hub merch, printed on demand by Printful. Order by variant SKU.",
-      "availability": "in_stock",
       "variants_count": 16,
       "variants_hint": "GET https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/v1/catalog/merch:443023417 for variant SKUs",
       "variants": [
@@ -2066,12 +2066,14 @@
     },
     {
       "sku": "merch:443022436",
-      "url": "https://vicecityhub.github.io/vicecityhub/market.html",
       "kind": "merch",
-      "image": "https://files.cdn.printful.com/files/ffe/ffe8a28be318acbe938c4187c9170a43_preview.png",
       "title": "VCH Macca Premium basketball jersey",
-      "seller": "Vice City Hub",
+      "description": "Official Vice City Hub merch, printed on demand by Printful. Order by variant SKU.",
+      "price_usd": 46.5,
+      "price_note": "from (lowest variant)",
       "currency": "USD",
+      "seller": "Vice City Hub",
+      "availability": "in_stock",
       "purchase": {
         "mode": "order",
         "rails": [
@@ -2082,13 +2084,11 @@
           "shipping"
         ]
       },
-      "price_usd": 46.5,
+      "url": "https://vicecityhub.github.io/vicecityhub/market.html",
+      "image": "https://files.cdn.printful.com/files/ffe/ffe8a28be318acbe938c4187c9170a43_preview.png",
       "attributes": {
         "fulfillment": "Printful print-on-demand"
       },
-      "price_note": "from (lowest variant)",
-      "description": "Official Vice City Hub merch, printed on demand by Printful. Order by variant SKU.",
-      "availability": "in_stock",
       "variants_count": 11,
       "variants_hint": "GET https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/v1/catalog/merch:443022436 for variant SKUs",
       "variants": [
@@ -2184,12 +2184,14 @@
     },
     {
       "sku": "merch:443019869",
-      "url": "https://vicecityhub.github.io/vicecityhub/market.html",
       "kind": "merch",
-      "image": "https://files.cdn.printful.com/files/819/819cdacb3f2793ee18708d4d10bfd651_preview.png",
       "title": "VCH Macca Mug with Color Inside",
-      "seller": "Vice City Hub",
+      "description": "Official Vice City Hub merch, printed on demand by Printful. Order by variant SKU.",
+      "price_usd": 19.49,
+      "price_note": "from (lowest variant)",
       "currency": "USD",
+      "seller": "Vice City Hub",
+      "availability": "in_stock",
       "purchase": {
         "mode": "order",
         "rails": [
@@ -2200,13 +2202,11 @@
           "shipping"
         ]
       },
-      "price_usd": 19.49,
+      "url": "https://vicecityhub.github.io/vicecityhub/market.html",
+      "image": "https://files.cdn.printful.com/files/819/819cdacb3f2793ee18708d4d10bfd651_preview.png",
       "attributes": {
         "fulfillment": "Printful print-on-demand"
       },
-      "price_note": "from (lowest variant)",
-      "description": "Official Vice City Hub merch, printed on demand by Printful. Order by variant SKU.",
-      "availability": "in_stock",
       "variants_count": 16,
       "variants_hint": "GET https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/v1/catalog/merch:443019869 for variant SKUs",
       "variants": [
@@ -2342,12 +2342,14 @@
     },
     {
       "sku": "merch:443017667",
-      "url": "https://vicecityhub.github.io/vicecityhub/market.html",
       "kind": "merch",
-      "image": "https://files.cdn.printful.com/files/04a/04ae17c6611a0db59952439959debd28_preview.png",
       "title": "VCH Macca Unisex classic tee",
-      "seller": "Vice City Hub",
+      "description": "Official Vice City Hub merch, printed on demand by Printful. Order by variant SKU.",
+      "price_usd": 38.25,
+      "price_note": "from (lowest variant)",
       "currency": "USD",
+      "seller": "Vice City Hub",
+      "availability": "in_stock",
       "purchase": {
         "mode": "order",
         "rails": [
@@ -2358,13 +2360,11 @@
           "shipping"
         ]
       },
-      "price_usd": 38.25,
+      "url": "https://vicecityhub.github.io/vicecityhub/market.html",
+      "image": "https://files.cdn.printful.com/files/04a/04ae17c6611a0db59952439959debd28_preview.png",
       "attributes": {
         "fulfillment": "Printful print-on-demand"
       },
-      "price_note": "from (lowest variant)",
-      "description": "Official Vice City Hub merch, printed on demand by Printful. Order by variant SKU.",
-      "availability": "in_stock",
       "variants_count": 8,
       "variants_hint": "GET https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/v1/catalog/merch:443017667 for variant SKUs",
       "variants": [

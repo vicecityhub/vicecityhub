@@ -59,3 +59,12 @@ The verification tag is in `index.html`. After deploy press Verify in Search Con
 
 - `slugify()` in `scripts/lib/seo.mjs` and `slug()` in `agent-premium` must stay identical.
 - The release date lives in `site.config.json` (`release.date`).
+
+
+## Update 2026-10-24: analytics, OG cards, is-out page
+- Analytics: edge function `hit` (source in supabase/functions/hit) writes to `page_hits`; no cookies, no IP/UA stored, daily-rotating visitor hash. Opt-out: ?notrack. Queries: see docs/AGENT-HANDOFF.md section 4.
+- OG cards: scripts/gen-og.mjs generates public/og/*.png during prebuild (resvg + upng palette quantization).
+- /is-gta-6-out-yet/ page added to sitemap.
+- Retired stubs (410): rp-online, audio-swap-tmp; delete them in the Supabase dashboard.
+- Newsletter and RP online counters were removed on purpose.
+- Task queue for other agents: docs/AGENT-HANDOFF.md
