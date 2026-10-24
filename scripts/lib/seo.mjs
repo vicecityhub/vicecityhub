@@ -43,7 +43,9 @@ export const stars = (n) => '\u2605'.repeat(Math.max(0, Math.min(5, n | 0))) + '
 
 // ---------------------------------------------------------------------------------------------------------------- CSS
 // Mirrors src/index.css (neon palette, glass-card, btn-neon, gradient-line, scanlines, scrollbar) and the Layout nav/footer.
-const CSS = `:root{--pink:#FF00FF;--cyan:#00FFFF;--yellow:#FFE135;--orange:#FF6B35;--darker:#050508;--mut:#9ca3af;--ink:#e4e4f0}
+const FONT_FACES = [['Orbitron', '400 900', 'orbitron-latin'], ['Rajdhani', 300, 'rajdhani-300-latin'], ['Rajdhani', 400, 'rajdhani-400-latin'], ['Rajdhani', 500, 'rajdhani-500-latin'], ['Rajdhani', 600, 'rajdhani-600-latin'], ['Rajdhani', 700, 'rajdhani-700-latin']]
+  .map(([fam, w, f]) => `@font-face{font-family:'${fam}';font-style:normal;font-weight:${w};font-display:swap;src:url(${SITE}/fonts/${f}.woff2) format('woff2')}`).join('');
+const CSS = FONT_FACES + `:root{--pink:#FF00FF;--cyan:#00FFFF;--yellow:#FFE135;--orange:#FF6B35;--darker:#050508;--mut:#9ca3af;--ink:#e4e4f0}
 *{box-sizing:border-box}html{scroll-behavior:smooth}
 body{margin:0;min-height:100vh;display:flex;flex-direction:column;overflow-x:hidden;color:var(--ink);font-family:Rajdhani,system-ui,-apple-system,"Segoe UI",sans-serif;font-weight:500;font-size:17px;line-height:1.6;background:radial-gradient(ellipse at 20% 20%,rgba(255,0,255,.12) 0%,transparent 50%),radial-gradient(ellipse at 80% 80%,rgba(0,255,255,.08) 0%,transparent 50%),radial-gradient(ellipse at 50% 50%,rgba(255,107,53,.04) 0%,transparent 70%),var(--darker);background-attachment:fixed}
 body:before{content:"";position:fixed;inset:0;pointer-events:none;z-index:1000;opacity:.25;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.15) 2px,rgba(0,0,0,.15) 4px)}
@@ -146,7 +148,7 @@ function load(i,t){ix=i;au.src=tr[i];ls('radioTrackIndex',String(i));if(t>0)au.a
 function play(){var p=au.play();if(p&&p.catch)p.catch(function(){})}
 function save(){if(au&&!au.paused){ls('radioTime',String(au.currentTime));ls('radioTrackIndex',String(ix))}}
 function boot(){
-au=new Audio();au.preload='auto';var v=parseFloat(ls('radioVolume')||'0.25');au.volume=isFinite(v)?Math.min(1,Math.max(0,v)):0.25;
+au=new Audio();au.preload='none';var v=parseFloat(ls('radioVolume')||'0.25');au.volume=isFinite(v)?Math.min(1,Math.max(0,v)):0.25;
 au.addEventListener('ended',function(){load(pick(),0);play()});au.addEventListener('play',sync);au.addEventListener('pause',sync);
 var s=parseInt(ls('radioTrackIndex')||'-1',10),t=parseFloat(ls('radioTime')||'0');
 load(s>=0&&s<tr.length?s:pick(),isFinite(t)&&t>0?t:0);
@@ -247,8 +249,10 @@ export function shell({ title, description, path, ogImage, type = 'website', ld 
 ${art}
 <meta name="twitter:card" content="summary_large_image"><meta name="twitter:site" content="${esc(cfg.twitter)}"><meta name="twitter:title" content="${t}"><meta name="twitter:description" content="${d}"><meta name="twitter:image" content="${esc(img)}">
 <link rel="alternate" type="application/rss+xml" title="${esc(cfg.name)} - The Wire" href="${SITE}/feed.xml">
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="${FONTS}" media="print" onload="this.media='all'"><noscript><link rel="stylesheet" href="${FONTS}"></noscript>
+<link rel="icon" type="image/svg+xml" href="${SITE}/favicon.svg">
+<link rel="preload" href="${SITE}/fonts/orbitron-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="${SITE}/fonts/rajdhani-700-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="${SITE}/fonts/rajdhani-500-latin.woff2" as="font" type="font/woff2" crossorigin>
 ${extraHead}
 ${ld.map((o) => `<script type="application/ld+json">${JSON.stringify(o).replace(/</g, '\\u003c')}</script>`).join('\n')}
 <style>${CSS}</style></head>

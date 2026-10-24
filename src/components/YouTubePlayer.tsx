@@ -40,7 +40,7 @@ export default function YouTubePlayer({ videoId, title, className = '' }: YouTub
       className={`relative w-full aspect-video bg-black overflow-hidden group ${className}`}
     >
       <img
-        src={`https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`}
+        src={`https://img.youtube.com/vi/${videoId}/hqdefault.jpg`}
         alt={title || 'YouTube video thumbnail'}
         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
         loading="lazy"

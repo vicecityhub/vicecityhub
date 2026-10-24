@@ -24,6 +24,18 @@ const PAYPAL_CHECKOUT  = 'https://lpglkglhjdqnktybksth.supabase.co/functions/v1/
 const PAYPAL_CLIENT_ID = import.meta.env.VITE_PAYPAL_CLIENT_ID || '';
 
 // ─── URL slug helpers ────────────────────────────────────────────────────────
+// Printful serves ~1 MB PNG mockups. For small cards, ask an image CDN for a 480px WebP instead (about 97% smaller).
+// If the CDN is unreachable the <img> falls back to the original Printful URL, so nothing can break.
+function thumb(url: string, w = 480): string {
+  if (!url || !url.includes('files.cdn.printful.com')) return url;
+  return `https://wsrv.nl/?url=${encodeURIComponent(url)}&w=${w}&output=webp&q=78`;
+}
+function thumbFallback(e: React.SyntheticEvent<HTMLImageElement>, original: string, placeholder: string) {
+  const img = e.currentTarget;
+  if (img.dataset.fb !== '1' && img.src !== original) { img.dataset.fb = '1'; img.src = original; return; }
+  img.src = placeholder;
+}
+
 function toSlug(name: string): string {
   return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 }
@@ -219,10 +231,10 @@ function MerchModal({ product, onClose }: { product: PrintfulProduct; onClose: (
             {/* Product image with zoom button */}
             <div className="md:w-56 shrink-0 bg-[#0a0a14] flex items-center justify-center p-6 relative group">
               <img
-                src={product.thumbnail_url} alt={product.name}
+                src={thumb(product.thumbnail_url)} alt={product.name} decoding="async"
                 className="max-h-48 object-contain drop-shadow-2xl cursor-zoom-in transition-transform duration-300 group-hover:scale-105"
                 onClick={() => setLightbox(true)}
-                onError={e => { (e.target as HTMLImageElement).src = 'https://placehold.co/200x200/0c0c1c/444?text=MERCH'; }}
+                onError={e => thumbFallback(e, product.thumbnail_url, 'https://placehold.co/200x200/0c0c1c/444?text=MERCH')}
               />
               {/* Zoom hint */}
               <button
@@ -462,7 +474,7 @@ function MerchandiseStorefront() {
             {/* Left arrow */}
             <button
               onClick={() => scrollBy('left')}
-              className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-3 z-20 w-9 h-9 rounded-full border border-white/15 bg-[#0a0a14]/90 hover:border-neonCyan hover:text-neonCyan text-gray-400 flex items-center justify-center transition-all shadow-lg backdrop-blur-sm"
+              aria-label="Previous" className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-3 z-20 w-9 h-9 rounded-full border border-white/15 bg-[#0a0a14]/90 hover:border-neonCyan hover:text-neonCyan text-gray-400 flex items-center justify-center transition-all shadow-lg backdrop-blur-sm"
             >
               <ChevronLeft size={16} />
             </button>
@@ -470,7 +482,7 @@ function MerchandiseStorefront() {
             {/* Right arrow */}
             <button
               onClick={() => scrollBy('right')}
-              className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-3 z-20 w-9 h-9 rounded-full border border-white/15 bg-[#0a0a14]/90 hover:border-neonCyan hover:text-neonCyan text-gray-400 flex items-center justify-center transition-all shadow-lg backdrop-blur-sm"
+              aria-label="Next" className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-3 z-20 w-9 h-9 rounded-full border border-white/15 bg-[#0a0a14]/90 hover:border-neonCyan hover:text-neonCyan text-gray-400 flex items-center justify-center transition-all shadow-lg backdrop-blur-sm"
             >
               <ChevronRight size={16} />
             </button>
@@ -490,10 +502,10 @@ function MerchandiseStorefront() {
                 >
                   <div className="w-full h-52 bg-[#0a0a14] flex items-center justify-center overflow-hidden relative">
                     <img
-                      src={product.thumbnail_url} alt={product.name}
+                      src={thumb(product.thumbnail_url)} alt={product.name} decoding="async"
                       className="max-h-44 max-w-full object-contain transition-transform duration-500 group-hover:scale-110 drop-shadow-xl"
                       loading="lazy"
-                      onError={e => { (e.target as HTMLImageElement).src = 'https://placehold.co/200x200/0c0c1c/444?text=MERCH'; }}
+                      onError={e => thumbFallback(e, product.thumbnail_url, 'https://placehold.co/200x200/0c0c1c/444?text=MERCH')}
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-100 transition-opacity duration-300 flex items-end justify-center pb-3">
                       <span className="font-orbitron text-[9px] font-bold uppercase tracking-widest text-neonCyan">View Options ↗</span>
@@ -548,7 +560,8 @@ export default function Market() {
         setDbDomains(data || []);
       } catch (err) { console.error(err); }
     })();
-    const timer = setTimeout(() => {
+    // The TradingView chart is far below the fold and costs ~900 KB of scripts: load it only when it is about to be seen.
+    const loadTV = () => {
       const script = document.createElement('script');
       script.src = 'https://s3.tradingview.com/tv.js'; script.async = true;
       script.onload = () => {
@@ -558,8 +571,20 @@ export default function Market() {
         } catch (e) { console.error(e); }
       };
       document.body.appendChild(script);
-    }, 450);
-    return () => clearTimeout(timer);
+    };
+    let io: IntersectionObserver | undefined;
+    const arm = (): boolean => {
+      const el = document.getElementById('tv-container');
+      if (!el) return false;
+      if (typeof IntersectionObserver === 'undefined') { loadTV(); return true; }
+      io = new IntersectionObserver((entries) => {
+        if (entries.some(e => e.isIntersecting)) { io?.disconnect(); loadTV(); }
+      }, { rootMargin: '400px' });
+      io.observe(el);
+      return true;
+    };
+    const poll = setInterval(() => { if (arm()) clearInterval(poll); }, 500);
+    return () => { clearInterval(poll); io?.disconnect(); };
   }, []);
 
   const seenTitles = new Set<string>();

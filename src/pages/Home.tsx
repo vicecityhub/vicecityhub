@@ -3,6 +3,7 @@ import { supa } from '../lib/SupabaseClient';
 import { Play, Flame, ExternalLink, Calendar, MapPin, MessageSquare, ChevronLeft, ChevronRight, Pencil, Trash2, Plus, X } from 'lucide-react';
 import YouTubePlayer from '../components/YouTubePlayer';
 import ViceArcadeGame from '../components/ViceArcadeGame';
+import LazyVideo from '../components/LazyVideo';
 
 interface HomeProps {
   onOpenModal: (id: string, tab?: 'login' | 'register') => void;
@@ -314,12 +315,8 @@ export default function Home({ onOpenModal, session }: HomeProps) {
           </div>
           {/* Video side — original proportions, no stretching */}
           <div className="flex-1 bg-black flex items-center justify-center p-0" style={{minHeight: '180px'}}>
-            <video
-              src="https://lpglkglhjdqnktybksth.supabase.co/storage/v1/object/public/post_news/pozor.webm"
-              autoPlay
-              loop
-              muted
-              playsInline
+            <LazyVideo
+              src={`${import.meta.env.BASE_URL}media/pozor.webm`}
               className="block"
               style={{width: '100%', height: '100%', objectFit: 'contain', maxHeight: '320px'}}
             />
@@ -375,7 +372,7 @@ export default function Home({ onOpenModal, session }: HomeProps) {
                 const el = mediaScrollRef.current;
                 if (el) el.scrollBy({ left: -(360 + 24), behavior: 'smooth' });
               }}
-              className="absolute left-[-22px] top-1/2 -translate-y-1/2 z-10 w-11 h-11 rounded-full border border-neonCyan bg-[#0c0c1c]/90 text-neonCyan flex items-center justify-center hover:bg-neonCyan hover:text-black hover:scale-105 hover:shadow-[0_0_20px_rgba(0,255,255,0.4)] transition-all"
+              aria-label="Previous" className="absolute left-[-22px] top-1/2 -translate-y-1/2 z-10 w-11 h-11 rounded-full border border-neonCyan bg-[#0c0c1c]/90 text-neonCyan flex items-center justify-center hover:bg-neonCyan hover:text-black hover:scale-105 hover:shadow-[0_0_20px_rgba(0,255,255,0.4)] transition-all"
             >
               <ChevronLeft size={20} />
             </button>
@@ -509,7 +506,7 @@ export default function Home({ onOpenModal, session }: HomeProps) {
                 const el = mediaScrollRef.current;
                 if (el) el.scrollBy({ left: 360 + 24, behavior: 'smooth' });
               }}
-              className="absolute right-[-22px] top-1/2 -translate-y-1/2 z-10 w-11 h-11 rounded-full border border-neonCyan bg-[#0c0c1c]/90 text-neonCyan flex items-center justify-center hover:bg-neonCyan hover:text-black hover:scale-105 hover:shadow-[0_0_20px_rgba(0,255,255,0.4)] transition-all"
+              aria-label="Next" className="absolute right-[-22px] top-1/2 -translate-y-1/2 z-10 w-11 h-11 rounded-full border border-neonCyan bg-[#0c0c1c]/90 text-neonCyan flex items-center justify-center hover:bg-neonCyan hover:text-black hover:scale-105 hover:shadow-[0_0_20px_rgba(0,255,255,0.4)] transition-all"
             >
               <ChevronRight size={20} />
             </button>

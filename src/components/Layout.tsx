@@ -746,7 +746,7 @@ export default function Layout({ children, activePage }: LayoutProps) {
           </button>
 
           {/* Hamburger Mobile Menu */}
-          <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="lg:hidden text-gray-200 hover:text-neonPink transition-colors">
+          <button aria-label="Toggle menu" aria-expanded={mobileMenuOpen} onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="lg:hidden text-gray-200 hover:text-neonPink transition-colors">
             {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
         </div>

@@ -47,7 +47,7 @@ function playNext() {
 export function getOrCreateAudio(): HTMLAudioElement {
   if (globalAudio) return globalAudio;
   globalAudio = new Audio();
-  globalAudio.preload = 'auto';
+  globalAudio.preload = 'none'; // the track is ~3 MB; do not download it until playback is actually requested
   globalAudio.loop = false;
   globalAudio.volume = parseFloat(localStorage.getItem('radioVolume') || '0.25');
   globalAudio.addEventListener('ended', playNext);
