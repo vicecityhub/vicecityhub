@@ -195,7 +195,7 @@ export const shareBar = (url, text) => {
 // ----------------------------------------------------------------------------------------------------- nav + footer
 // Menu data lives in src/lib/nav.json (shared with src/components/NavGroups.tsx).
 const activeKey = (p) =>
-  p === 'n' || p.startsWith('n/') ? 'archive' : p.startsWith('vehicles') ? 'vehicles' : p.startsWith('gta-6-release') ? 'date' : p.startsWith('supporters') ? 'wall' : p.startsWith('is-gta-6') ? 'isout' : '';
+  p === 'n' || p.startsWith('n/') ? 'archive' : p.startsWith('vehicles') ? 'vehicles' : p.startsWith('gta-6-release') ? 'date' : p.startsWith('supporters') ? 'wall' : p.startsWith('is-gta-6') ? 'isout' : p.startsWith('alley') ? 'alley' : '';
 
 const FONTS = 'https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;800;900&amp;family=Rajdhani:wght@500;600;700&amp;display=swap';
 

@@ -40,6 +40,7 @@
       "label": "Agents",
       "items": [
         { "href": "agents.html", "label": "Agent Desk", "key": "agents" },
+        { "href": "alley/", "label": "Back Alley", "key": "alley", "badge": "NEW" },
         { "href": "supporters/", "label": "Wall of Legends", "key": "wall" }
       ]
     }
