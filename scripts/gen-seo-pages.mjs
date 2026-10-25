@@ -18,7 +18,7 @@
  */
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
-import {
+import { NAVDATA,
   ROOT, SITE, GROWTH, KOFI, RELEASE, cfg, esc, one, trunc, slugify, newsPath, newsUrl, longDate, day, stars,
   shell, nlBlock, kofiBlock, shareBar, org, crumbs,
 } from './lib/seo.mjs';
@@ -353,6 +353,36 @@ ${ag.length ? `<ul class="list">${ag.map((a) => `<li class="card"><b style="colo
   }
 }
 
+// ---------------------------------------------------------------- /map/ (every page, grouped like the menu)
+{
+  const blurbs = {
+    news: 'Live feed of GTA VI news, rumors and leaks.',
+    archive: 'Every story we have published, one page each.',
+    date: 'Countdown, platforms and the FAQ.',
+    isout: 'The one-word answer.',
+    document: 'Leonida Database: map, characters, lore.',
+    vehicles: 'Every car, bike and boat we know about.',
+    realestate: 'Properties in Dynasty 8.',
+    community: 'Forum, streams, podcasts and listings by the community.',
+    rp: 'GTA RP servers, jobs, factions and mods.',
+    market: 'Merch and the Hub store.',
+    agents: 'Machine-readable API, MCP server and docs for AI agents.',
+    wall: 'Supporters and the Agent Hall of Fame.',
+  };
+  const sections = NAVDATA.groups.map((g) => `<h2>${esc(g.label)}</h2>
+<ul class="list">${g.items.map((i) => `<li class="card"><a href="${SITE}/${i.href}"><b>${esc(i.label)}</b></a><div class="mut small">${esc(blurbs[i.key] || '')}</div></li>`).join('')}</ul>`).join('\n');
+  const body = `<p class="crumbs"><a href="${SITE}/">Home</a> / All pages</p>
+<h1>All Pages</h1>
+<p class="lead">Everything on the Hub in one place, grouped like the menu. For machines: <a href="${SITE}/sitemap.xml">sitemap.xml</a>, <a href="${SITE}/llms.txt">llms.txt</a>, <a href="${SITE}/feed.xml">RSS</a>.</p>
+${sections}`;
+  out('map/index.html', shell({
+    title: 'All Pages | Vice City Hub',
+    description: 'Every page on Vice City Hub, grouped: news, world, play, market and agents.',
+    path: 'map/', body,
+    ld: [crumbs([['Home', SITE + '/'], ['All pages', SITE + '/map/']])],
+  }));
+}
+
 // ---------------------------------------------------------------- RSS
 if (news.length) {
   const rfc = (d) => new Date(d).toUTCString();
@@ -389,6 +419,7 @@ add(`${SITE}/is-gta-6-out-yet/`, day(ISO), 'daily', '0.9');
   add(`${SITE}/n/`, day(news[0]?.published_at || ISO), 'daily', '0.8');
   add(`${SITE}/vehicles/`, day(ISO), 'weekly', '0.7');
   add(`${SITE}/supporters/`, day(ISO), 'daily', '0.4');
+  add(`${SITE}/map/`, day(ISO), 'weekly', '0.4');
   add(`${SITE}/llms.txt`, day(ISO), 'daily', '0.5');
   add(`${SITE}/data/index.json`, day(ISO), 'daily', '0.3');
   for (const n of news) add(newsUrl(n), day(n.published_at), 'never', '0.6');

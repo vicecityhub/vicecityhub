@@ -1,0 +1,54 @@
+{
+  "_note": "Single source of truth for the Hub menu. Used by src/components/NavGroups.tsx (React) and scripts/lib/seo.mjs (static pages). hrefs are relative to the site root.",
+  "groups": [
+    {
+      "key": "news",
+      "label": "News",
+      "items": [
+        { "href": "news.html", "label": "The Wire", "key": "news" },
+        { "href": "n/", "label": "News Archive", "key": "archive" },
+        { "href": "gta-6-release-date/", "label": "GTA 6 Date", "key": "date" },
+        { "href": "is-gta-6-out-yet/", "label": "Is It Out Yet?", "key": "isout" }
+      ]
+    },
+    {
+      "key": "world",
+      "label": "World",
+      "items": [
+        { "href": "document.html", "label": "Leonida Database", "key": "document" },
+        { "href": "vehicles/", "label": "Vehicles", "key": "vehicles" },
+        { "href": "realestate.html", "label": "Dynasty 8", "key": "realestate" }
+      ]
+    },
+    {
+      "key": "play",
+      "label": "Play",
+      "items": [
+        { "href": "community.html", "label": "Community", "key": "community" },
+        { "href": "rp.html", "label": "RP Hub", "key": "rp", "badge": "NEW" }
+      ]
+    },
+    {
+      "key": "market",
+      "label": "Market",
+      "items": [
+        { "href": "market.html", "label": "Market", "key": "market" }
+      ]
+    },
+    {
+      "key": "agents",
+      "label": "Agents",
+      "items": [
+        { "href": "agents.html", "label": "Agent Desk", "key": "agents" },
+        { "href": "supporters/", "label": "Wall of Legends", "key": "wall" }
+      ]
+    }
+  ],
+  "bottom": [
+    { "href": "news.html", "label": "Wire", "group": "news" },
+    { "href": "document.html", "label": "World", "group": "world" },
+    { "href": "community.html", "label": "Play", "group": "play" },
+    { "href": "market.html", "label": "Market", "group": "market" },
+    { "href": "agents.html", "label": "Agents", "group": "agents" }
+  ]
+}
