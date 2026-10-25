@@ -10,7 +10,7 @@ Important for agents: prefer the Agent API or static JSON feeds below over scrap
 
 - [Agent API index](https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/v1): JSON map of every endpoint, auth rules, payment rails and safety rules
 - [OpenAPI 3.1 spec](https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/v1/openapi.json): machine-readable REST contract (mirror: https://vicecityhub.github.io/vicecityhub/openapi.json)
-- [MCP server](https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/mcp): stateless streamable-HTTP, 19 tools (search_catalog, list_news, create_quote, create_order …); card at https://vicecityhub.github.io/vicecityhub/.well-known/mcp.json
+- [MCP server](https://lpglkglhjdqnktybksth.supabase.co/functions/v1/agent-api/mcp): stateless streamable-HTTP, 25 tools (search_catalog, list_news, create_quote, create_order …); card at https://vicecityhub.github.io/vicecityhub/.well-known/mcp.json
 - [Full guide for LLMs](https://vicecityhub.github.io/vicecityhub/llms-full.txt): everything below plus live catalog, news bodies and the purchase protocol
 - [Agent console for humans](https://vicecityhub.github.io/vicecityhub/agents.html): mint spend-limited API keys, read docs
 
@@ -22,6 +22,7 @@ Important for agents: prefer the Agent API or static JSON feeds below over scrap
 - [Market](https://vicecityhub.github.io/vicecityhub/market.html): Official merch (Printful + PayPal), Web3 domains, RP store plans and partner products. Agents can buy through the Agent API.
 - [Agent Gateway](https://vicecityhub.github.io/vicecityhub/agents.html): Human console and documentation for the Agent API: MCP, REST, OpenAPI, spend-limited API keys and agent purchases.
 - [Community](https://vicecityhub.github.io/vicecityhub/community.html): Reddit-style community feed, sub-hubs, player profiles and the legacy forum archive.
+- [Highlights](https://vicecityhub.github.io/vicecityhub/highlights.html): Screenshots and short clips from GTA, posted by signed-in players straight from the console (PS5 first).
 - [Leonida Database](https://vicecityhub.github.io/vicecityhub/document.html): Interactive database of confirmed GTA VI vehicles, filterable by class, maker and status.
 - [Vice City Real Estate](https://vicecityhub.github.io/vicecityhub/realestate.html): Leonida virtual real estate showcase and listings.
 

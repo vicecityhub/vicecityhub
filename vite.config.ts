@@ -27,6 +27,7 @@ export default defineConfig({
         resetPassword: path.resolve(__dirname, 'reset-password.html'),
         rp:            path.resolve(__dirname, 'rp.html'),
         agents:        path.resolve(__dirname, 'agents.html'),
+        highlights:    path.resolve(__dirname, 'highlights.html'),
       },
       output: {
         // Chunk splitting для оптимизации загрузки

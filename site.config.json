@@ -23,6 +23,8 @@
       "description": "Human console and documentation for the Agent API: MCP, REST, OpenAPI, spend-limited API keys and agent purchases." },
     { "file": "community.html", "title": "Community", "kind": "CollectionPage", "priority": "0.7", "freq": "daily", "index": true,
       "description": "Reddit-style community feed, sub-hubs, player profiles and the legacy forum archive." },
+    { "file": "highlights.html", "title": "Highlights", "kind": "CollectionPage", "priority": "0.7", "freq": "daily", "index": true,
+      "description": "Screenshots and short clips from GTA, posted by signed-in players straight from the console (PS5 first)." },
     { "file": "document.html", "title": "Leonida Database", "kind": "CollectionPage", "priority": "0.7", "freq": "weekly", "index": true,
       "description": "Interactive database of confirmed GTA VI vehicles, filterable by class, maker and status." },
     { "file": "realestate.html", "title": "Vice City Real Estate", "kind": "WebPage", "priority": "0.6", "freq": "weekly", "index": true,

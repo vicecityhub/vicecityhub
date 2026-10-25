@@ -25,6 +25,7 @@
       "label": "Play",
       "items": [
         { "href": "community.html", "label": "Community", "key": "community" },
+          { "href": "highlights.html", "label": "Highlights", "key": "highlights", "badge": "NEW" },
         { "href": "rp.html", "label": "RP Hub", "key": "rp", "badge": "NEW" }
       ]
     },

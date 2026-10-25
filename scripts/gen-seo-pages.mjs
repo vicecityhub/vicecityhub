@@ -365,6 +365,7 @@ ${ag.length ? `<ul class="list">${ag.map((a) => `<li class="card"><b style="colo
     realestate: 'Properties in Dynasty 8.',
     community: 'Forum, streams, podcasts and listings by the community.',
     rp: 'GTA RP servers, jobs, factions and mods.',
+  highlights: 'Screenshots and short clips from the console, posted by players. Sign in with a phone code.',
     market: 'Merch and the Hub store.',
     agents: 'Machine-readable API, MCP server and docs for AI agents.',
     wall: 'Supporters and the Agent Hall of Fame.',

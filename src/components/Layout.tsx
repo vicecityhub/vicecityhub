@@ -10,7 +10,7 @@ import { DesktopNav, MobileNavList, BottomTabs, FooterNav } from './NavGroups';
 
 interface LayoutProps {
   children: React.ReactNode;
-  activePage: 'home' | 'news' | 'market' | 'realestate' | 'document' | 'community' | 'profile' | 'rp' | 'agents';
+  activePage: 'home' | 'news' | 'market' | 'realestate' | 'document' | 'community' | 'profile' | 'rp' | 'agents' | 'highlights';
 }
 
 export default function Layout({ children, activePage }: LayoutProps) {

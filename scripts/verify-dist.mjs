@@ -48,6 +48,8 @@ check('data/donate.json present', existsSync(join(DIST, 'data/donate.json')) && 
 // 4. sitemap & robots sanity
 const sm = read('sitemap.xml');
 check('sitemap lists agents.html', sm.includes('/agents.html'));
+check('sitemap lists highlights.html', sm.includes('/highlights.html'));
+check('highlights.html: H1 + canonical', read('highlights.html').includes('<h1') && read('highlights.html').includes('rel=\"canonical\"'));
 check('sitemap has no noindex pages', !/post\.html|profile\.html|reset-password\.html/.test(sm));
 const rb = read('robots.txt');
 check('robots.txt allows AI agents', /User-agent: ChatGPT-User/.test(rb) && /User-agent: Claude-User/.test(rb) && /Sitemap:/.test(rb));
