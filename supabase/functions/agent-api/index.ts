@@ -1,6 +1,6 @@
 // Vice City Hub — Agent API v12 · router
 // Public base: https://<project>.supabase.co/functions/v1/agent-api
-import { authenticate, CORS, clientIpHash, db, fail, rate, toResponse, R } from "./lib.ts";
+import { authenticate, CORS, clientIpHash, db, fail, rate, toResponse } from "./lib.ts";
 import { catalogItem, catalogList, indexDoc, newsItem, newsList, rpList, search } from "./handlers.ts";
 import { donationInfo } from "./donate.ts";
 import { x402Donate } from "./x402.ts";
@@ -8,10 +8,17 @@ import { cancelOrder, captureOrder, createDonation, createIntent, createOrder, c
 import { ownerRoute } from "./owner.ts";
 import { mcpHandle } from "./mcp.ts";
 import { reconcile } from "./reconcile.ts";
+import { createRouter } from "./router.ts";
 import spec from "./openapi.json" with { type: "json" };
 
-const need = (key: any): R | null =>
-  key ? null : fail(401, "auth_required", "This endpoint needs an API key.", "POST /v1/agents/register to self-issue one, or mint one at the Agents page.");
+const route = createRouter({
+  fail, spec,
+  // polling an order also nudges the (globally throttled) reconciler so an agent never waits for the next cron tick
+  nudgeReconcile: () => { try { (globalThis as any).EdgeRuntime?.waitUntil(reconcile()); } catch (_) { /* best effort */ } },
+  indexDoc, catalogList, catalogItem, reconcile, donationInfo, x402Donate, search, newsList, newsItem, rpList,
+  whoAmI, orderStatus, getOrder, registerAgent, createQuote, createOrder, createIntent, createDonation,
+  captureOrder, submitProof, verifyOrder, cancelOrder,
+});
 
 Deno.serve(async (req) => {
   const t0 = Date.now();
@@ -63,47 +70,3 @@ Deno.serve(async (req) => {
   }
   return res;
 });
-
-async function route(req: Request, url: URL, path: string, key: any, ipHash: string): Promise<R> {
-  const m = req.method;
-  const p = url.searchParams;
-  let g: RegExpMatchArray | null;
-
-  if (m === "GET") {
-    if (path === "/" || path === "/v1") return indexDoc();
-    if (path === "/v1/openapi.json") return { status: 200, body: spec, headers: { "Cache-Control": "public, max-age=3600" } };
-    if (path === "/v1/catalog") return catalogList(p);
-    if ((g = path.match(/^\/v1\/catalog\/(.+)$/))) return catalogItem(decodeURIComponent(g[1]));
-    if (path === "/v1/internal/reconcile") return reconcile(); // pg_cron every minute: auto-detects + settles crypto payments
-    if (path === "/v1/donate") return donationInfo();
-    if (path === "/v1/donate/x402") return x402Donate(req, p, {}, ipHash);
-    if (path === "/v1/search") return search(p);
-    if (path === "/v1/news") return newsList(p);
-    if ((g = path.match(/^\/v1\/news\/(\d+)$/))) return newsItem(g[1]);
-    if ((g = path.match(/^\/v1\/rp\/(servers|factions|jobs|mods)$/))) return rpList(g[1], p);
-    if (path === "/v1/agents/me") return need(key) || whoAmI(key);
-    if ((g = path.match(/^\/v1\/orders\/([\w]+)\/status$/))) {
-      // polling an order also nudges the (globally throttled) reconciler so an agent never waits for the next cron tick
-      try { (globalThis as any).EdgeRuntime?.waitUntil(reconcile()); } catch (_) { /* best effort */ }
-      return orderStatus(g[1]);
-    }
-    if ((g = path.match(/^\/v1\/orders\/([\w]+)$/))) return need(key) || getOrder(key, g[1]);
-  }
-
-  if (m === "POST") {
-    let body: any = {};
-    try { const txt = await req.text(); body = txt ? JSON.parse(txt) : {}; } catch { return fail(400, "invalid_json", "Request body must be valid JSON."); }
-    if (path === "/v1/agents/register") return registerAgent(body, ipHash);
-    if (path === "/v1/quotes") return need(key) || createQuote(key, body);
-    if (path === "/v1/orders") return need(key) || createOrder(key, body, req.headers.get("idempotency-key"));
-    if (path === "/v1/intents") return need(key) || createIntent(key, body);
-    if (path === "/v1/donate/x402") return x402Donate(req, p, body, ipHash);
-    if (path === "/v1/donations") return need(key) || createDonation(key, body, req.headers.get("idempotency-key"));
-    if ((g = path.match(/^\/v1\/orders\/([\w]+)\/capture$/))) return captureOrder(g[1]);
-    if ((g = path.match(/^\/v1\/orders\/([\w]+)\/payment-proof$/))) return need(key) || submitProof(key, g[1], body);
-    if ((g = path.match(/^\/v1\/orders\/([\w]+)\/verify$/))) return need(key) || verifyOrder(key, g[1]);
-    if ((g = path.match(/^\/v1\/orders\/([\w]+)\/cancel$/))) return need(key) || cancelOrder(key, g[1]);
-  }
-
-  return fail(404, "not_found", `No route for ${m} ${path}`, "GET /v1 lists every endpoint.");
-}
