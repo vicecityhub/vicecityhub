@@ -80,6 +80,12 @@
 - [ ] T15 · P3 · Проверить a11y (контраст неоновых цветов, focus-стили) и добавить `prefers-reduced-motion`.
 
 ## 3. Журнал сессий (дописывай сверху, новая запись первой)
+### 2026-10-27: Claude Sonnet 5.5 (рефакторинг по находкам Repowise)
+Сделано: разбиты 7 функций с критичными находками Repowise (Layout 1588 → 105 строк, Home, PostDetail, PostCard, Community, `loop` в ViceArcadeGame, `route` в agent-api). Один коммит на файл, каждый откатывается отдельно (`git revert <sha>`). Поведение не менялось: Layout сверен с оригиналом по HTML 31 состояния (SSR-слепки), остальное покрыто юнит-тестами.
+Тесты: появилась команда `npm run test:unit` (встроенный `node:test`, без новых зависимостей, 90 тестов в `tests/`). Чистая логика вынесена в `src/lib/*.ts` и `supabase/functions/agent-api/router.ts`. Перед коммитом: `npx tsc --noEmit -p tsconfig.app.json; npm run test:unit; npm run build; npm run verify:dist`.
+Важно: `agent-api` (`index.ts` + новый `router.ts`) в Supabase НЕ задеплоен, живой `npm run test:agent` не прогонялся. Перед деплоем прогнать `scripts/test-agent-api.mjs` против нового кода.
+Не сделано: визуальная проверка в браузере (модалки Layout, игра, Community), T1–T3, T16–T18 из очереди.
+
 ### 2026-10-25 (позже): Claude Sonnet 5.5
 Сделано: доска Back Alley (БД, edge function `alley`, страница `/alley/`, самотесты EVM и Solana, тестовые строки удалены); игра перенесена с главной в Community после форума; скрытый H1 и описание в корне всех индексируемых HTML-входов (ответ на ошибку Bing «H1 tag missing»).
 Решение владельца: сплиты и комиссия с чужих услуг отменены, только автоматические прямые платежи и донаты (ADR-0003 обновлён).
