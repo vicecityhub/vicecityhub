@@ -9,7 +9,7 @@ import CommunityTab  from '../rp-hub/components/CommunityTab'
 import RpHeader from '../rp-hub/components/RpHeader'
 import RpHero from '../rp-hub/components/RpHero'
 import RpFooter from '../rp-hub/components/RpFooter'
-import { useRpRadio } from '../rp-hub/useRpRadio'
+import { useRadio } from '../components/layout/useRadio'
 import { tabBodyStyle } from '../lib/rpTabs'
 
 /** Which component fills the page body for each tab. */
@@ -24,12 +24,12 @@ const TAB_VIEWS: Record<TabId, React.ComponentType> = {
 
 export default function RPHub() {
   const [activeTab, setActiveTab] = useState<TabId>('servers')
-  const { isPlaying, toggle } = useRpRadio()
+  const { isPlaying, toggleRadio } = useRadio()
   const ActiveView = TAB_VIEWS[activeTab]
 
   return (
     <div className="min-h-screen vibe-bg scanlines">
-      <RpHeader isPlaying={isPlaying} onToggle={toggle} />
+      <RpHeader isPlaying={isPlaying} onToggle={toggleRadio} />
       <RpHero />
       <TabNavigation activeTab={activeTab} onTabChange={setActiveTab} />
 

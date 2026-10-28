@@ -27,7 +27,7 @@ export default function RpHero() {
           </span>
         </h1>
         <p className="font-rajdhani text-white/30 text-xs sm:text-sm tracking-[0.2em] mt-2 uppercase">
-          Server Intel - Leonida Files Â- Identity Forge Â- Mod Vault - Store District
+          Server Intel - Leonida Files - Identity Forge - Mod Vault - Store District
         </p>
         <div className="flex flex-wrap gap-2 sm:gap-3 mt-3">
           {[

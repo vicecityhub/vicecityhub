@@ -15,7 +15,7 @@ const IconMute = () => (
   </svg>
 )
 
-interface Props { isPlaying: boolean; onToggle: () => void }
+interface Props { isPlaying: boolean; onToggle: (e: React.MouseEvent) => void }
 
 /** Sticky top bar: logo, page title and the Leonida FM button. */
 export default function RpHeader({ isPlaying, onToggle }: Props) {
