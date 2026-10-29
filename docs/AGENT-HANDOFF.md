@@ -80,6 +80,14 @@
 - [ ] T15 · P3 · Проверить a11y (контраст неоновых цветов, focus-стили) и добавить `prefers-reduced-motion`.
 
 ## 3. Журнал сессий (дописывай сверху, новая запись первой)
+### 2026-10-29: Claude Sonnet 5.5 (Highlights.tsx по находкам Repowise)
+`src/pages/Highlights.tsx` (388 строк, `Highlights` CCN 94) разбит, поведение не менялось. Страница теперь только собирает блоки (~35 строк).
+Чистые правила (типы файлов, лимиты, тексты ошибок, пагинация, лайки, коды входа) → `src/lib/highlights.ts` (`tests/highlights.test.mjs`).
+Сеть: `src/components/highlights/{storage,poster,api,uploadFlow,deviceLogin}.ts` (`xhrUpload` разбит на мелкие функции), состояние: `use{Gallery,Upload,DeviceLogin,ConsoleLink}.ts`, разметка: `Gallery`, `HighlightCard`, `UploadPanel`, `SignInPanel`, `LinkPanel`, `PlatformGuide`, `HighlightsHeader`.
+Тесты: `tests/highlightsApi.test.mjs` (fake XHR/fetch/Supabase через `tests/helpers/bundleTs.mjs`), `tests/highlightsPage.test.mjs` (SSR). Всего 162 теста в `npm run test:unit`.
+Проверка: HTML страницы до и после рефакторинга сравнён побайтно в 27 состояниях (гость, консоль, ожидание кода, форма, прогресс, ошибки, код с телефона, стена с лайками/репортами/своими постами): 0 различий.
+Не проверено: реальная загрузка файла и вход по коду в браузере/на консоли (песочница без доступа к supabase.co). Откат: `git revert` коммита этой записи.
+
 ### 2026-10-27: Claude Sonnet 5.5 (рефакторинг по находкам Repowise)
 Сделано: разбиты 7 функций с критичными находками Repowise (Layout 1588 → 105 строк, Home, PostDetail, PostCard, Community, `loop` в ViceArcadeGame, `route` в agent-api). Один коммит на файл, каждый откатывается отдельно (`git revert <sha>`). Поведение не менялось: Layout сверен с оригиналом по HTML 31 состояния (SSR-слепки), остальное покрыто юнит-тестами.
 Тесты: появилась команда `npm run test:unit` (встроенный `node:test`, без новых зависимостей, 90 тестов в `tests/`). Чистая логика вынесена в `src/lib/*.ts` и `supabase/functions/agent-api/router.ts`. Перед коммитом: `npx tsc --noEmit -p tsconfig.app.json; npm run test:unit; npm run build; npm run verify:dist`.
