@@ -1,11 +1,11 @@
 import { useEffect } from "react";
 import type { MutableRefObject, RefObject } from "react";
-import { W } from "../../lib/arcadeEngine";
+import { createInputHandlers } from "../../lib/arcadeInput";
 import type { GameState, HeldKeys } from "../../lib/arcadeEngine";
 
 /**
  * Keyboard (arrows / A / D, Space or Enter to start) and touch (hold the left or right half to steer, tap to start)
- * controls. They only write the `held` keys and start a new run through `reset`.
+ * controls. They only write the `held` keys and start a new run through `reset`. What each input means: lib/arcadeInput.ts.
  */
 export function useArcadeInput(
   canvasRef: RefObject<HTMLCanvasElement>,
@@ -15,33 +15,17 @@ export function useArcadeInput(
 ) {
   useEffect(() => {
     const canvas = canvasRef.current; if (!canvas) return;
+    const h = createInputHandlers({ held, st, reset, canvasLeft: () => canvas.getBoundingClientRect().left });
 
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key==="ArrowLeft"||e.key==="a") { e.preventDefault(); held.current.left = true; }
-      if (e.key==="ArrowRight"||e.key==="d") { e.preventDefault(); held.current.right = true; }
-      if ((e.key===" "||e.key==="Enter") && (st.current.gameOver||!st.current.started)) reset();
-    };
-    const handleKeyUp = (e: KeyboardEvent) => {
-      if (e.key==="ArrowLeft"||e.key==="a") held.current.left = false;
-      if (e.key==="ArrowRight"||e.key==="d") held.current.right = false;
-    };
-    const handleTouchStart = (e: TouchEvent) => {
-      e.preventDefault();
-      if (!st.current.started || st.current.gameOver) { reset(); return; }
-      const t = e.changedTouches[0]; const rect = canvas.getBoundingClientRect();
-      if ((t.clientX - rect.left) < W/2) held.current.left = true; else held.current.right = true;
-    };
-    const handleTouchEnd = (e: TouchEvent) => { e.preventDefault(); held.current.left = false; held.current.right = false; };
-
-    window.addEventListener("keydown", handleKeyDown);
-    window.addEventListener("keyup", handleKeyUp);
-    canvas.addEventListener("touchstart", handleTouchStart, { passive: false });
-    canvas.addEventListener("touchend", handleTouchEnd, { passive: false });
+    window.addEventListener("keydown", h.keyDown);
+    window.addEventListener("keyup", h.keyUp);
+    canvas.addEventListener("touchstart", h.touchStart, { passive: false });
+    canvas.addEventListener("touchend", h.touchEnd, { passive: false });
     return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-      window.removeEventListener("keyup", handleKeyUp);
-      canvas.removeEventListener("touchstart", handleTouchStart);
-      canvas.removeEventListener("touchend", handleTouchEnd);
+      window.removeEventListener("keydown", h.keyDown);
+      window.removeEventListener("keyup", h.keyUp);
+      canvas.removeEventListener("touchstart", h.touchStart);
+      canvas.removeEventListener("touchend", h.touchEnd);
     };
   }, [canvasRef, held, st, reset]);
 }

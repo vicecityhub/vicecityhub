@@ -80,6 +80,9 @@
 - [ ] T15 · P3 · Проверить a11y (контраст неоновых цветов, focus-стили) и добавить `prefers-reduced-motion`.
 
 ## 3. Журнал сессий (дописывай сверху, новая запись первой)
+### 2026-10-29 (позже): Claude Sonnet 5.5 (useArcadeInput по находкам Repowise)
+`src/components/arcade/useArcadeInput.ts` (CCN 17, составное условие в `keyDown`): смысл клавиш и касаний вынесен в `src/lib/arcadeInput.ts` (`steerSide` по таблице, `canStartRun`, `touchSide`, `createInputHandlers`), хук только подписывает обработчики. Сигнатура хука не менялась. `tests/arcadeInput.test.mjs`, 8 тестов (всего 170). Не проверено: управление пальцем на телефоне в браузере. Откат: `git revert` коммита этой записи.
+
 ### 2026-10-29: Claude Sonnet 5.5 (Highlights.tsx по находкам Repowise)
 `src/pages/Highlights.tsx` (388 строк, `Highlights` CCN 94) разбит, поведение не менялось. Страница теперь только собирает блоки (~35 строк).
 Чистые правила (типы файлов, лимиты, тексты ошибок, пагинация, лайки, коды входа) → `src/lib/highlights.ts` (`tests/highlights.test.mjs`).
