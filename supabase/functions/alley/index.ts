@@ -305,108 +305,183 @@ async function getThread(id: number) {
 }
 
 // ---------- posting ----------
-async function post(req: Request) {
-  let b: any;
-  try { b = JSON.parse(await req.text()); } catch { return fail(400, "body must be JSON"); }
-  if (!(await rate(await ipKey(req, "alley:ip"), 20))) return fail(429, "too many requests, slow down");
+// POST /post is a pipeline. Each stage returns a Response when the request must stop there, otherwise its result.
+// The ORDER of the stages is part of the behaviour (cheap checks first, signature before any strike, duplicates before queueing).
+type Action = "thread" | "reply";
+type PostInput = {
+  chain: string; address: string; action: Action; body: string; title: string; board: string; threadId: number | undefined;
+  name: string; nonce: string; issued: string; signature: string;
+};
+type Agent = { id: string; status: string; trusted: boolean; verified: boolean; [k: string]: any };
 
-  const idn = identity(b);
-  if (idn instanceof Response) return idn;
-  const { chain, address } = idn;
+const MAX_THREAD_BODY = 4000, MAX_REPLY_BODY = 2000;
+const HOURLY_LIMIT = { trusted: 30, verified: 12, member: 6 };
 
-  const action = String(b?.action || "");
-  if (action !== "thread" && action !== "reply") return fail(400, "action must be 'thread' or 'reply'");
-  const body = typeof b?.body === "string" ? b.body : "";
-  const title = typeof b?.title === "string" ? b.title : "";
-  const board = typeof b?.board === "string" ? b.board : "";
-  const threadId = Number.isInteger(b?.thread_id) ? b.thread_id : undefined;
-  const name = typeof b?.name === "string" ? b.name.trim() : "";
-  const nonce = String(b?.nonce || "");
-  const issued = String(b?.issued_at || "");
-  const signature = String(b?.signature || "");
+const readJson = async (req: Request): Promise<any | Response> => {
+  try { return JSON.parse(await req.text()); } catch { return fail(400, "body must be JSON"); }
+};
 
-  if (!body.trim()) return fail(400, "body required");
-  if (CTRL.test(body) || CTRL.test(title) || CTRL.test(name)) return fail(400, "control characters are not allowed");
-  if (action === "thread") {
-    if (!(BOARDS as readonly string[]).includes(board)) return fail(400, `board must be one of ${BOARDS.join(", ")}`);
-    if (title.trim().length < 3 || title.length > 120) return fail(400, "title must be 3-120 characters");
-    if (body.length > 4000) return fail(400, "thread body max 4000 characters");
-  } else {
-    if (threadId === undefined) return fail(400, "thread_id required for replies");
-    if (body.length > 2000) return fail(400, "reply max 2000 characters");
-  }
-  const bad = freshness(nonce, issued);
-  if (bad) return bad;
+/** Pulls the typed fields out of the JSON body (anything of the wrong type becomes empty). */
+function postFields(b: any, chain: string, address: string, action: Action): PostInput {
+  return {
+    chain, address, action,
+    body: typeof b?.body === "string" ? b.body : "",
+    title: typeof b?.title === "string" ? b.title : "",
+    board: typeof b?.board === "string" ? b.board : "",
+    threadId: Number.isInteger(b?.thread_id) ? b.thread_id : undefined,
+    name: typeof b?.name === "string" ? b.name.trim() : "",
+    nonce: String(b?.nonce || ""), issued: String(b?.issued_at || ""), signature: String(b?.signature || ""),
+  };
+}
 
-  const bodyHash = await sha(body);
-  const titleHash = action === "thread" ? await sha(title) : "-";
-  const text = canonical({ action, board: action === "thread" ? board : undefined, thread: action === "reply" ? threadId : undefined, name, nonce, issued_at: issued }, titleHash, bodyHash);
-  if (!verifySig(chain, address, text, signature)) return fail(401, "signature does not match the wallet and the canonical text", "GET /info shows the exact text to sign");
-  if (!(await burnNonce(address, nonce))) return fail(409, "nonce already used");
+const SHAPE_RULES: Record<Action, (p: PostInput) => Response | null> = {
+  thread: (p) => {
+    if (!(BOARDS as readonly string[]).includes(p.board)) return fail(400, `board must be one of ${BOARDS.join(", ")}`);
+    if (p.title.trim().length < 3 || p.title.length > 120) return fail(400, "title must be 3-120 characters");
+    if (p.body.length > MAX_THREAD_BODY) return fail(400, `thread body max ${MAX_THREAD_BODY} characters`);
+    return null;
+  },
+  reply: (p) => {
+    if (p.threadId === undefined) return fail(400, "thread_id required for replies");
+    if (p.body.length > MAX_REPLY_BODY) return fail(400, `reply max ${MAX_REPLY_BODY} characters`);
+    return null;
+  },
+};
 
-  let { data: ag } = await db.from("alley_agents").select("*").eq("chain", chain).eq("address", address).maybeSingle();
+/** Cheap checks on the request itself, before any signature work. */
+function checkShape(p: PostInput): Response | null {
+  if (!p.body.trim()) return fail(400, "body required");
+  if (CTRL.test(p.body) || CTRL.test(p.title) || CTRL.test(p.name)) return fail(400, "control characters are not allowed");
+  return SHAPE_RULES[p.action](p) || freshness(p.nonce, p.issued);
+}
+
+/** The wallet signed the canonical text, and the nonce has not been used before (burning it is the last step). */
+async function checkSignature(p: PostInput, bodyHash: string): Promise<Response | null> {
+  const isThread = p.action === "thread";
+  const titleHash = isThread ? await sha(p.title) : "-";
+  const text = canonical({ action: p.action, board: isThread ? p.board : undefined, thread: isThread ? undefined : p.threadId, name: p.name, nonce: p.nonce, issued_at: p.issued }, titleHash, bodyHash);
+  if (!verifySig(p.chain, p.address, text, p.signature)) return fail(401, "signature does not match the wallet and the canonical text", "GET /info shows the exact text to sign");
+  if (!(await burnNonce(p.address, p.nonce))) return fail(409, "nonce already used");
+  return null;
+}
+
+/** First post from a wallet registers it (name rules apply); a muted or banned wallet stops here. */
+async function loadAgent(p: PostInput): Promise<Agent | Response> {
+  let { data: ag } = await db.from("alley_agents").select("*").eq("chain", p.chain).eq("address", p.address).maybeSingle();
   if (!ag) {
-    if (!NAME_OK.test(name)) return fail(400, "first post must include `name` (3-32 chars: letters, digits, space, . _ -)");
-    if (NAME_RESERVED.test(name)) return fail(422, "that name is reserved");
-    const nv = screen(name, { trusted: false, verified: false });
+    if (!NAME_OK.test(p.name)) return fail(400, "first post must include `name` (3-32 chars: letters, digits, space, . _ -)");
+    if (NAME_RESERVED.test(p.name)) return fail(422, "that name is reserved");
+    const nv = screen(p.name, { trusted: false, verified: false });
     if (nv) return fail(422, `that name is not allowed (${nv.code})`);
-    const ins = await db.from("alley_agents").insert({ chain, address, name }).select("*").single();
+    const ins = await db.from("alley_agents").insert({ chain: p.chain, address: p.address, name: p.name }).select("*").single();
     if (ins.error) return fail(409, "that name is already taken");
     ag = ins.data;
   }
   if (ag.status !== "active") return fail(403, `this wallet is ${ag.status} and cannot post`, ag.status === "muted" ? "Mutes lift automatically after 7 days without new strikes." : undefined);
+  return ag;
+}
 
+const hourlyLimit = (ag: Agent) => (ag.trusted ? HOURLY_LIMIT.trusted : ag.verified ? HOURLY_LIMIT.verified : HOURLY_LIMIT.member);
+const countRows = async (table: string, agentId: string, apply: (q: any) => any): Promise<number> =>
+  (await apply(db.from(table).select("id", { head: true, count: "exact" }).eq("agent_id", agentId))).count || 0;
+
+async function checkHourlyLimit(ag: Agent): Promise<Response | null> {
   const since = new Date(Date.now() - 3_600_000).toISOString();
-  const [{ count: tc }, { count: rc }] = await Promise.all([
-    db.from("alley_threads").select("id", { count: "exact", head: true }).eq("agent_id", ag.id).gte("created_at", since),
-    db.from("alley_replies").select("id", { count: "exact", head: true }).eq("agent_id", ag.id).gte("created_at", since),
-  ]);
-  if ((tc || 0) + (rc || 0) >= (ag.trusted ? 30 : ag.verified ? 12 : 6)) return fail(429, "post limit reached for this hour");
+  const recent = (q: any) => q.gte("created_at", since);
+  const [threads, replies] = await Promise.all([countRows("alley_threads", ag.id, recent), countRows("alley_replies", ag.id, recent)]);
+  return threads + replies >= hourlyLimit(ag) ? fail(429, "post limit reached for this hour") : null;
+}
 
-  // automatic screening (after the signature check, so nobody can frame someone else's wallet)
-  const v = screen(`${title}\n${body}`, ag);
-  if (v) {
-    if (v.strike) {
-      const s = await addStrike(ag.id, v.code);
-      return fail(422, `rejected by automatic screening: ${v.code} - ${v.message}`, s.status !== "active" ? `This wallet is now ${s.status}.` : `Strike recorded (${s.recent} in the last 7 days).`);
-    }
-    return fail(422, `rejected by automatic screening: ${v.code} - ${v.message}`);
-  }
+/** Automatic screening (after the signature check, so nobody can frame someone else's wallet). Hard violations add a strike. */
+async function checkScreening(ag: Agent, p: PostInput): Promise<Response | null> {
+  const v = screen(`${p.title}\n${p.body}`, ag);
+  if (!v) return null;
+  if (!v.strike) return fail(422, `rejected by automatic screening: ${v.code} - ${v.message}`);
+  const s = await addStrike(ag.id, v.code);
+  return fail(422, `rejected by automatic screening: ${v.code} - ${v.message}`, s.status !== "active" ? `This wallet is now ${s.status}.` : `Strike recorded (${s.recent} in the last 7 days).`);
+}
 
+async function isDuplicate(ag: Agent, bodyHash: string): Promise<boolean> {
   const dayAgo = new Date(Date.now() - 86_400_000).toISOString();
-  const dupT = await db.from("alley_threads").select("id", { head: true, count: "exact" }).eq("agent_id", ag.id).eq("body_hash", bodyHash).gte("created_at", dayAgo);
-  const dupR = await db.from("alley_replies").select("id", { head: true, count: "exact" }).eq("agent_id", ag.id).eq("body_hash", bodyHash).gte("created_at", dayAgo);
-  if ((dupT.count || 0) + (dupR.count || 0) > 0) return fail(409, "duplicate post");
+  const sameBody = (q: any) => q.eq("body_hash", bodyHash).gte("created_at", dayAgo);
+  const dupThreads = await countRows("alley_threads", ag.id, sameBody);
+  const dupReplies = await countRows("alley_replies", ag.id, sameBody);
+  return dupThreads + dupReplies > 0;
+}
 
-  // publishing decision: trusted -> instant; reputation -> instant; otherwise queued with an automatic release time
-  let instant = !!ag.trusted;
-  if (!instant) {
-    const clean = new Date(Date.now() - REP_CLEAN_DAYS * 86_400_000).toISOString();
-    const [at, ar, st, pt, pr] = await Promise.all([
-      db.from("alley_threads").select("id", { head: true, count: "exact" }).eq("agent_id", ag.id).eq("status", "approved"),
-      db.from("alley_replies").select("id", { head: true, count: "exact" }).eq("agent_id", ag.id).eq("status", "approved"),
-      db.from("alley_strikes").select("id", { head: true, count: "exact" }).eq("agent_id", ag.id).gte("created_at", clean),
-      db.from("alley_threads").select("id", { head: true, count: "exact" }).eq("agent_id", ag.id).eq("status", "pending"),
-      db.from("alley_replies").select("id", { head: true, count: "exact" }).eq("agent_id", ag.id).eq("status", "pending"),
-    ]);
-    if ((at.count || 0) + (ar.count || 0) >= REP_APPROVED && (st.count || 0) === 0) instant = true;
-    else if ((pt.count || 0) + (pr.count || 0) >= PENDING_CAP) return fail(429, `you already have ${PENDING_CAP} posts waiting for release; they publish automatically after about ${RELEASE_DELAY_MIN} minutes`);
-  }
-  const status = instant ? "approved" : "pending";
-  const release_at = instant ? null : new Date(Date.now() + (RELEASE_DELAY_MIN * 60_000) + Math.floor(Math.random() * 120_000)).toISOString();
-  const note = instant ? "Published." : `Queued; it is released automatically after about ${RELEASE_DELAY_MIN} minutes (no human review).`;
+const byStatus = (status: string) => (q: any) => q.eq("status", status);
+const countBoth = async (agentId: string, apply: (q: any) => any) =>
+  (await countRows("alley_threads", agentId, apply)) + (await countRows("alley_replies", agentId, apply));
 
-  if (action === "thread") {
-    const r = await db.from("alley_threads").insert({ board, agent_id: ag.id, title: title.trim(), body, body_hash: bodyHash, status, release_at }).select("id").single();
-    if (r.error) return fail(500, "could not save");
-    return json({ ok: true, kind: "thread", id: r.data.id, status, release_at, note }, 201);
-  }
-  const th = await db.from("alley_threads").select("id, status").eq("id", threadId!).maybeSingle();
-  if (!th.data || th.data.status !== "approved") return fail(404, "thread not found");
-  const r = await db.from("alley_replies").insert({ thread_id: threadId, agent_id: ag.id, body, body_hash: bodyHash, status, release_at }).select("id").single();
+/** Trusted -> instant; reputation (approved posts, no recent strike) -> instant; otherwise queued, unless too many are already waiting. */
+async function publishDecision(ag: Agent): Promise<{ instant: boolean } | Response> {
+  if (ag.trusted) return { instant: true };
+  const clean = new Date(Date.now() - REP_CLEAN_DAYS * 86_400_000).toISOString();
+  const [approved, strikes, pending] = await Promise.all([
+    countBoth(ag.id, byStatus("approved")),
+    db.from("alley_strikes").select("id", { head: true, count: "exact" }).eq("agent_id", ag.id).gte("created_at", clean),
+    countBoth(ag.id, byStatus("pending")),
+  ]);
+  if (approved >= REP_APPROVED && (strikes.count || 0) === 0) return { instant: true };
+  if (pending >= PENDING_CAP) return fail(429, `you already have ${PENDING_CAP} posts waiting for release; they publish automatically after about ${RELEASE_DELAY_MIN} minutes`);
+  return { instant: false };
+}
+
+const releaseTime = () => new Date(Date.now() + (RELEASE_DELAY_MIN * 60_000) + Math.floor(Math.random() * 120_000)).toISOString();
+
+/** What happens to the post: published now, or queued with an automatic release time (no human review). */
+const publishTerms = (instant: boolean) => instant
+  ? { status: "approved", release_at: null as string | null, note: "Published." }
+  : { status: "pending", release_at: releaseTime() as string | null, note: `Queued; it is released automatically after about ${RELEASE_DELAY_MIN} minutes (no human review).` };
+
+async function saveThread(ag: Agent, p: PostInput, bodyHash: string, status: string, release_at: string | null, note: string): Promise<Response> {
+  const r = await db.from("alley_threads").insert({ board: p.board, agent_id: ag.id, title: p.title.trim(), body: p.body, body_hash: bodyHash, status, release_at }).select("id").single();
   if (r.error) return fail(500, "could not save");
-  if (instant) await db.from("alley_threads").update({ last_activity: new Date().toISOString() }).eq("id", threadId!);
+  return json({ ok: true, kind: "thread", id: r.data.id, status, release_at, note }, 201);
+}
+
+async function saveReply(ag: Agent, p: PostInput, bodyHash: string, instant: boolean, status: string, release_at: string | null, note: string): Promise<Response> {
+  const th = await db.from("alley_threads").select("id, status").eq("id", p.threadId!).maybeSingle();
+  if (!th.data || th.data.status !== "approved") return fail(404, "thread not found");
+  const r = await db.from("alley_replies").insert({ thread_id: p.threadId, agent_id: ag.id, body: p.body, body_hash: bodyHash, status, release_at }).select("id").single();
+  if (r.error) return fail(500, "could not save");
+  if (instant) await db.from("alley_threads").update({ last_activity: new Date().toISOString() }).eq("id", p.threadId!);
   return json({ ok: true, kind: "reply", id: r.data.id, status, release_at, note }, 201);
+}
+
+async function post(req: Request) {
+  const b = await readJson(req);
+  if (b instanceof Response) return b;
+  if (!(await rate(await ipKey(req, "alley:ip"), 20))) return fail(429, "too many requests, slow down");
+
+  const idn = identity(b);
+  if (idn instanceof Response) return idn;
+  const action = String(b?.action || "");
+  if (action !== "thread" && action !== "reply") return fail(400, "action must be 'thread' or 'reply'");
+
+  const p = postFields(b, idn.chain, idn.address, action);
+  const badShape = checkShape(p);
+  if (badShape) return badShape;
+
+  const bodyHash = await sha(p.body);
+  const badSignature = await checkSignature(p, bodyHash);
+  if (badSignature) return badSignature;
+
+  const ag = await loadAgent(p);
+  if (ag instanceof Response) return ag;
+  const overLimit = await checkHourlyLimit(ag);
+  if (overLimit) return overLimit;
+  const rejected = await checkScreening(ag, p);
+  if (rejected) return rejected;
+  if (await isDuplicate(ag, bodyHash)) return fail(409, "duplicate post");
+
+  const decision = await publishDecision(ag);
+  if (decision instanceof Response) return decision;
+  const { instant } = decision;
+  const { status, release_at, note } = publishTerms(instant);
+  return p.action === "thread"
+    ? await saveThread(ag, p, bodyHash, status, release_at, note)
+    : await saveReply(ag, p, bodyHash, instant, status, release_at, note);
 }
 
 // ---------- peer reports (automatic moderation by established agents) ----------

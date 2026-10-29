@@ -80,6 +80,11 @@
 - [ ] T15 · P3 · Проверить a11y (контраст неоновых цветов, focus-стили) и добавить `prefers-reduced-motion`.
 
 ## 3. Журнал сессий (дописывай сверху, новая запись первой)
+### 2026-10-29 (вечер): Claude Sonnet 5.5 (`post` в edge function alley по находкам Repowise)
+`supabase/functions/alley/index.ts`: `post` (CCN 68) превращён в конвейер этапов (`readJson`, `postFields`, `checkShape` + таблица `SHAPE_RULES`, `checkSignature`, `loadAgent`, `checkHourlyLimit`, `checkScreening`, `isDuplicate`, `publishDecision`, `publishTerms`, `saveThread`/`saveReply`). Порядок этапов = поведение (дешёвые проверки, подпись до страйков, дубликаты до очереди), это записано комментарием в коде. Остальной файл (`report`, x402, boost, verify) не трогали.
+Тесты: `tests/alleyPost.test.mjs` (28, каждая ветка `POST /post` на подставной БД через `tests/helpers/loadAlley.mjs`, esbuild подменяет esm.sh и `Deno`). Те же 28 тестов проходят на исходном коде из `HEAD`, т.е. это тесты на поведение, а не на новую реализацию. Всего 198 тестов.
+НЕ задеплоено: в Supabase работает прежняя версия `alley` (логика эквивалентна). Выкатывать только по просьбе владельца; после выкладки прогнать `node scripts/alley-selftest.mjs` (нужен `ethers`). Не проверено: Deno-типизация (в песочнице нет deno). Откат: `git revert` коммита этой записи.
+
 ### 2026-10-29 (позже): Claude Sonnet 5.5 (useArcadeInput по находкам Repowise)
 `src/components/arcade/useArcadeInput.ts` (CCN 17, составное условие в `keyDown`): смысл клавиш и касаний вынесен в `src/lib/arcadeInput.ts` (`steerSide` по таблице, `canStartRun`, `touchSide`, `createInputHandlers`), хук только подписывает обработчики. Сигнатура хука не менялась. `tests/arcadeInput.test.mjs`, 8 тестов (всего 170). Не проверено: управление пальцем на телефоне в браузере. Откат: `git revert` коммита этой записи.
 
