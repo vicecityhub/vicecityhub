@@ -15,7 +15,7 @@ const STUBS = {
 };
 
 /** One chainable, awaitable query. `route(call)` decides the result: { data, error, count }. */
-function fakeBuilder(table, route) {
+export function fakeBuilder(table, route) {
   const call = { table, op: 'select', filters: [], cols: null, opts: null, payload: null, single: null };
   const run = () => Promise.resolve(route(call));
   const b = {

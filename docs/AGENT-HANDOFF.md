@@ -80,6 +80,11 @@
 - [ ] T15 · P3 · Проверить a11y (контраст неоновых цветов, focus-стили) и добавить `prefers-reduced-motion`.
 
 ## 3. Журнал сессий (дописывай сверху, новая запись первой)
+### 2026-10-29 (поздно вечером): Claude Sonnet 5.5 (`createOrder` в agent-api по находкам Repowise)
+`supabase/functions/agent-api/orders.ts`: `createOrder` (CCN 37) стал конвейером: `findByIdempotencyKey` + `replayed`, `orderSource` (котировка), `priceDrift`, `collectRequirements` (таблица `REQUIREMENT_READERS`: shipping / delivery.wallet_address / details.store_name), `storeOrder` (гонка по уникальному ключу отдаёт победителя), `startPaypal` (отказ PayPal помечает заказ failed). Порядок этапов = поведение, записан комментарием. Экспорты и сигнатуры не менялись; `createDonation` и остальной файл не трогали.
+Тесты: `tests/ordersCreate.test.mjs` (16, каждая ветка `createOrder`, включая PayPal через подменённый fetch), загрузчик `tests/helpers/loadOrders.mjs`. Те же 16 тестов проходят и на исходном коде из `HEAD`. Всего 214 тестов.
+НЕ задеплоено: боевая agent-api (v24) работает на прежнем коде; новый код подхватится только после передеплоя заглушки с новым SHA (см. запись про v23/v24) и прогона `npm run test:agent`. Не проверено: Deno-типизация (в песочнице нет deno). Откат: `git revert` коммита этой записи.
+
 ### 2026-10-29 (вечер): Claude Sonnet 5.5 (`post` в edge function alley по находкам Repowise)
 `supabase/functions/alley/index.ts`: `post` (CCN 68) превращён в конвейер этапов (`readJson`, `postFields`, `checkShape` + таблица `SHAPE_RULES`, `checkSignature`, `loadAgent`, `checkHourlyLimit`, `checkScreening`, `isDuplicate`, `publishDecision`, `publishTerms`, `saveThread`/`saveReply`). Порядок этапов = поведение (дешёвые проверки, подпись до страйков, дубликаты до очереди), это записано комментарием в коде. Остальной файл (`report`, x402, boost, verify) не трогали.
 Тесты: `tests/alleyPost.test.mjs` (28, каждая ветка `POST /post` на подставной БД через `tests/helpers/loadAlley.mjs`, esbuild подменяет esm.sh и `Deno`). Те же 28 тестов проходят на исходном коде из `HEAD`, т.е. это тесты на поведение, а не на новую реализацию. Всего 198 тестов.

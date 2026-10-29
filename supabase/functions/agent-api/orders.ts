@@ -260,70 +260,121 @@ export async function createQuote(key: Key, body: any): Promise<R> {
   }, 201);
 }
 
+// POST /v1/orders is a pipeline. Each stage returns an R (stop here) or its result, as `{ error }` / `{ ... }`.
+// The ORDER matters: scope and idempotency first, replay before pricing, price check before payment-rail and field validation,
+// the row is written before PayPal is called (so a PayPal failure can mark it failed).
+type Failure = { error: R };
+const replayed = (o: any) => ok(view(o, true), 200, { "Idempotent-Replayed": "true" });
+
+async function findByIdempotencyKey(key: Key, idem: string) {
+  return (await db.from("agent_orders").select("*").eq("agent_key_id", key.id).eq("idempotency_key", idem).maybeSingle()).data;
+}
+
+/** The items to price: taken from a still-valid quote when `quote_id` is sent (and then remembered, to catch price drift), else from the body. */
+async function orderSource(key: Key, body: any): Promise<{ input: any; quoted: number | null } | Failure> {
+  if (!body?.quote_id) return { input: body?.items, quoted: null };
+  const { data: q } = await db.from("agent_quotes").select("*").eq("public_id", body.quote_id).eq("agent_key_id", key.id).maybeSingle();
+  if (!q || new Date(q.expires_at) < new Date()) return { error: fail(410, "quote_expired", "Quote not found or expired.", "Request a fresh quote.") };
+  return { input: q.items.map((l: any) => ({ sku: l.sku, quantity: l.quantity })), quoted: Number(q.total_usd) };
+}
+
+function priceDrift(quoted: number | null, total: number): R | null {
+  return quoted !== null && Math.abs(quoted - total) > 0.005
+    ? fail(409, "price_changed", `Price changed from $${quoted} to $${total}.`, "Request a new quote.")
+    : null;
+}
+
+// What the buyer must provide per requirement of the items. `fill` writes into the order's shipping / delivery or returns the error.
+type Fulfilment = { shipping: any; delivery: any };
+const EVM_ADDRESS = /^0x[0-9a-fA-F]{40}$/;
+const EMAIL = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+
+function readShipping(body: any, f: Fulfilment): R | null {
+  const e = validShipping(body?.shipping);
+  if (e) return fail(422, "invalid_shipping", e);
+  const s = body.shipping;
+  f.shipping = { name: s.name, address1: s.address1, address2: s.address2 || null, city: s.city, state_code: s.state_code || null, zip: s.zip, country_code: s.country_code, email: s.email || null, phone: s.phone || null };
+  return null;
+}
+
+function readWalletAddress(body: any, f: Fulfilment): R | null {
+  const w = body?.delivery?.wallet_address;
+  if (typeof w !== "string" || !EVM_ADDRESS.test(w)) return fail(422, "invalid_delivery", "delivery.wallet_address must be an EVM address (0x…40 hex) — domains live on Polygon/Ethereum.");
+  f.delivery = { wallet_address: w };
+  return null;
+}
+
+function readStoreDetails(body: any, f: Fulfilment): R | null {
+  const d = body?.details;
+  if (!d?.store_name || !EMAIL.test(d?.contact_email || "")) return fail(422, "invalid_details", "details.store_name and a valid details.contact_email are required for store plans.");
+  f.delivery = { ...(f.delivery || {}), details: { store_name: String(d.store_name).slice(0, 120), contact_email: d.contact_email, website_url: d.website_url || null, discord_url: d.discord_url || null } };
+  return null;
+}
+
+const REQUIREMENT_READERS: [string, (body: any, f: Fulfilment) => R | null][] = [
+  ["shipping", readShipping],
+  ["delivery.wallet_address", readWalletAddress],
+  ["details.store_name", readStoreDetails],
+];
+
+function collectRequirements(requires: string[], body: any): Fulfilment | Failure {
+  const f: Fulfilment = { shipping: null, delivery: null };
+  for (const [req, read] of REQUIREMENT_READERS) {
+    if (!requires.includes(req)) continue;
+    const error = read(body, f);
+    if (error) return { error };
+  }
+  return f;
+}
+
+/** Writes the order row. A unique-key race with the same Idempotency-Key replays the winner instead of failing. */
+async function storeOrder(key: Key, idem: string, p: any, rail: string, f: Fulfilment): Promise<{ order: any } | Failure> {
+  const { data: o, error } = await db.from("agent_orders").insert({
+    agent_key_id: key.id, owner_id: key.owner_id, idempotency_key: idem, items: p.lines, total_usd: p.total,
+    payment_rail: rail, shipping: f.shipping, delivery: f.delivery, payment: rail === "crypto" ? { crypto: await allocateCryptoTag(p.total!) } : {},
+  }).select("*").single();
+  if (!error) return { order: o };
+  const winner = (error as any).code === "23505" ? await findByIdempotencyKey(key, idem) : null;
+  return { error: winner ? replayed(winner) : fail(500, "db_error", "Could not create the order.") };
+}
+
+/** Creates the PayPal order for a stored row; if PayPal refuses, the row is marked failed. */
+async function startPaypal(o: any, lines: any[]): Promise<{ order: any } | Failure> {
+  try {
+    const pp = await ppCreate(o, lines.some((l: any) => l.kind === "merch"));
+    const { data: u } = await db.from("agent_orders").update({ payment: pp, updated_at: new Date().toISOString() }).eq("id", o.id).select("*").single();
+    return { order: u || { ...o, payment: pp } };
+  } catch (e) {
+    await db.from("agent_orders").update({ status: "failed", fulfillment: { error: String((e as Error).message) } }).eq("id", o.id);
+    return { error: fail(502, "payment_provider_error", "Could not create the PayPal order.", "Retry with a new Idempotency-Key or use the crypto rail.") };
+  }
+}
+
+const idempotencyKeyValid = (idem: string | null): idem is string => !!idem && idem.length >= 8 && idem.length <= 128;
+
 export async function createOrder(key: Key, body: any, idem: string | null): Promise<R> {
   if (!key.scopes.includes("order")) return fail(403, "scope_missing", "This key lacks the 'order' scope.");
-  if (!idem || idem.length < 8 || idem.length > 128) return fail(400, "idempotency_key_required", "Send an `Idempotency-Key` header (8-128 chars, unique per purchase attempt).");
-  const ex = await db.from("agent_orders").select("*").eq("agent_key_id", key.id).eq("idempotency_key", idem).maybeSingle();
-  if (ex.data) return ok(view(ex.data, true), 200, { "Idempotent-Replayed": "true" });
+  if (!idempotencyKeyValid(idem)) return fail(400, "idempotency_key_required", "Send an `Idempotency-Key` header (8-128 chars, unique per purchase attempt).");
+  const existing = await findByIdempotencyKey(key, idem);
+  if (existing) return replayed(existing);
 
-  let input = body?.items;
-  let quoted: number | null = null;
-  if (body?.quote_id) {
-    const { data: q } = await db.from("agent_quotes").select("*").eq("public_id", body.quote_id).eq("agent_key_id", key.id).maybeSingle();
-    if (!q || new Date(q.expires_at) < new Date()) return fail(410, "quote_expired", "Quote not found or expired.", "Request a fresh quote.");
-    input = q.items.map((l: any) => ({ sku: l.sku, quantity: l.quantity }));
-    quoted = Number(q.total_usd);
-  }
-  const p = await priceItems(key, input);
+  const source = await orderSource(key, body);
+  if ("error" in source) return source.error;
+  const p = await priceItems(key, source.input);
   if (p.error) return p.error;
-  if (quoted !== null && Math.abs(quoted - p.total!) > 0.005)
-    return fail(409, "price_changed", `Price changed from $${quoted} to $${p.total}.`, "Request a new quote.");
+  const drift = priceDrift(source.quoted, p.total!);
+  if (drift) return drift;
 
   const rail = body?.payment_rail;
   if (!rail || !p.rails!.includes(rail)) return fail(422, "invalid_payment_rail", `payment_rail must be one of: ${p.rails!.join(", ")}`);
+  const fulfilment = collectRequirements(p.requires!, body);
+  if ("error" in fulfilment) return fulfilment.error;
 
-  let shipping: any = null, delivery: any = null;
-  if (p.requires!.includes("shipping")) {
-    const e = validShipping(body?.shipping);
-    if (e) return fail(422, "invalid_shipping", e);
-    const s = body.shipping;
-    shipping = { name: s.name, address1: s.address1, address2: s.address2 || null, city: s.city, state_code: s.state_code || null, zip: s.zip, country_code: s.country_code, email: s.email || null, phone: s.phone || null };
-  }
-  if (p.requires!.includes("delivery.wallet_address")) {
-    const w = body?.delivery?.wallet_address;
-    if (typeof w !== "string" || !/^0x[0-9a-fA-F]{40}$/.test(w)) return fail(422, "invalid_delivery", "delivery.wallet_address must be an EVM address (0x…40 hex) — domains live on Polygon/Ethereum.");
-    delivery = { wallet_address: w };
-  }
-  if (p.requires!.includes("details.store_name")) {
-    const d = body?.details;
-    if (!d?.store_name || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(d?.contact_email || "")) return fail(422, "invalid_details", "details.store_name and a valid details.contact_email are required for store plans.");
-    delivery = { ...(delivery || {}), details: { store_name: String(d.store_name).slice(0, 120), contact_email: d.contact_email, website_url: d.website_url || null, discord_url: d.discord_url || null } };
-  }
-
-  const { data: o, error } = await db.from("agent_orders").insert({
-    agent_key_id: key.id, owner_id: key.owner_id, idempotency_key: idem, items: p.lines, total_usd: p.total,
-    payment_rail: rail, shipping, delivery, payment: rail === "crypto" ? { crypto: await allocateCryptoTag(p.total!) } : {},
-  }).select("*").single();
-  if (error) {
-    if ((error as any).code === "23505") {
-      const again = await db.from("agent_orders").select("*").eq("agent_key_id", key.id).eq("idempotency_key", idem).maybeSingle();
-      if (again.data) return ok(view(again.data, true), 200, { "Idempotent-Replayed": "true" });
-    }
-    return fail(500, "db_error", "Could not create the order.");
-  }
-
-  let order = o;
-  if (rail === "paypal") {
-    try {
-      const pp = await ppCreate(o, p.lines!.some((l: any) => l.kind === "merch"));
-      const { data: u } = await db.from("agent_orders").update({ payment: pp, updated_at: new Date().toISOString() }).eq("id", o.id).select("*").single();
-      order = u || { ...o, payment: pp };
-    } catch (e) {
-      await db.from("agent_orders").update({ status: "failed", fulfillment: { error: String((e as Error).message) } }).eq("id", o.id);
-      return fail(502, "payment_provider_error", "Could not create the PayPal order.", "Retry with a new Idempotency-Key or use the crypto rail.");
-    }
-  }
-  return ok(view(order, true), 201);
+  const stored = await storeOrder(key, idem, p, rail, fulfilment);
+  if ("error" in stored) return stored.error;
+  if (rail !== "paypal") return ok(view(stored.order, true), 201);
+  const paypal = await startPaypal(stored.order, p.lines!);
+  return "error" in paypal ? paypal.error : ok(view(paypal.order, true), 201);
 }
 
 /** Voluntary donation for AI development: crypto only, fully automatic detection, receipt on completion. */
