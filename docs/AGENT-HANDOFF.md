@@ -80,6 +80,9 @@
 - [ ] T15 · P3 · Проверить a11y (контраст неоновых цветов, focus-стили) и добавить `prefers-reduced-motion`.
 
 ## 3. Журнал сессий (дописывай сверху, новая запись первой)
+### 2026-10-30: Claude Sonnet 5.5 (деплой agent-api v25)
+В Supabase выложена v25 (заглушка, пин на `fecb182d8879355f7686cdab1abf3b5220acc876`, новый `createOrder`). Проверено живыми запросами через SQL: `/v1`, openapi.json (19087 байт), catalog, news, donate, x402 (402), MCP tools/list, заказ без ключа (401), статус неизвестного заказа (404). Платёжный сценарий `createOrder` с ключом вживую не гонялся: для него запустите `npm run test:agent` локально. Откат: передеплой заглушки с SHA `5baca514739fd6f39747cb89b0293a6221cc59bb` (v24).
+
 ### 2026-10-29 (поздно вечером): Claude Sonnet 5.5 (`createOrder` в agent-api по находкам Repowise)
 `supabase/functions/agent-api/orders.ts`: `createOrder` (CCN 37) стал конвейером: `findByIdempotencyKey` + `replayed`, `orderSource` (котировка), `priceDrift`, `collectRequirements` (таблица `REQUIREMENT_READERS`: shipping / delivery.wallet_address / details.store_name), `storeOrder` (гонка по уникальному ключу отдаёт победителя), `startPaypal` (отказ PayPal помечает заказ failed). Порядок этапов = поведение, записан комментарием. Экспорты и сигнатуры не менялись; `createDonation` и остальной файл не трогали.
 Тесты: `tests/ordersCreate.test.mjs` (16, каждая ветка `createOrder`, включая PayPal через подменённый fetch), загрузчик `tests/helpers/loadOrders.mjs`. Те же 16 тестов проходят и на исходном коде из `HEAD`. Всего 214 тестов.
