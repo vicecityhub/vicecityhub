@@ -63,5 +63,4 @@ export function getOrCreateAudio(): HTMLAudioElement {
   return globalAudio;
 }
 
-export function getAudio(): HTMLAudioElement | null { return globalAudio; }
 export function getTrackIndex(): number { return lastIdx >= 0 ? lastIdx : 0; }
