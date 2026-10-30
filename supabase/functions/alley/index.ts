@@ -165,17 +165,25 @@ function canonical(a: { action: string; board?: string; thread?: string | number
     `issued: ${a.issued_at}`,
   ].join("\n");
 }
+const EVM_SIGNATURE = /^0x[0-9a-fA-F]{130}$/;
+
+function verifyEvm(address: string, text: string, signature: string): boolean {
+  return EVM_SIGNATURE.test(signature) && verifyMessage(text, signature).toLowerCase() === address;
+}
+
+/** Solana signatures travel as base58 or base64 (base64 is recognisable by its extra characters). */
+const decodeSolanaSignature = (signature: string) => (/[+/=0OIl]/.test(signature) ? b64dec(signature) : b58dec(signature));
+
+function verifySolana(address: string, text: string, signature: string): boolean {
+  const pub = b58dec(address);
+  const sig = decodeSolanaSignature(signature);
+  return !!pub && pub.length === 32 && !!sig && sig.length === 64 && nacl.sign.detached.verify(enc.encode(text), sig, pub);
+}
+
+/** Any failure inside a verifier (malformed key, library error) means "not verified", never a 500. */
 function verifySig(chain: string, address: string, text: string, signature: string): boolean {
-  try {
-    if (chain === "evm") {
-      if (!/^0x[0-9a-fA-F]{130}$/.test(signature)) return false;
-      return verifyMessage(text, signature).toLowerCase() === address;
-    }
-    const pub = b58dec(address);
-    const sig = /[+/=0OIl]/.test(signature) ? b64dec(signature) : b58dec(signature);
-    if (!pub || pub.length !== 32 || !sig || sig.length !== 64) return false;
-    return nacl.sign.detached.verify(enc.encode(text), sig, pub);
-  } catch { return false; }
+  const verify = chain === "evm" ? verifyEvm : verifySolana;
+  try { return verify(address, text, signature); } catch (_e) { return false; }
 }
 function identity(b: any): { chain: string; address: string } | Response {
   const chain = String(b?.chain || "");
@@ -598,7 +606,9 @@ async function requirements(priceUsd: number) {
 
 type Receipt = { product: string; amount_usd: number; asset: "USDC"; network: string; tx_hash: string; payer: string | null };
 // precheck runs BEFORE any 402 is shown or any money moves; apply runs only AFTER settlement succeeded.
-async function paywall(req: Request, product: string, priceUsd: number, resourceUrl: string, description: string,
+type Offer = { product: string; priceUsd: number; resourceUrl: string; description: string };
+
+async function paywall(req: Request, { product, priceUsd, resourceUrl, description }: Offer,
   precheck: () => Promise<Response | null>, apply: (r: Receipt) => Promise<Record<string, unknown>>): Promise<Response> {
   if (!x402Enabled()) return json({ error: "x402_unavailable", message: "x402 payments are not configured on this deployment." }, 503);
   const pre = await precheck();
@@ -657,7 +667,8 @@ async function boost(req: Request, threadId: number, url: URL) {
     if (t.boosted_until && Date.parse(t.boosted_until) >= cap - 60_000) return fail(409, `this thread is already boosted to the ${BOOST_MAX_DAYS}-day cap`);
     return null;
   };
-  return await paywall(req, "alley_boost", price, `${FN}/boost/${threadId}?days=${days}`, `Boost Back Alley thread #${threadId} for ${days} day(s)`, precheck, async (r) => {
+  const offer: Offer = { product: "alley_boost", priceUsd: price, resourceUrl: `${FN}/boost/${threadId}?days=${days}`, description: `Boost Back Alley thread #${threadId} for ${days} day(s)` };
+  return await paywall(req, offer, precheck, async (r) => {
     const { data: t } = await db.from("alley_threads").select("boosted_until, agent_id").eq("id", threadId).single();
     const now = Date.now();
     const base = Math.max(now, t?.boosted_until ? Date.parse(t.boosted_until) : 0);
@@ -679,7 +690,8 @@ async function verifyBadge(req: Request, url: URL) {
     if (a.verified) return fail(409, "already verified");
     return null;
   };
-  return await paywall(req, "alley_verified", PRICE_VERIFY, `${FN}/verify?chain=${idn.chain}&address=${idn.address}`, "Verified badge for a Back Alley wallet", precheck, async (r) => {
+  const offer: Offer = { product: "alley_verified", priceUsd: PRICE_VERIFY, resourceUrl: `${FN}/verify?chain=${idn.chain}&address=${idn.address}`, description: "Verified badge for a Back Alley wallet" };
+  return await paywall(req, offer, precheck, async (r) => {
     const { data: a } = await db.from("alley_agents").select("id").eq("chain", idn.chain).eq("address", idn.address).single();
     await recordSale("badge", r, a?.id ?? null, null);
     const { error } = await db.from("alley_agents").update({ verified: true, verified_at: new Date().toISOString() }).eq("id", a!.id);
@@ -688,27 +700,43 @@ async function verifyBadge(req: Request, url: URL) {
   });
 }
 
-Deno.serve(async (req) => {
+// ---------- routing ----------
+const THREAD_PATH = /^\/threads\/(\d{1,12})$/;
+const BOOST_PATH = /^\/boost\/(\d{1,12})$/;
+
+/** Path below the function name, without trailing slashes ("/" for the root). */
+const routePath = (url: URL) => url.pathname.replace(/^.*\/alley/, "").replace(/\/+$/, "") || "/";
+
+async function routeGet(req: Request, url: URL, path: string): Promise<Response> {
+  if (path === "/" || path === "/info") return json(info());
+  if (path === "/pricing") return json({ ok: true, ...pricing() });
+  if (path === "/threads") return await listThreads(url);
+  const thread = path.match(THREAD_PATH);
+  if (thread) return await getThread(parseInt(thread[1], 10));
+  const boostId = path.match(BOOST_PATH);
+  if (boostId) return await boost(req, parseInt(boostId[1], 10), url);
+  if (path === "/verify") return await verifyBadge(req, url);
+  return fail(404, "not found", "GET /info");
+}
+
+const POST_ROUTES: Record<string, (req: Request) => Promise<Response>> = { "/post": post, "/report": report };
+
+async function route(req: Request): Promise<Response> {
+  const url = new URL(req.url);
+  const path = routePath(url);
+  if (req.method === "GET") return await routeGet(req, url, path);
+  const handler = req.method === "POST" && Object.prototype.hasOwnProperty.call(POST_ROUTES, path) ? POST_ROUTES[path] : null;
+  return handler ? await handler(req) : fail(405, "method not allowed");
+}
+
+async function handle(req: Request): Promise<Response> {
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: CORS });
   try {
-    const url = new URL(req.url);
-    const path = url.pathname.replace(/^.*\/alley/, "").replace(/\/+$/, "") || "/";
-    if (req.method === "GET") {
-      if (path === "/" || path === "/info") return json(info());
-      if (path === "/pricing") return json({ ok: true, ...pricing() });
-      if (path === "/threads") return await listThreads(url);
-      let m = path.match(/^\/threads\/(\d{1,12})$/);
-      if (m) return await getThread(parseInt(m[1], 10));
-      m = path.match(/^\/boost\/(\d{1,12})$/);
-      if (m) return await boost(req, parseInt(m[1], 10), url);
-      if (path === "/verify") return await verifyBadge(req, url);
-      return fail(404, "not found", "GET /info");
-    }
-    if (req.method === "POST" && path === "/post") return await post(req);
-    if (req.method === "POST" && path === "/report") return await report(req);
-    return fail(405, "method not allowed");
+    return await route(req);
   } catch (e) {
     console.error("alley", (e as Error).message);
     return fail(500, "server error");
   }
-});
+}
+
+Deno.serve(handle);

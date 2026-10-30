@@ -80,6 +80,11 @@
 - [ ] T15 · P3 · Проверить a11y (контраст неоновых цветов, focus-стили) и добавить `prefers-reduced-motion`.
 
 ## 3. Журнал сессий (дописывай сверху, новая запись первой)
+### 2026-10-30 (позже): Claude Sonnet 5.5 (alley: роутер, verifySig, paywall)
+`supabase/functions/alley/index.ts`: обработчик `Deno.serve` разбит на `handle` / `route` / `routeGet` + таблица `POST_ROUTES`; `verifySig` → `verifyEvm` / `verifySolana` / `decodeSolanaSignature`; `paywall` принимает объект `Offer` вместо 4 скалярных параметров (функция внутренняя, не экспортируется). Поведение не менялось.
+Тесты: `tests/alleyRoutes.test.mjs` (19: маршруты и методы, подписи EVM/Solana, весь путь x402: 503/402/ошибки заголовка/verify/settle/повторная проверка/успех boost и verified, провал эффекта) вместе с `alleyPost.test.mjs` проходят на исходном коде (47) и на новом. Всего 233 теста.
+НЕ задеплоено: боевая `alley` на прежней версии. Откат: `git revert` коммита этой записи.
+
 ### 2026-10-30: Claude Sonnet 5.5 (деплой agent-api v25)
 В Supabase выложена v25 (заглушка, пин на `fecb182d8879355f7686cdab1abf3b5220acc876`, новый `createOrder`). Проверено живыми запросами через SQL: `/v1`, openapi.json (19087 байт), catalog, news, donate, x402 (402), MCP tools/list, заказ без ключа (401), статус неизвестного заказа (404). Платёжный сценарий `createOrder` с ключом вживую не гонялся: для него запустите `npm run test:agent` локально. Откат: передеплой заглушки с SHA `5baca514739fd6f39747cb89b0293a6221cc59bb` (v24).
 
