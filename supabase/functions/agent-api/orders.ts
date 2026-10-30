@@ -233,11 +233,24 @@ async function limitsError(key: Key, total: number): Promise<R | null> {
   return null;
 }
 
+const SHIPPING_FIELDS = ["name", "address1", "city", "zip", "country_code"];
+const STATE_REQUIRED_COUNTRIES = ["US", "CA", "AU"];
+
+const isBlank = (v: unknown) => typeof v !== "string" || !v.trim();
+
+/** Rules in order; the first one that fails is the message the buyer sees. */
+const SHIPPING_RULES: ((s: any) => string | null)[] = [
+  (s) => (!s || typeof s !== "object" ? "shipping is required for merch" : null),
+  (s) => { const f = SHIPPING_FIELDS.find((name) => isBlank(s[name])); return f ? `shipping.${f} is required` : null; },
+  (s) => (/^[A-Z]{2}$/.test(s.country_code) ? null : "shipping.country_code must be ISO-3166 alpha-2 (e.g. US)"),
+  (s) => (STATE_REQUIRED_COUNTRIES.includes(s.country_code) && !s.state_code ? "shipping.state_code is required for US/CA/AU" : null),
+];
+
 function validShipping(s: any): string | null {
-  if (!s || typeof s !== "object") return "shipping is required for merch";
-  for (const f of ["name", "address1", "city", "zip", "country_code"]) if (typeof s[f] !== "string" || !s[f].trim()) return `shipping.${f} is required`;
-  if (!/^[A-Z]{2}$/.test(s.country_code)) return "shipping.country_code must be ISO-3166 alpha-2 (e.g. US)";
-  if (["US", "CA", "AU"].includes(s.country_code) && !s.state_code) return "shipping.state_code is required for US/CA/AU";
+  for (const rule of SHIPPING_RULES) {
+    const problem = rule(s);
+    if (problem) return problem;
+  }
   return null;
 }
 
@@ -611,21 +624,33 @@ export async function cancelOrder(key: Key, id: string): Promise<R> {
   return ok(view(u || o));
 }
 
+const INTENT_CONTACT_FIELDS = ["email", "discord", "telegram", "wallet"];
+
+/** Only the known contact fields, only strings, each cut to 200 characters. */
+function intentContact(body: any): Record<string, string> {
+  const contact: Record<string, string> = {};
+  for (const f of INTENT_CONTACT_FIELDS) if (typeof body?.contact?.[f] === "string") contact[f] = body.contact[f].slice(0, 200);
+  return contact;
+}
+
+/** Tells the buyer how to finish: the seller's link for external listings, the seller's own contact for marketplace servers. */
+async function intentHowTo(item: any, sku: string): Promise<string> {
+  let how = "Intent recorded. The operator will follow up using the contact details you supplied.";
+  if (item.purchase.external_url) how = `Buy directly from the seller: ${item.purchase.external_url}`;
+  if (item.kind !== "server") return how;
+  const { data: s } = await db.from("server_marketplace").select("seller_contact").eq("id", sku.split(":")[1]).maybeSingle();
+  return s?.seller_contact ? `Contact the seller directly: ${s.seller_contact}` : how;
+}
+
 export async function createIntent(key: Key, body: any): Promise<R> {
   const sku = typeof body?.sku === "string" ? body.sku.trim() : "";
   const item = sku ? await findItem(sku) : null;
   if (!item) return fail(404, "unknown_sku", "SKU not found.");
-  const contact: Record<string, string> = {};
-  for (const f of ["email", "discord", "telegram", "wallet"]) if (typeof body?.contact?.[f] === "string") contact[f] = body.contact[f].slice(0, 200);
+  const contact = intentContact(body);
   const message = typeof body?.message === "string" ? body.message.slice(0, 1000) : null;
   const { data, error } = await db.from("agent_intents").insert({ agent_key_id: key.id, sku, message, contact }).select("public_id").single();
   if (error) return fail(500, "db_error", "Could not record the intent.");
-  let how = "Intent recorded. The operator will follow up using the contact details you supplied.";
-  if (item.purchase.external_url) how = `Buy directly from the seller: ${item.purchase.external_url}`;
-  if (item.kind === "server") {
-    const { data: s } = await db.from("server_marketplace").select("seller_contact").eq("id", sku.split(":")[1]).maybeSingle();
-    if (s?.seller_contact) how = `Contact the seller directly: ${s.seller_contact}`;
-  }
+  const how = await intentHowTo(item, sku);
   await notifyOwner("VCH purchase intent", `${data.public_id}: ${sku} (${item.title})\n${message || ""}\n${JSON.stringify(contact)}`);
   return ok({ intent_id: data.public_id, sku, status: "recorded", how_to_complete: how, note: "Vice City Hub never holds funds for third-party listings." }, 201);
 }

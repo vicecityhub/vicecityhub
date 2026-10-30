@@ -80,6 +80,11 @@
 - [ ] T15 · P3 · Проверить a11y (контраст неоновых цветов, focus-стили) и добавить `prefers-reduced-motion`.
 
 ## 3. Журнал сессий (дописывай сверху, новая запись первой)
+### 2026-10-30 (ещё позже): Claude Sonnet 5.5 (orders.ts: validShipping, createIntent)
+`supabase/functions/agent-api/orders.ts`: `validShipping` → список правил `SHIPPING_RULES` (порядок = приоритет сообщений об ошибках); `createIntent` → `intentContact` + `intentHowTo`. Находка «N+1 в priceItems» признана ложной: `resolveLine` → `loadMerch` читает кэш изолята (TTL 10 мин, single-flight), а `saveSnap` вызывается только при обновлении кэша, не на каждую позицию; `loadDbItems` кэшируется на 60 с. Находка про длину `createOrder` устарела (после прошлого рефакторинга функция 24 строки).
+Тесты: `tests/ordersIntent.test.mjs` (8: `createIntent` и все правила доставки), проходят на коде до и после правки. Всего 241 тест.
+НЕ задеплоено: v25 на проде содержит `createOrder`-рефакторинг, но не этот. Для выкладки: пин заглушки на новый SHA + `npm run test:agent`. Откат: `git revert` коммита этой записи.
+
 ### 2026-10-30 (позже): Claude Sonnet 5.5 (alley: роутер, verifySig, paywall)
 `supabase/functions/alley/index.ts`: обработчик `Deno.serve` разбит на `handle` / `route` / `routeGet` + таблица `POST_ROUTES`; `verifySig` → `verifyEvm` / `verifySolana` / `decodeSolanaSignature`; `paywall` принимает объект `Offer` вместо 4 скалярных параметров (функция внутренняя, не экспортируется). Поведение не менялось.
 Тесты: `tests/alleyRoutes.test.mjs` (19: маршруты и методы, подписи EVM/Solana, весь путь x402: 503/402/ошибки заголовка/verify/settle/повторная проверка/успех boost и verified, провал эффекта) вместе с `alleyPost.test.mjs` проходят на исходном коде (47) и на новом. Всего 233 теста.
