@@ -72,3 +72,8 @@ npm run build            # runs prebuild generators + tsc -b + vite build
 npm run verify:dist
 ```
 `node_modules` is installed. If a command needs `npm install`, run `$env:NODE_ENV=''; npm install --include=dev` first.
+
+## 9. Status (2026-11-02)
+- DONE: edge function `rp-servers` deployed (verify_jwt=false), cron `rp-servers-sync` every 2 min and `rp-servers-enrich` every 15 min (migration 15), 100 curated servers seeded from `supabase/seed/rp_servers.seed.json` (rebuild with `node scripts/build-rp-seed.mjs <verified.json>`), new UI in `src/rp-hub/servers` + `ServersTab.tsx`, old fake servers deleted.
+- Seed is loaded by pg_net from the raw GitHub JSON (no manual SQL paste needed): `net.http_get` the raw URL, then `jsonb_to_recordset` upsert on `cfx_code`.
+- TODO: agent-api `/v1/rp/servers` still selects the old columns and has no `listing_status` filter (only active rows exist today, so it is correct for now); add fivem:// links and the filter on next agent-api deploy. Static `/rp-servers/` SEO page (gen-rp-servers-page.mjs) not built yet. 291 candidates from the first verify run failed with api error (rate limit) and could be re-verified to widen the list.
