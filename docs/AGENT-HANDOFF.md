@@ -44,10 +44,10 @@
 ## 2c. EPIC: Highlights (скриншоты и клипы с PS5), см. docs/HIGHLIGHTS.md и docs/decisions/ADR-0004-highlights-and-device-login.md
 
 - [x] H1 — `highlights.html` + `src/pages/Highlights.tsx`: стена, фильтры, лайки, репорты, удаление своих, загрузка прямо в Storage (bucket `highlights`, RLS по папке user_id, 50 МБ, только image/video).
-- [x] H2 — вход с консоли по коду: edge function `device-login` (start/poll/inspect/approve), подтверждение с телефона на `highlights.html#link`.
+- [x] H2 — вход как на всём хабе (тот же modal Log in / Join). Прямого API PS5 нет; device-login убран с UI (ADR-0005).
 - [x] H3 — авто-модерация: лимит 10 загрузок/сутки (триггер), 3 репорта от аккаунтов старше суток скрывают пост.
-- [ ] H4 — P1: один раз руками прогнать полный путь approve → verifyOtp → сессия на консоли с реальным аккаунтом (в тестах проверены только start/poll/ошибки).
-- [ ] H5 — P1: на реальном PS5 проверить, открывается ли файловый диалог в браузере консоли и воспроизводится ли WebM; если нет — оставить маршрут через телефон и поправить тексты на странице.
+- [x] H4 — Restream auto-drops: `restream-highlights` cron каждые 3 мин, AI-клипы + спайки чата, публикация на стену (`source=restream`). Нужен один OAuth Connect под аккаунтом VCH (секреты RESTREAM_CLIENT_*).
+- [x] H5 — Тексты Highlights: загрузка с телефона/ПК через PlayStation App / USB, без обещания прямого PS5.
 - [ ] H6 — P2: классификатор изображений/видео (сейчас только репорты) или ограничение «загрузка только с аккаунта старше N часов».
 - [ ] H7 — P2: чистка файлов в Storage для скрытых/удалённых записей (сейчас не удаляются автоматически).
 

@@ -1,259 +1,167 @@
-﻿import React, { useState, useMemo, useEffect } from 'react';
-import { supa } from '../../lib/SupabaseClient';
+import React, { useCallback, useMemo, useState } from 'react';
 import PromoteServer from './PromoteServer';
+import ServerCard from '../servers/ServerCard';
+import ConnectModal from '../servers/ConnectModal';
+import SubmitServer from '../servers/SubmitServer';
+import { useServers } from '../servers/useServers';
+import {
+  DEFAULT_FILTERS, SORT_LABELS, applyFilters, featureOptions, frameworkOptions, isFiltered, isOnline, languageOptions,
+  type Filters, type SortKey,
+} from '../servers/filters';
+import { FEATURES, FRAMEWORKS, STYLES, type IRpServer } from '../servers/types';
+import { ago, fmt } from '../servers/format';
 
-type ServerStatus = 'IN_DEVELOPMENT' | 'WHITELIST_OPEN';
+const PAGE = 24;
 
-interface IServer {
-  id: string; name: string; color?: string; status?: string | null;
-  tags: string[];
-  description: string; connect_url?: string; discord_url?: string;
-  promo_tier?: 'bump' | 'featured' | 'headline' | null; promo_until?: string | null;
-}
-interface IServerNews {
-  id: string; server_name: string; title: string; body: string;
-  category: string; is_pinned: boolean; created_at: string;
-}
+const selectCls = 'bg-black/40 border border-white/10 rounded px-2 py-1.5 text-[11px] font-bold text-white/80 outline-none focus:border-neonCyan/60 w-full';
 
-// Only statuses the owner can actually know. There is no verified source for online/offline or player counts, so none are shown.
-const STATUS_CFG: Record<string, { label: string; color: string; dot: string }> = {
-  IN_DEVELOPMENT: { label: 'IN DEV',  color: '#facc15', dot: 'bg-yellow-400' },
-  WHITELIST_OPEN: { label: 'WL OPEN', color: '#00FFFF', dot: 'bg-cyan-400 animate-pulse' },
-};
-
-const NEWS_C: Record<string,string> = {
-  DRAMA:'text-neonPink border-neonPink', WIPE:'text-red-400 border-red-400',
-  UPDATE:'text-neonCyan border-neonCyan', EVENT:'text-yellow-400 border-yellow-400',
-  ANNOUNCEMENT:'text-purple-400 border-purple-400',
-};
-
-const ALL_TAGS = ['Hard RP','Voice Only','Custom UI','Economy Sim','Whitelisted','Public','FiveM','NoPixel Style'];
-
-const PROMO_LABEL = { bump: 'BUMPED', featured: 'FEATURED', headline: 'HEADLINE' } as const;
-const PROMO_RANK = { bump: 1, featured: 2, headline: 3 } as const;
-const activePromo = (s: IServer) =>
-  s.promo_tier && s.promo_until && new Date(s.promo_until).getTime() > Date.now() ? s.promo_tier : null;
-const promoRank = (s: IServer) => { const t = activePromo(s); return t ? PROMO_RANK[t] : 0; };
-
-function ConnectModal({ server, onClose }: { server: IServer; onClose: () => void }) {
-  const [copied, setCopied] = useState(false);
-  const ip = (server.connect_url || '').replace(/^fivem:\/\/connect\//i, '').replace(/\/$/, '');
-  const copy = async () => { await navigator.clipboard.writeText(ip); setCopied(true); setTimeout(() => setCopied(false), 2000); };
+function Stat({ label, value, color }: { label: string; value: string; color: string }) {
   return (
-    <div className="fixed inset-0 z-[600] flex items-center justify-center p-4"
-      style={{ background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(8px)' }} onClick={onClose}>
-      <div className="glass-card-static rounded-xl w-full max-w-md p-6 border border-neonPink/50 shadow-[0_0_40px_rgba(255,0,255,0.2)] slide-in"
-        onClick={e => e.stopPropagation()}>
-        <div className="flex items-start justify-between mb-5">
-          <div>
-            <div className="font-orbitron font-black text-neonPink text-sm tracking-widest mb-1">CONNECT TO SERVER</div>
-            <div className="text-white font-bold">{server.name}</div>
-          </div>
-          <button onClick={onClose} className="text-white/30 hover:text-white text-xl font-black">✕</button>
-        </div>
-        <div className="mb-4 p-4 rounded-lg" style={{ background:'rgba(0,255,255,0.05)', border:'1px solid rgba(0,255,255,0.2)' }}>
-          <div className="font-orbitron font-black text-[10px] text-neonCyan tracking-widest mb-2">STEP 1  -  COPY ADDRESS</div>
-          <div className="flex items-center gap-2">
-            <div className="flex-1 font-mono text-sm text-white bg-black/40 rounded px-3 py-2 border border-white/10 truncate">{ip || 'No IP'}</div>
-            {ip && <button onClick={copy} className={`btn-neon btn-neon-sm ${copied?'btn-neon-cyan':''}`}>{copied?'✓ COPIED':'COPY'}</button>}
-          </div>
-        </div>
-        <div className="mb-4 p-4 rounded-lg" style={{ background:'rgba(255,0,255,0.04)', border:'1px solid rgba(255,0,255,0.15)' }}>
-          <div className="font-orbitron font-black text-[10px] text-neonPink tracking-widest mb-2">STEP 2  -  OPEN FIVEM</div>
-          {['Launch FiveM','Press F8 to open console',`Type: connect ${ip}`,'Hit Enter'].map((s,i) => (
-            <div key={i} className="flex items-start gap-2 text-xs text-white/65 mb-1">
-              <span className="font-orbitron font-black text-neonPink/70 w-4">{i+1}.</span><span>{s}</span>
-            </div>
-          ))}
-        </div>
-        <div className="flex gap-2">
-          {server.discord_url && <a href={server.discord_url} target="_blank" rel="noreferrer" className="btn-neon btn-neon-cyan btn-neon-sm flex-1 text-center justify-center">JOIN DISCORD</a>}
-          <button onClick={onClose} className="btn-neon btn-neon-sm flex-1 justify-center">CLOSE</button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function ServerCard({ server, onConnect }: { server: IServer; onConnect: (s: IServer) => void }) {
-  const st = server.status ? STATUS_CFG[server.status] : undefined;
-  const c = server.color || '#b44fff';
-  const promo = activePromo(server);
-  return (
-    <div className="glass-card rounded-lg p-4 flex flex-col h-full relative"
-      style={promo ? { boxShadow: '0 0 0 1px #FF2D78, 0 0 22px rgba(255,45,120,0.35)' } : undefined}>
-      {promo && (
-        <span className="absolute -top-2 right-3 text-[8px] px-2 py-0.5 rounded font-orbitron font-black tracking-widest"
-          style={{ background: '#FF2D78', color: '#fff' }} title="Paid promotion">PROMOTED · {PROMO_LABEL[promo]}</span>
-      )}
-      <div className="flex items-start justify-between mb-3">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg flex items-center justify-center text-base font-black flex-shrink-0"
-            style={{ background:`${c}18`, border:`1px solid ${c}44`, color:c, textShadow:`0 0 8px ${c}` }}>
-            {server.name.charAt(0)}
-          </div>
-          <div>
-            <h3 className="font-black text-sm text-white tracking-wide leading-tight">{server.name}</h3>
-            {st && (
-              <div className="flex items-center gap-1.5 mt-0.5">
-                <div className={`w-1.5 h-1.5 rounded-full ${st.dot}`} />
-                <span className="text-[10px] font-bold tracking-widest" style={{ color:st.color }}>{st.label}</span>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-      <p className="text-white/55 text-xs leading-relaxed mb-3 flex-1 line-clamp-2">{server.description}</p>
-      <div className="flex flex-wrap gap-1 mb-3">
-        {(server.tags||[]).map(tag => (
-          <span key={tag} className="text-[9px] px-2 py-0.5 rounded-full font-bold tracking-wider"
-            style={{ background:'rgba(180,79,255,0.12)', border:'1px solid rgba(180,79,255,0.3)', color:'var(--neon-purple)' }}>{tag}</span>
-        ))}
-      </div>
-      <div className="flex gap-2 mt-auto">
-        {server.connect_url
-          ? <button onClick={() => onConnect(server)} className="btn-neon flex-1 btn-neon-sm justify-center">CONNECT NOW</button>
-          : <span className="flex-1 px-3 py-1.5 rounded text-[10px] font-black tracking-wider text-center select-none"
-              style={{ background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', color:'rgba(255,255,255,0.25)' }}>
-              {server.status==='IN_DEVELOPMENT'?'NOT LIVE YET':'JOIN WAITLIST'}
-            </span>
-        }
-        {server.discord_url && (
-          <a href={server.discord_url} target="_blank" rel="noreferrer" className="btn-neon btn-neon-cyan btn-neon-sm px-3">DISCORD</a>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function NewsCard({ news }: { news: IServerNews }) {
-  const c = NEWS_C[news.category] || 'text-white/60 border-white/30';
-  return (
-    <div className="glass-card-static rounded-lg p-3 mb-2 border border-white/[0.06]">
-      <div className="flex items-center gap-2 mb-1.5">
-        <span className={`text-[9px] px-2 py-0.5 rounded border font-black tracking-widest ${c}`}>{news.category}</span>
-        <span className="text-[10px] text-white/35">{news.server_name}</span>
-        {news.is_pinned && <span className="text-[8px] text-neonPink/70">📌</span>}
-      </div>
-      <h4 className="text-xs font-black text-white leading-tight mb-1">{news.title}</h4>
-      <p className="text-[10px] text-white/50 line-clamp-2 leading-relaxed">{news.body}</p>
+    <div className="glass-card-static rounded-lg p-3 border border-white/[0.05] text-center">
+      <div className="text-[9px] font-orbitron font-black tracking-widest text-white/30 mb-1">{label}</div>
+      <div className="text-lg font-black tabular-nums" style={{ color }}>{value}</div>
     </div>
   );
 }
 
 function Skeleton() {
   return (
-    <div className="glass-card-static rounded-lg p-4 border border-white/[0.04]">
-      <div className="flex items-center gap-3 mb-3">
-        <div className="w-10 h-10 rounded-lg bg-white/5 animate-pulse" />
-        <div className="flex-1"><div className="h-3 bg-white/8 rounded animate-pulse mb-1.5 w-3/4" /><div className="h-2 bg-white/5 rounded animate-pulse w-1/2" /></div>
-      </div>
-      <div className="h-2 bg-white/5 rounded animate-pulse mb-1.5" /><div className="h-2 bg-white/5 rounded animate-pulse w-4/5 mb-3" />
-      <div className="h-7 bg-white/5 rounded animate-pulse" />
+    <div className="glass-card-static rounded-lg border border-white/[0.04] p-4 animate-pulse" aria-hidden>
+      <div className="flex gap-3 mb-3"><div className="w-11 h-11 rounded-lg bg-white/5" /><div className="flex-1"><div className="h-3 bg-white/10 rounded w-3/4 mb-2" /><div className="h-2 bg-white/5 rounded w-1/2" /></div></div>
+      <div className="h-1.5 bg-white/5 rounded-full mb-3" /><div className="h-2 bg-white/5 rounded mb-1.5" /><div className="h-2 bg-white/5 rounded w-4/5 mb-4" /><div className="h-8 bg-white/5 rounded" />
     </div>
   );
 }
 
 export default function ServersTab() {
-  const [servers, setServers] = useState<IServer[]>([]);
-  const [news, setNews] = useState<IServerNews[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState('');
-  const [tagFilter, setTagFilter] = useState<string|null>(null);
-  const [statusFilter, setStatusFilter] = useState('ALL');
-  const [connectServer, setConnectServer] = useState<IServer|null>(null);
+  const { servers, loading, error, updatedAt, reload } = useServers();
+  const [f, setF] = useState<Filters>(DEFAULT_FILTERS);
+  const [open, setOpen] = useState<IRpServer | null>(null);
+  const [shown, setShown] = useState(PAGE);
+  const set = useCallback(<K extends keyof Filters>(k: K, v: Filters[K]) => { setF((p) => ({ ...p, [k]: v })); setShown(PAGE); }, []);
 
-  useEffect(() => {
-    (async () => {
-      try {
-        const [{ data: sv }, { data: nw }] = await Promise.all([
-          supa.from('rp_servers').select('*').order('sort_order').order('created_at'),
-          supa.from('server_news').select('*').order('is_pinned',{ascending:false}).order('created_at',{ascending:false}).limit(8),
-        ]);
-        if (sv?.length) setServers(sv as IServer[]);
-        if (nw?.length) setNews(nw as IServerNews[]);
-      } catch(e) { console.error('[ServersTab]', e); }
-      finally { setLoading(false); }
-    })();
-  }, []);
-
-  const filtered = useMemo(() => servers.filter(s => {
-    const q = search.toLowerCase();
-    return (s.name.toLowerCase().includes(q) || (s.description||'').toLowerCase().includes(q))
-      && (!tagFilter || (s.tags||[]).includes(tagFilter))
-      && (statusFilter==='ALL' || s.status===statusFilter);
-  }).sort((a, b) => promoRank(b) - promoRank(a)), [servers, search, tagFilter, statusFilter]);
+  const langs = useMemo(() => languageOptions(servers), [servers]);
+  const fws = useMemo(() => frameworkOptions(servers), [servers]);
+  const feats = useMemo(() => featureOptions(servers).filter((k) => FEATURES[k]), [servers]);
+  const list = useMemo(() => applyFilters(servers, f), [servers, f]);
+  const onlineServers = servers.filter(isOnline);
+  const players = onlineServers.reduce((a, s) => a + (s.online_count || 0), 0);
+  const close = useCallback(() => setOpen(null), []);
 
   return (
     <div className="slide-in">
-      {connectServer && <ConnectModal server={connectServer} onClose={() => setConnectServer(null)} />}
-      <div className="mb-6">
-        <h2 className="font-orbitron font-black text-2xl tracking-widest mb-1 neon-text-pink">◈ SERVER INTEL DATABASE</h2>
-        <p className="text-white/40 text-xs tracking-wider font-bold">
-          SERVER LIST  -  {servers.length} SERVERS LISTED
+      {open && <ConnectModal server={open} onClose={close} />}
+
+      <div className="mb-5">
+        <h1 className="font-orbitron font-black text-2xl tracking-widest mb-1 neon-text-pink">◈ ROLEPLAY SERVERS</h1>
+        <p className="text-white/45 text-xs leading-relaxed max-w-2xl">
+          Real FiveM servers, checked against the official Cfx.re list every couple of minutes. Player counts are live or hidden, never invented. Click, connect, and pretend you are not in the car chase you swore you would skip.
         </p>
       </div>
+
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4">
+        <Stat label="SERVERS LISTED" value={fmt(servers.length)} color="#FF00FF" />
+        <Stat label="ONLINE NOW" value={fmt(onlineServers.length)} color="#22D65A" />
+        <Stat label="PLAYERS IN GAME" value={fmt(players)} color="#00FFFF" />
+        <Stat label="LANGUAGES" value={fmt(langs.filter((l) => l.code !== 'xx').length)} color="#facc15" />
+      </div>
+
       <div className="flex flex-col lg:flex-row gap-6">
-        <div className="flex-1">
-          <div className="glass-card-static rounded-lg p-4 mb-4 border border-white/[0.05]">
-            <input type="text" placeholder="SEARCH SERVER DATABASE..." value={search} onChange={e=>setSearch(e.target.value)}
-              className="w-full bg-transparent text-white text-sm font-bold tracking-wider placeholder-white/25 outline-none pb-2 mb-4"
-              style={{borderBottom:'1px solid rgba(255,0,255,0.3)'}} />
-            <div className="flex flex-wrap gap-2 mb-3">
-              {['ALL','WHITELIST_OPEN','IN_DEVELOPMENT'].map(s => (
-                <button key={s} onClick={() => setStatusFilter(s)}
-                  className={`text-[10px] px-3 py-1 rounded font-orbitron font-black tracking-wider transition-all border ${statusFilter===s?'border-neonPink/60 bg-neonPink/15 text-neonPink':'border-white/15 text-white/40 hover:border-white/30'}`}>
-                  {s==='ALL'?'ALL STATUS':STATUS_CFG[s as ServerStatus]?.label||s}
-                </button>
-              ))}
+        <div className="flex-1 min-w-0">
+          <section aria-label="Filters" className="glass-card-static rounded-lg p-4 mb-4 border border-white/[0.05]">
+            <label className="sr-only" htmlFor="rp-search">Search servers</label>
+            <input id="rp-search" type="search" value={f.q} onChange={(e) => set('q', e.target.value)} placeholder="Search by name, tag or description…"
+              className="w-full bg-transparent text-white text-sm font-bold placeholder-white/25 outline-none pb-3 mb-3 border-b border-neonPink/20" />
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 mb-3">
+              <label className="text-[9px] font-orbitron text-white/30 tracking-widest">STYLE
+                <select className={selectCls} value={f.style} onChange={(e) => set('style', e.target.value as Filters['style'])}>
+                  <option value="all">Any</option>
+                  {(Object.keys(STYLES) as (keyof typeof STYLES)[]).map((k) => <option key={k} value={k}>{STYLES[k]}</option>)}
+                </select>
+              </label>
+              <label className="text-[9px] font-orbitron text-white/30 tracking-widest">ACCESS
+                <select className={selectCls} value={f.access} onChange={(e) => set('access', e.target.value as Filters['access'])}>
+                  <option value="all">Any</option><option value="public">Open join</option><option value="allowlist">Allowlist</option>
+                </select>
+              </label>
+              <label className="text-[9px] font-orbitron text-white/30 tracking-widest">LANGUAGE
+                <select className={selectCls} value={f.lang} onChange={(e) => set('lang', e.target.value)}>
+                  <option value="all">Any</option>
+                  {langs.map((l) => <option key={l.code} value={l.code}>{l.label} ({l.count})</option>)}
+                </select>
+              </label>
+              <label className="text-[9px] font-orbitron text-white/30 tracking-widest">FRAMEWORK
+                <select className={selectCls} value={f.framework} onChange={(e) => set('framework', e.target.value)}>
+                  <option value="all">Any</option>
+                  {fws.map((k) => <option key={k} value={k}>{FRAMEWORKS[k] || k}</option>)}
+                </select>
+              </label>
+              <label className="text-[9px] font-orbitron text-white/30 tracking-widest">SORT
+                <select className={selectCls} value={f.sort} onChange={(e) => set('sort', e.target.value as SortKey)}>
+                  {(Object.keys(SORT_LABELS) as SortKey[]).map((k) => <option key={k} value={k}>{SORT_LABELS[k]}</option>)}
+                </select>
+              </label>
             </div>
-            <div className="flex flex-wrap gap-1.5">
-              {ALL_TAGS.map(tag => (
-                <button key={tag} onClick={() => setTagFilter(tagFilter===tag?null:tag)}
-                  className={`text-[9px] px-2 py-0.5 rounded-full font-bold tracking-wider transition-all border ${tagFilter===tag?'border-neonPink/60 bg-neonPink/15 text-neonPink':'border-white/15 text-white/35 hover:border-white/30'}`}>
-                  {tag}
-                </button>
-              ))}
+            <div className="flex flex-wrap items-center gap-1.5">
+              <button type="button" aria-pressed={f.onlineOnly} onClick={() => set('onlineOnly', !f.onlineOnly)}
+                className={`text-[10px] px-2.5 py-1 rounded-full font-black tracking-wider border transition-all ${f.onlineOnly ? 'border-green-400/60 bg-green-500/15 text-green-300' : 'border-white/10 text-white/40 hover:border-white/25'}`}>
+                ● ONLINE ONLY
+              </button>
+              {feats.map((k) => {
+                const on = f.features.includes(k);
+                return (
+                  <button key={k} type="button" aria-pressed={on} onClick={() => set('features', on ? f.features.filter((x) => x !== k) : [...f.features, k])}
+                    className={`text-[10px] px-2.5 py-1 rounded-full font-bold tracking-wider border transition-all ${on ? 'border-neonPink/60 bg-neonPink/15 text-neonPink' : 'border-white/10 text-white/40 hover:border-white/25'}`}>
+                    {FEATURES[k]}
+                  </button>
+                );
+              })}
             </div>
+          </section>
+
+          <div className="flex items-center justify-between mb-3" aria-live="polite">
+            <span className="text-[10px] font-orbitron font-black text-white/30 tracking-widest">
+              {list.length} {list.length === 1 ? 'SERVER' : 'SERVERS'}{updatedAt ? ` · UPDATED ${ago(new Date(updatedAt).toISOString()).toUpperCase()}` : ''}
+            </span>
+            {isFiltered(f) && <button type="button" onClick={() => { setF(DEFAULT_FILTERS); setShown(PAGE); }} className="text-[10px] text-neonPink/70 hover:text-neonPink font-bold tracking-wider">✕ CLEAR FILTERS</button>}
           </div>
-          {loading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">{[1,2,3,4].map(i=><Skeleton key={i}/>)}</div>
-          ) : filtered.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {filtered.map(s => <ServerCard key={s.id} server={s} onConnect={setConnectServer}/>)}
+
+          {loading && servers.length === 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">{[1, 2, 3, 4, 5, 6].map((i) => <Skeleton key={i} />)}</div>
+          ) : error && servers.length === 0 ? (
+            <div className="text-center py-14 glass-card-static rounded-lg border border-white/[0.05]">
+              <div className="font-orbitron text-sm text-white/50 tracking-widest mb-2">THE SERVER LIST TOOK A COFFEE BREAK</div>
+              <p className="text-xs text-white/30 mb-4">Not your fault. Probably ours.</p>
+              <button type="button" onClick={reload} className="btn-neon btn-neon-sm">TRY AGAIN</button>
+            </div>
+          ) : list.length === 0 ? (
+            <div className="text-center py-14">
+              <div className="font-orbitron text-sm text-white/40 tracking-widest mb-2">NOTHING MATCHES. PICKY, AREN'T WE?</div>
+              <button type="button" onClick={() => setF(DEFAULT_FILTERS)} className="text-[11px] text-neonPink/70 hover:text-neonPink font-bold tracking-wider">CLEAR ALL FILTERS</button>
             </div>
           ) : (
-            <div className="text-center py-12">
-              <div className="font-orbitron text-sm text-white/25 tracking-widest">NO SERVERS MATCH YOUR FILTERS</div>
-              <button onClick={()=>{setSearch('');setTagFilter(null);setStatusFilter('ALL');}}
-                className="mt-3 text-[10px] text-neonPink/60 hover:text-neonPink transition-colors font-bold">CLEAR FILTERS</button>
-            </div>
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {list.slice(0, shown).map((s) => <ServerCard key={s.id} server={s} onOpen={setOpen} />)}
+              </div>
+              {list.length > shown && (
+                <div className="text-center mt-5">
+                  <button type="button" onClick={() => setShown((n) => n + PAGE)} className="btn-neon btn-neon-sm">SHOW {Math.min(PAGE, list.length - shown)} MORE</button>
+                </div>
+              )}
+            </>
           )}
         </div>
-        <div className="lg:w-72 xl:w-80">
-          <div className="glass-card-static rounded-lg p-4 mb-4 border border-white/[0.05]">
-            <h3 className="text-[11px] font-orbitron font-black tracking-widest mb-3 pb-2 text-neonCyan"
-              style={{borderBottom:'1px solid rgba(0,255,255,0.2)'}}>◈ INCOMING TRANSMISSIONS</h3>
-            {news.length>0 ? news.map(n=><NewsCard key={n.id} news={n}/>) : <p className="text-xs text-white/25 text-center py-4">No transmissions yet</p>}
-          </div>
+
+        <aside className="lg:w-72 xl:w-80 space-y-4">
+          <SubmitServer onListed={reload} />
           <PromoteServer />
-          <div className="glass-card-static rounded-lg p-4 border border-white/[0.05]">
-            <h3 className="text-[11px] font-orbitron font-black tracking-widest mb-3" style={{color:'var(--neon-purple)'}}>◈ LIVE STREAMERS</h3>
-            <div className="space-y-2">
-              {[{name:'VICE CITY HUB',url:'https://www.twitch.tv/vicecityhub',img:'https://lpglkglhjdqnktybksth.supabase.co/storage/v1/object/public/photos/Vice_City_Hub.jpg'},{name:'SUMMIT1G',url:'https://www.twitch.tv/summit1g'},{name:'SHROUD',url:'https://www.twitch.tv/shroud'},{name:'LIRIK',url:'https://www.twitch.tv/lirik'},{name:'MOONMOON',url:'https://www.twitch.tv/moonmoon'}].map((s:any) => (
-                <a key={s.name} href={s.url} target="_blank" rel="noreferrer"
-                  className="flex items-center gap-2 p-2 rounded transition-all hover:scale-[1.02] group"
-                  style={{background:'rgba(180,79,255,0.08)',border:'1px solid rgba(180,79,255,0.15)'}}>
-                  {s.img
-                    ? <img src={s.img} alt={s.name} className="w-5 h-5 rounded-full object-cover flex-shrink-0"/>
-                    : <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse flex-shrink-0" />}
-                  <span className="text-[11px] font-black text-white/70 flex-1 group-hover:text-white/90">{s.name}</span>
-                  <span className="text-[9px] font-black" style={{color:'#9146FF'}}>▶ LIVE</span>
-                </a>
-              ))}
-            </div>
+          <div className="glass-card-static rounded-lg p-3 border border-white/[0.05] text-center">
+            <p className="text-[9px] font-orbitron text-white/30 tracking-widest mb-1">DATA SOURCE</p>
+            <a href="https://servers.fivem.net" target="_blank" rel="noopener noreferrer" className="text-[10px] font-orbitron font-bold text-neonCyan/60 hover:text-neonCyan tracking-wider">CFX.RE SERVER LIST</a>
+            <p className="text-[9px] text-white/25 mt-1">Discord invites validated automatically. Listed servers are third-party; we do not host or endorse them.</p>
           </div>
-        </div>
+        </aside>
       </div>
     </div>
   );

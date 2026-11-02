@@ -1,4 +1,9 @@
 
+[functions.restream-highlights]
+enabled = true
+verify_jwt = false
+entrypoint = "./functions/restream-highlights/index.ts"
+
 [functions.printful-hub]
 enabled = true
 verify_jwt = false

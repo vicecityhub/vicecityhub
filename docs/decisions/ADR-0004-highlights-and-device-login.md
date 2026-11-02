@@ -1,6 +1,6 @@
 # ADR-0004: Highlights board with direct-to-storage uploads and a phone-approved device login
 
-Status: accepted (2026-10-25). Related: ADR-0002 (cookieless analytics), ADR-0003 (Back Alley).
+Status: superseded (2026-10-25) by ADR-0005 (Hub auth + Restream auto-clips). Device-login is no longer in the Highlights UI. Related: ADR-0002, ADR-0003.
 
 ## Context
 The owner wants players to post screenshots and short clips from a PS5 straight to the Hub, under their own account, ideally from the console's built-in browser. Typing credentials with a D-pad is painful, and no human moderator is available.
