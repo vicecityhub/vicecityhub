@@ -80,6 +80,11 @@
 - [ ] T15 · P3 · Проверить a11y (контраст неоновых цветов, focus-стили) и добавить `prefers-reduced-motion`.
 
 ## 3. Журнал сессий (дописывай сверху, новая запись первой)
+### 2026-11-05 (позже): Claude Sonnet 5.5 (alley: report)
+- `report` (CCN 28) разобран на шаги по образцу `post`: `requestJson` (JSON + лимит по IP, теперь общий с `post`) → `readReport` → `checkReportSignature` → `loadReporter` → `findReported` → `fileReport` / `hideReported`. Порядок проверок = поведение (nonce сжигается последним шагом подписи, лимит репортёра до подсчёта постов).
+- Тесты: `tests/alleyReport.test.mjs` (15), написан на старом коде, зелёный на старом и новом. Типы жалоб проверяются через `Object.hasOwn`, не `in` (иначе `constructor` прошёл бы как kind).
+- Не тронуто: `screen` (CCN 26), `paywall` (25), `listThreads` (18), `post` (14), в брифе их не было. На проде alley всё ещё старый (деплой отдельно).
+
 ### 2026-11-05: Claude Sonnet 5.5 (orders.ts: runVerification, captureOrder, submitProof, retryFulfilment, createDonation, createOrder)
 - Рефакторинг без смены поведения и сигнатур. `runVerification` теперь только выбирает ветку по вердикту (`settleConfirmed` / `parkPending` / `rejectPayment`); `captureOrder` = `captureRefusal` → `paypalCapture` → `captureIsClean` → `fulfilPaypal` / `holdForReview`; `submitProof` = `proofOrderError` → `readProofInput` → `claimTx` → `manualReview` / `runVerification`; `retryFulfilment` = `retrySkipReason` → `claimAttempt` → `tryPrintful` → `recordRetry`; `createDonation` и `createOrder` = preflight → чтение входа → лимиты/цены → запись.
 - Общие куски: `tryPrintful` (был скопирован в 3 местах), `claimKey` (регистр tx-хеша, 3 места), `claimTx` (защита от повторного использования tx, общая для `submitProof` и `settleFromScan`), `OPEN_STATES`. Порядок этапов = поведение (CAS при settle, release claim до ответа об ошибке), не менять.

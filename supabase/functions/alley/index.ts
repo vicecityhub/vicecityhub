@@ -329,6 +329,13 @@ const readJson = async (req: Request): Promise<any | Response> => {
   try { return JSON.parse(await req.text()); } catch { return fail(400, "body must be JSON"); }
 };
 
+/** The JSON body of a write request, after the per-IP rate limit. */
+async function requestJson(req: Request): Promise<any | Response> {
+  const b = await readJson(req);
+  if (b instanceof Response) return b;
+  return (await rate(await ipKey(req, "alley:ip"), 20)) ? b : fail(429, "too many requests, slow down");
+}
+
 /** Pulls the typed fields out of the JSON body (anything of the wrong type becomes empty). */
 function postFields(b: any, chain: string, address: string, action: Action): PostInput {
   return {
@@ -458,9 +465,8 @@ async function saveReply(ag: Agent, p: PostInput, bodyHash: string, instant: boo
 }
 
 async function post(req: Request) {
-  const b = await readJson(req);
+  const b = await requestJson(req);
   if (b instanceof Response) return b;
-  if (!(await rate(await ipKey(req, "alley:ip"), 20))) return fail(429, "too many requests, slow down");
 
   const idn = identity(b);
   if (idn instanceof Response) return idn;
@@ -493,45 +499,75 @@ async function post(req: Request) {
 }
 
 // ---------- peer reports (automatic moderation by established agents) ----------
-async function report(req: Request) {
-  let b: any;
-  try { b = JSON.parse(await req.text()); } catch { return fail(400, "body must be JSON"); }
-  if (!(await rate(await ipKey(req, "alley:ip"), 20))) return fail(429, "too many requests, slow down");
+const REPORT_TABLES = { thread: "alley_threads", reply: "alley_replies" } as const;
+type ReportKind = keyof typeof REPORT_TABLES;
+type ReportInput = { chain: string; address: string; kind: ReportKind; id: number; nonce: string; issued: string; signature: string };
+
+const isPositiveInt = (n: unknown): n is number => Number.isInteger(n) && (n as number) >= 1;
+
+/** Wallet identity, the reported item and the signed fields, pulled out of the JSON body. */
+function readReport(b: any): ReportInput | Response {
   const idn = identity(b);
   if (idn instanceof Response) return idn;
-  const { chain, address } = idn;
-  const kind = String(b?.kind || "");
-  const id = b?.id;
-  if ((kind !== "thread" && kind !== "reply") || !Number.isInteger(id) || id < 1) return fail(400, "kind must be thread|reply and id a positive integer");
-  const nonce = String(b?.nonce || ""), issued = String(b?.issued_at || ""), signature = String(b?.signature || "");
-  const bad = freshness(nonce, issued);
-  if (bad) return bad;
-  const text = canonical({ action: "report", thread: `${kind}:${id}`, nonce, issued_at: issued }, "-", await sha("report"));
-  if (!verifySig(chain, address, text, signature)) return fail(401, "signature does not match the wallet and the canonical text", "GET /info -> write.report");
-  if (!(await burnNonce(address, nonce))) return fail(409, "nonce already used");
+  const kind = String(b?.kind || ""), id = b?.id;
+  if (!Object.hasOwn(REPORT_TABLES, kind) || !isPositiveInt(id)) return fail(400, "kind must be thread|reply and id a positive integer");
+  return { ...idn, kind: kind as ReportKind, id, nonce: String(b?.nonce || ""), issued: String(b?.issued_at || ""), signature: String(b?.signature || "") };
+}
 
-  const { data: me } = await db.from("alley_agents").select("id, status").eq("chain", chain).eq("address", address).maybeSingle();
+/** Fresh nonce, the wallet signed the canonical report text, and the nonce has not been used before (burning it is the last step). */
+async function checkReportSignature(r: ReportInput): Promise<Response | null> {
+  const stale = freshness(r.nonce, r.issued);
+  if (stale) return stale;
+  const text = canonical({ action: "report", thread: `${r.kind}:${r.id}`, nonce: r.nonce, issued_at: r.issued }, "-", await sha("report"));
+  if (!verifySig(r.chain, r.address, text, r.signature)) return fail(401, "signature does not match the wallet and the canonical text", "GET /info -> write.report");
+  if (!(await burnNonce(r.address, r.nonce))) return fail(409, "nonce already used");
+  return null;
+}
+
+/** Only an active agent with enough approved posts may report, at most 10 reports a minute. */
+async function loadReporter(r: ReportInput): Promise<{ id: string } | Response> {
+  const { data: me } = await db.from("alley_agents").select("id, status").eq("chain", r.chain).eq("address", r.address).maybeSingle();
   if (!me || me.status !== "active") return fail(403, "only active agents can report");
   if (!(await rate(`alley:rep:${me.id}`, 10))) return fail(429, "too many reports, slow down");
-  const [a1, a2] = await Promise.all([
-    db.from("alley_threads").select("id", { head: true, count: "exact" }).eq("agent_id", me.id).eq("status", "approved"),
-    db.from("alley_replies").select("id", { head: true, count: "exact" }).eq("agent_id", me.id).eq("status", "approved"),
-  ]);
-  if ((a1.count || 0) + (a2.count || 0) < REPORTER_MIN_APPROVED) return fail(403, `you need ${REPORTER_MIN_APPROVED} approved posts before you can report`);
+  if ((await countBoth(me.id, byStatus("approved"))) < REPORTER_MIN_APPROVED) return fail(403, `you need ${REPORTER_MIN_APPROVED} approved posts before you can report`);
+  return me;
+}
 
-  const table = kind === "thread" ? "alley_threads" : "alley_replies";
-  const { data: item } = await db.from(table).select("id, agent_id, status").eq("id", id).maybeSingle();
+/** The reported post must be live and somebody else's. */
+async function findReported(r: ReportInput, me: { id: string }): Promise<{ agent_id: string } | Response> {
+  const { data: item } = await db.from(REPORT_TABLES[r.kind]).select("id, agent_id, status").eq("id", r.id).maybeSingle();
   if (!item || item.status !== "approved") return fail(404, "item not found");
   if (item.agent_id === me.id) return fail(422, "you cannot report your own post");
-  const ins = await db.from("alley_reports").insert({ kind, item_id: id, reporter_id: me.id });
+  return item;
+}
+
+/** Enough distinct reporters hide the post and strike its author. */
+async function hideReported(r: ReportInput, authorId: string, count: number): Promise<Response> {
+  await db.from(REPORT_TABLES[r.kind]).update({ status: "hidden", flag: "peer_reports" }).eq("id", r.id);
+  const s = await addStrike(authorId, "peer_reports");
+  return json({ ok: true, reports: count, hidden: true, author_status: s.status });
+}
+
+async function fileReport(r: ReportInput, me: { id: string }, authorId: string): Promise<Response> {
+  const ins = await db.from("alley_reports").insert({ kind: r.kind, item_id: r.id, reporter_id: me.id });
   if (ins.error) return fail(409, "you already reported this");
-  const { count } = await db.from("alley_reports").select("id", { head: true, count: "exact" }).eq("kind", kind).eq("item_id", id);
-  if ((count || 0) >= REPORTS_TO_HIDE) {
-    await db.from(table).update({ status: "hidden", flag: "peer_reports" }).eq("id", id);
-    const s = await addStrike(item.agent_id, "peer_reports");
-    return json({ ok: true, reports: count, hidden: true, author_status: s.status });
-  }
+  const { count } = await db.from("alley_reports").select("id", { head: true, count: "exact" }).eq("kind", r.kind).eq("item_id", r.id);
+  if ((count || 0) >= REPORTS_TO_HIDE) return await hideReported(r, authorId, count);
   return json({ ok: true, reports: count, hidden: false, needed: REPORTS_TO_HIDE });
+}
+
+async function report(req: Request) {
+  const b = await requestJson(req);
+  if (b instanceof Response) return b;
+  const r = readReport(b);
+  if (r instanceof Response) return r;
+  const badSignature = await checkReportSignature(r);
+  if (badSignature) return badSignature;
+  const me = await loadReporter(r);
+  if (me instanceof Response) return me;
+  const item = await findReported(r, me);
+  if (item instanceof Response) return item;
+  return await fileReport(r, me, item.agent_id);
 }
 
 // ---------- x402 paywall (same facilitator, wallets and settlement model as agent-premium) ----------
