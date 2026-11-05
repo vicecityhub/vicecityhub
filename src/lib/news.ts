@@ -43,26 +43,30 @@ function readMetaObject(raw: unknown): any {
   }
 }
 
+const hasText = (s?: string): s is string => !!s && !!s.trim();
+
+/** A rating cell counts when it is truthy and numeric; anything else leaves the previous rating in place. */
+const toStars = (raw: unknown, fallback: number): number => (raw ? Number(raw) || fallback : fallback);
+
+/** meta.importance wins over meta.stars when it is a real number. */
+const readStars = (meta: any): number => toStars(meta.importance, toStars(meta.stars, 0));
+
+const readImages = (meta: any): string[] => (Array.isArray(meta.images) ? meta.images.filter((u: any) => typeof u === 'string') : []);
+
 /**
  * Display details of a news row, using the real Supabase schema:
  * category -> tag, source_url -> source link, is_featured -> pin, meta.stars / meta.importance -> rating,
  * meta.images -> gallery (string entries only).
  */
 export function getNewsMeta(item: NewsArticle): NewsMeta {
-  const tag = item.category && item.category.trim() ? item.category : 'Community';
-  const srcUrl = item.source_url || '';
-  const important = !!item.is_featured;
-  let stars = 0;
-  let images: string[] = [];
-
-  const parsed = readMetaObject(item.meta);
-  if (parsed) {
-    if (parsed.stars) stars = Number(parsed.stars) || 0;
-    if (parsed.importance) stars = Number(parsed.importance) || stars;
-    if (Array.isArray(parsed.images)) images = parsed.images.filter((u: any) => typeof u === 'string');
-  }
-
-  return { tag, srcUrl, stars, important, images };
+  const meta = readMetaObject(item.meta) ?? {};
+  return {
+    tag: hasText(item.category) ? item.category : 'Community',
+    srcUrl: item.source_url || '',
+    stars: readStars(meta),
+    important: !!item.is_featured,
+    images: readImages(meta),
+  };
 }
 
 /** Keep the first row of every id. */
@@ -75,19 +79,15 @@ export function dedupeById(items: NewsArticle[]): NewsArticle[] {
   });
 }
 
+const SEARCH_FIELDS = ['title', 'body', 'summary', 'author_name'] as const;
+
+const matchesTag = (tag: string, selectedTag: string) => selectedTag === 'All' || tag.toLowerCase() === selectedTag.toLowerCase();
+const matchesSearch = (item: NewsArticle, query: string) => SEARCH_FIELDS.some(field => (item[field] || '').toLowerCase().includes(query));
+
 /** Tag tab (case-insensitive, 'All' = every tag) and a text search over title, body, summary and author. */
 export function filterNews(items: NewsArticle[], selectedTag: string, searchQuery: string): NewsArticle[] {
   const query = searchQuery.toLowerCase();
-  return items.filter(item => {
-    const { tag } = getNewsMeta(item);
-    const matchesTag = selectedTag === 'All' || tag.toLowerCase() === selectedTag.toLowerCase();
-    const matchesSearch =
-      (item.title || '').toLowerCase().includes(query) ||
-      (item.body || '').toLowerCase().includes(query) ||
-      (item.summary || '').toLowerCase().includes(query) ||
-      (item.author_name || '').toLowerCase().includes(query);
-    return matchesTag && matchesSearch;
-  });
+  return items.filter(item => matchesTag(getNewsMeta(item).tag, selectedTag) && matchesSearch(item, query));
 }
 
 /** Pin featured news to the top, newest first within each group. Returns a new array. */

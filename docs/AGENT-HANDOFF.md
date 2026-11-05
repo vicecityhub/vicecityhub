@@ -80,6 +80,10 @@
 - [ ] T15 · P3 · Проверить a11y (контраст неоновых цветов, focus-стили) и добавить `prefers-reduced-motion`.
 
 ## 3. Журнал сессий (дописывай сверху, новая запись первой)
+### 2026-11-05 (вечер): Claude Sonnet 5.5 (src/lib/news.ts: getNewsMeta, filterNews)
+- `getNewsMeta` (CCN 10) = `hasText` (тег) + `readStars` (importance перекрывает stars, только если число) + `readImages`; `filterNews` (CCN 10) = `matchesTag` + `matchesSearch` по списку `SEARCH_FIELDS`. Поведение и экспорты без изменений.
+- Тесты: +2 в `tests/news.test.mjs` (importance/stars крайние случаи, пустые поля и пустой запрос), зелёные на старом и новом коде. Edge-функции не менялись, деплой не нужен.
+
 ### 2026-11-05 (позже): Claude Sonnet 5.5 (alley: report)
 - `report` (CCN 28) разобран на шаги по образцу `post`: `requestJson` (JSON + лимит по IP, теперь общий с `post`) → `readReport` → `checkReportSignature` → `loadReporter` → `findReported` → `fileReport` / `hideReported`. Порядок проверок = поведение (nonce сжигается последним шагом подписи, лимит репортёра до подсчёта постов).
 - Тесты: `tests/alleyReport.test.mjs` (15), написан на старом коде, зелёный на старом и новом. Типы жалоб проверяются через `Object.hasOwn`, не `in` (иначе `constructor` прошёл бы как kind).

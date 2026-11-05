@@ -101,3 +101,20 @@ test('previewOf: summary when it has text, otherwise the body', () => {
   assert.equal(previewOf(row(1, { summary: '   ' })), 'B1');
   assert.equal(previewOf(row(1)), 'B1');
 });
+
+test('getNewsMeta: importance alone, falsy importance and zero ratings fall back correctly', () => {
+  assert.equal(getNewsMeta(row(1, { meta: { importance: 4 } })).stars, 4);
+  assert.equal(getNewsMeta(row(1, { meta: { stars: 3, importance: 0 } })).stars, 3);
+  assert.equal(getNewsMeta(row(1, { meta: { stars: 3, importance: '' } })).stars, 3);
+  assert.equal(getNewsMeta(row(1, { meta: { stars: 0, importance: 'x' } })).stars, 0);
+  assert.equal(getNewsMeta(row(1, { meta: { images: 'a.png' } })).images.length, 0);
+  assert.equal(getNewsMeta(row(1, { meta: '5' })).stars, 0);
+});
+
+test('filterNews: missing text fields never match a non-empty query, and an empty query matches every row', () => {
+  const bare = { id: 9, created_at: '2026-05-01T00:00:00Z', type: 'news', title: '', body: '', author_name: '' };
+  assert.equal(filterNews([bare], 'All', 'x').length, 0);
+  assert.equal(filterNews([bare], 'All', '').length, 1);
+  assert.equal(filterNews([row(1, { summary: 'Only here' })], 'All', 'only here').length, 1);
+  assert.equal(filterNews([row(1, { category: 'Leaks', author_name: 'Zed' })], 'rumors', 'zed').length, 0);
+});
