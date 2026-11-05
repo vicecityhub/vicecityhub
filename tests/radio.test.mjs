@@ -170,3 +170,57 @@ test('toggle with a blocked play leaves the state untouched', async () => {
   toggleRadio(fakeAudio({ rejectPlay: true }), false, c.setPlaying); await flush();
   assert.deepEqual(c.states, []); done();
 });
+
+test('a play() that returns no promise (old browsers) still counts: on the first gesture it marks playing at once', async () => {
+  const c = setup();
+  const audio = fakeAudio({ rejectPlay: true });
+  audio.play = () => { audio.plays++; return undefined; };
+  const stop = start(audio, c);
+  await flush();
+  assert.equal(audio.plays, 1); assert.deepEqual(c.states, []); // mount: no promise, so nothing is marked
+  c.doc.dispatchEvent(new Event('click'));
+  assert.equal(audio.plays, 2); assert.deepEqual(c.states, [true]); assert.equal(c.s.getItem('radioPlaying'), 'true');
+  c.doc.dispatchEvent(new Event('click'));
+  assert.equal(audio.plays, 2); // already resumed
+  stop(); done();
+});
+
+test('a gesture whose play() is rejected is retried on the next gesture; once resumed, gestures do nothing', async () => {
+  const c = setup();
+  const audio = fakeAudio({ rejectPlay: true });
+  const stop = start(audio, c);
+  await flush();
+  assert.equal(audio.plays, 1);
+  c.doc.dispatchEvent(new Event('keydown')); await flush();
+  assert.equal(audio.plays, 2); assert.deepEqual(c.states, []);
+  c.doc.dispatchEvent(new Event('touchend')); await flush();
+  assert.equal(audio.plays, 3);
+  audio.rejectPlay = false;
+  c.doc.dispatchEvent(new Event('click')); await flush();
+  assert.equal(audio.plays, 4); assert.deepEqual(c.states, [true]);
+  c.doc.dispatchEvent(new Event('click')); await flush();
+  assert.equal(audio.plays, 4);
+  stop(); done();
+});
+
+test('the first gesture does not play again when the audio is already playing', async () => {
+  const c = setup();
+  const audio = fakeAudio({ rejectPlay: true });
+  const stop = start(audio, c);
+  await flush();
+  audio.paused = false;
+  c.doc.dispatchEvent(new Event('click')); await flush();
+  assert.equal(audio.plays, 1);
+  stop(); done();
+});
+
+test('gesture listeners are removed on cleanup', async () => {
+  const c = setup();
+  const audio = fakeAudio({ rejectPlay: true });
+  const stop = start(audio, c);
+  await flush();
+  stop();
+  c.doc.dispatchEvent(new Event('click')); await flush();
+  assert.equal(audio.plays, 1);
+  done();
+});

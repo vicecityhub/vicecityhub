@@ -41,13 +41,21 @@ function configureAudio(audio: HTMLAudioElement) {
   audio.volume = 0.25;
 }
 
+/** Seeking can throw before the media is seekable; the track then simply stays at 0 (returns false). */
+function seekTo(audio: HTMLAudioElement, time: number): boolean {
+  try {
+    audio.currentTime = time;
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 /** Restore the exact playback position so the track continues where it left off. */
 function restorePosition(audio: HTMLAudioElement, restoreTime: number) {
   if (restoreTime <= 0) return;
   const apply = () => {
-    if (audio.duration && restoreTime < audio.duration) {
-      try { audio.currentTime = restoreTime; } catch (_) { /* seeking can throw before the media is seekable: stay at 0 */ }
-    }
+    if (audio.duration && restoreTime < audio.duration) seekTo(audio, restoreTime);
   };
   if (audio.readyState >= 1) apply();
   else audio.addEventListener('loadedmetadata', apply, { once: true });
@@ -60,37 +68,41 @@ const FIRST_INTERACTION_EVENTS: [string, AddEventListenerOptions][] = [
   ['touchend', { capture: true }],
 ];
 
+/** Old browsers return undefined from play() instead of a promise. */
+const isThenable = (p: unknown): p is Promise<void> => !!p && typeof (p as { then?: unknown }).then === 'function';
+
+/** Whether the radio has started by itself yet; shared by the mount attempt and the first-gesture handler. */
+type ResumeState = { resumed: boolean };
+
+/** Try to start right away; a rejection (autoplay policy) is fine, the first gesture retries. */
+function tryPlayOnMount(audio: HTMLAudioElement, markPlaying: () => void, state: ResumeState) {
+  const playPromise = audio.play();
+  if (!isThenable(playPromise)) return;
+  playPromise.then(() => {
+    state.resumed = true;
+    markPlaying();
+  }).catch(playBlocked);
+}
+
+/** First gesture: play() runs synchronously inside the handler; a rejection re-arms the next gesture. */
+function resumeOnGesture(audio: HTMLAudioElement, shouldPlay: boolean, markPlaying: () => void, state: ResumeState) {
+  if (state.resumed || !shouldPlay || !audio.paused) return;
+  const p = audio.play();
+  state.resumed = true;
+  if (!isThenable(p)) return markPlaying();
+  p.then(markPlaying).catch(() => { state.resumed = false; });
+}
+
 /**
  * Resume on mount when the browser allows it; otherwise on the very first user gesture, calling play()
  * synchronously inside the handler so the browser still counts it as a response to that gesture.
  */
 function attachAutoResume(audio: HTMLAudioElement, shouldPlay: boolean, markPlaying: () => void, setIsPlaying: SetPlaying): Detach {
-  let resumed = false;
+  const state: ResumeState = { resumed: false };
+  if (shouldPlay) tryPlayOnMount(audio, markPlaying, state);
+  else setIsPlaying(false);
 
-  if (shouldPlay) {
-    const playPromise = audio.play();
-    if (playPromise && typeof playPromise.then === 'function') {
-      playPromise.then(() => {
-        resumed = true;
-        markPlaying();
-      }).catch(playBlocked); // blocked by autoplay policy: resumed on the first user interaction below
-    }
-  } else {
-    setIsPlaying(false);
-  }
-
-  const handleFirstInteraction = () => {
-    if (resumed) return;
-    if (shouldPlay && audio.paused) {
-      const p = audio.play();
-      resumed = true;
-      if (p && typeof p.then === 'function') {
-        p.then(markPlaying).catch(() => { resumed = false; });
-      } else {
-        markPlaying();
-      }
-    }
-  };
+  const handleFirstInteraction = () => resumeOnGesture(audio, shouldPlay, markPlaying, state);
   FIRST_INTERACTION_EVENTS.forEach(([type, options]) => document.addEventListener(type, handleFirstInteraction, options));
   return () => FIRST_INTERACTION_EVENTS.forEach(([type, options]) => document.removeEventListener(type, handleFirstInteraction, options));
 }
