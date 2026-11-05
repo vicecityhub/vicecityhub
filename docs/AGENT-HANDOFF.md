@@ -80,6 +80,11 @@
 - [ ] T15 · P3 · Проверить a11y (контраст неоновых цветов, focus-стили) и добавить `prefers-reduced-motion`.
 
 ## 3. Журнал сессий (дописывай сверху, новая запись первой)
+### 2026-11-05 (вечер, 2): Claude Sonnet 5.5 (NewsCard.tsx)
+- `NewsCard` (CCN 18 -> 7) разобран на подкомпоненты в том же файле: `FeaturedRibbon`, `StarRating`, `Gallery` (число колонок через таблицу `GALLERY_COLUMNS`), `CardText`, `CardFooter`; классы карточки в `cardClasses`. Экспорт и пропсы те же.
+- Проверка: HTML старой и новой версии сравнён на 150 комбинациях (тег, рейтинг, галерея, featured, источник, свёрнуто/развёрнуто), различий 0. Постоянный `tests/newsCard.test.mjs` (9 тестов) зелёный на обеих версиях; он рендерит именованный экспорт через временный default-entry.
+- Edge-функции не менялись, деплой не нужен.
+
 ### 2026-11-05 (вечер): Claude Sonnet 5.5 (src/lib/news.ts: getNewsMeta, filterNews)
 - `getNewsMeta` (CCN 10) = `hasText` (тег) + `readStars` (importance перекрывает stars, только если число) + `readImages`; `filterNews` (CCN 10) = `matchesTag` + `matchesSearch` по списку `SEARCH_FIELDS`. Поведение и экспорты без изменений.
 - Тесты: +2 в `tests/news.test.mjs` (importance/stars крайние случаи, пустые поля и пустой запрос), зелёные на старом и новом коде. Edge-функции не менялись, деплой не нужен.

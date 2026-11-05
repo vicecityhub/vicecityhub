@@ -19,29 +19,118 @@ interface Props {
   onToggle: (id: number) => void;
 }
 
+const stop = (e: React.SyntheticEvent) => e.stopPropagation();
+
+const cardClasses = (important: boolean, isExpanded: boolean) =>
+  `snap-start [scroll-snap-stop:always] glass-card border transition-all duration-300 flex flex-col shadow-2xl group p-5 relative cursor-pointer ${isExpanded ? "min-h-0 overflow-visible" : "min-h-[250px] md:min-h-[260px] overflow-hidden justify-between"} ${
+    important
+      ? 'border-neonOrange/50 hover:border-neonOrange shadow-[0_0_25px_rgba(255,136,0,0.12)]'
+      : 'border-white/5 hover:border-neonCyan'
+  }`;
+
+/** Featured / pinned ribbon. */
+function FeaturedRibbon() {
+  return (
+    <div className="absolute top-0 left-0 bg-neonOrange text-black text-[9px] font-extrabold uppercase tracking-widest px-3 py-1 rounded-br-lg flex items-center gap-1.5 font-orbitron shadow-lg z-10">
+      <Pin size={10} /> Featured
+    </div>
+  );
+}
+
+/** Importance stars (1-5), filled up to the rating. */
+function StarRating({ stars }: { stars: number }) {
+  return (
+    <span className="flex items-center gap-0.5" title={`Importance: ${stars}/5`}>
+      {Array.from({ length: 5 }).map((_, i) => (
+        <Star
+          key={i}
+          size={11}
+          className={i < stars ? 'text-neonOrange fill-neonOrange' : 'text-gray-700'}
+        />
+      ))}
+    </span>
+  );
+}
+
+/** Column count follows the number of images: 1, 2, or 3 per row. */
+const GALLERY_COLUMNS: Record<number, string> = { 1: 'grid-cols-1', 2: 'grid-cols-2' };
+
+/** Image gallery: three thumbnails when collapsed, all of them when expanded. Clicks open the image, not the card. */
+function Gallery({ images, isExpanded }: { images: string[]; isExpanded: boolean }) {
+  return (
+    <div
+      className={`grid gap-1.5 mb-4 rounded-lg overflow-hidden ${GALLERY_COLUMNS[images.length] ?? 'grid-cols-3'}`}
+      onClick={stop}
+    >
+      {(isExpanded ? images : images.slice(0, 3)).map((src, i) => (
+        <a
+          key={i}
+          href={src}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="block overflow-hidden bg-black/40 border border-white/5 hover:border-neonCyan/50 transition-colors"
+          style={{ aspectRatio: '1 / 1' }}
+        >
+          <img src={src} alt="" className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" loading="lazy" />
+        </a>
+      ))}
+    </div>
+  );
+}
+
+/** Expanded text scrolls inside the card (touch moves must not toggle or scroll the page). */
+const EXPANDED_TEXT_STYLE: React.CSSProperties = { maxHeight: '38vh', overflowY: 'auto', touchAction: 'pan-y', WebkitOverflowScrolling: 'touch' as any, paddingRight: '4px' };
+
+/** Collapsed preview (clamped) or the full body. */
+function CardText({ text, isExpanded }: { text: string; isExpanded: boolean }) {
+  return (
+    <p
+      className={`text-sm text-gray-300 leading-loose font-bold font-rajdhani mb-4 ${isExpanded ? '' : 'line-clamp-4 md:line-clamp-6'}`}
+      style={isExpanded ? EXPANDED_TEXT_STYLE : {}}
+      onTouchStart={isExpanded ? stop : undefined}
+      onTouchMove={isExpanded ? stop : undefined}
+      onClick={stop}
+    >
+      {text}
+    </p>
+  );
+}
+
+/** Author line and the link to the original source (when there is one). */
+function CardFooter({ author, srcUrl }: { author: string; srcUrl: string }) {
+  return (
+    <div className="border-t border-white/5 pt-4 mt-auto flex items-center justify-between text-[10px] font-bold uppercase tracking-widest font-orbitron flex-wrap gap-2">
+      <div className="text-gray-500">
+        Operator: <span className="text-neonCyan">{author}</span>
+      </div>
+      {srcUrl && (
+        <a
+          href={srcUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={stop}
+          className="text-neonPink hover:underline flex items-center gap-1 hover:neon-text-pink"
+        >
+          {getSourceLabel(srcUrl)} <ExternalLink size={10} />
+        </a>
+      )}
+    </div>
+  );
+}
+
 /** One dispatch: tag, stars, date, title, gallery, text (collapsed preview or full body) and source link. */
 export function NewsCard({ item, isExpanded, onToggle }: Props) {
   const { tag, srcUrl, stars, important, images } = getNewsMeta(item);
-  const previewText = previewOf(item);
 
   return (
       <div
         key={item.id}
         onClick={() => onToggle(item.id)}
-        className={`snap-start [scroll-snap-stop:always] glass-card border transition-all duration-300 flex flex-col shadow-2xl group p-5 relative cursor-pointer ${isExpanded ? "min-h-0 overflow-visible" : "min-h-[250px] md:min-h-[260px] overflow-hidden justify-between"} ${
-          important
-            ? 'border-neonOrange/50 hover:border-neonOrange shadow-[0_0_25px_rgba(255,136,0,0.12)]'
-            : 'border-white/5 hover:border-neonCyan'
-        }`}
+        className={cardClasses(important, isExpanded)}
       >
         <div className="absolute top-0 right-0 w-24 h-24 bg-neonCyan/5 rounded-bl-full pointer-events-none group-hover:bg-neonCyan/10 transition-colors" />
 
-        {/* Featured / Pinned Ribbon */}
-        {important && (
-          <div className="absolute top-0 left-0 bg-neonOrange text-black text-[9px] font-extrabold uppercase tracking-widest px-3 py-1 rounded-br-lg flex items-center gap-1.5 font-orbitron shadow-lg z-10">
-            <Pin size={10} /> Featured
-          </div>
-        )}
+        {important && <FeaturedRibbon />}
 
         <div className={important ? 'mt-5' : ''}>
           <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
@@ -51,18 +140,7 @@ export function NewsCard({ item, isExpanded, onToggle }: Props) {
             </span>
 
             <div className="flex items-center gap-3">
-              {/* Importance Stars */}
-              {stars > 0 && (
-                <span className="flex items-center gap-0.5" title={`Importance: ${stars}/5`}>
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <Star
-                      key={i}
-                      size={11}
-                      className={i < stars ? 'text-neonOrange fill-neonOrange' : 'text-gray-700'}
-                    />
-                  ))}
-                </span>
-              )}
+              {stars > 0 && <StarRating stars={stars} />}
               <span className="text-[10px] text-gray-500 font-extrabold tracking-wider uppercase font-orbitron flex items-center gap-1.5">
                 <Calendar size={11} />
                 {new Date(item.created_at).toLocaleDateString()}
@@ -74,61 +152,20 @@ export function NewsCard({ item, isExpanded, onToggle }: Props) {
             {item.title}
           </h3>
 
-          {images.length > 0 && (
-            <div
-              className={`grid gap-1.5 mb-4 rounded-lg overflow-hidden ${images.length === 1 ? 'grid-cols-1' : images.length === 2 ? 'grid-cols-2' : 'grid-cols-3'}`}
-              onClick={(e) => e.stopPropagation()}
-            >
-              {(isExpanded ? images : images.slice(0, 3)).map((src, i) => (
-                <a
-                  key={i}
-                  href={src}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="block overflow-hidden bg-black/40 border border-white/5 hover:border-neonCyan/50 transition-colors"
-                  style={{ aspectRatio: '1 / 1' }}
-                >
-                  <img src={src} alt="" className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" loading="lazy" />
-                </a>
-              ))}
-            </div>
-          )}
+          {images.length > 0 && <Gallery images={images} isExpanded={isExpanded} />}
 
-          <p
-            className={`text-sm text-gray-300 leading-loose font-bold font-rajdhani mb-4 ${isExpanded ? '' : 'line-clamp-4 md:line-clamp-6'}`}
-            style={isExpanded ? { maxHeight: '38vh', overflowY: 'auto', touchAction: 'pan-y', WebkitOverflowScrolling: 'touch' as any, paddingRight: '4px' } : {}}
-            onTouchStart={isExpanded ? (e) => e.stopPropagation() : undefined}
-            onTouchMove={isExpanded ? (e) => e.stopPropagation() : undefined}
-            onClick={(e) => e.stopPropagation()}
-          >
-            {isExpanded ? item.body : previewText}
-          </p>
+          <CardText text={isExpanded ? item.body : previewOf(item)} isExpanded={isExpanded} />
 
           {/* Read More / Collapse toggle */}
           <button
-            onClick={(e) => { e.stopPropagation(); onToggle(item.id); }}
+            onClick={(e) => { stop(e); onToggle(item.id); }}
             className="text-[10px] font-extrabold uppercase tracking-widest font-orbitron text-neonCyan hover:text-white transition-colors mb-4"
           >
             {isExpanded ? 'Collapse ▲' : 'Read More ▼'}
           </button>
         </div>
 
-        <div className="border-t border-white/5 pt-4 mt-auto flex items-center justify-between text-[10px] font-bold uppercase tracking-widest font-orbitron flex-wrap gap-2">
-          <div className="text-gray-500">
-            Operator: <span className="text-neonCyan">{item.author_name}</span>
-          </div>
-          {srcUrl && (
-            <a
-              href={srcUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={(e) => e.stopPropagation()}
-              className="text-neonPink hover:underline flex items-center gap-1 hover:neon-text-pink"
-            >
-              {getSourceLabel(srcUrl)} <ExternalLink size={10} />
-            </a>
-          )}
-        </div>
+        <CardFooter author={item.author_name} srcUrl={srcUrl} />
 
       </div>
   );
