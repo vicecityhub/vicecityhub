@@ -83,13 +83,14 @@
 ### 2026-11-05 (позже): Claude Sonnet 5.5 (alley: report)
 - `report` (CCN 28) разобран на шаги по образцу `post`: `requestJson` (JSON + лимит по IP, теперь общий с `post`) → `readReport` → `checkReportSignature` → `loadReporter` → `findReported` → `fileReport` / `hideReported`. Порядок проверок = поведение (nonce сжигается последним шагом подписи, лимит репортёра до подсчёта постов).
 - Тесты: `tests/alleyReport.test.mjs` (15), написан на старом коде, зелёный на старом и новом. Типы жалоб проверяются через `Object.hasOwn`, не `in` (иначе `constructor` прошёл бы как kind).
+- Деплой: см. запись выше (agent-api v26, alley v3).
 - Не тронуто: `screen` (CCN 26), `paywall` (25), `listThreads` (18), `post` (14), в брифе их не было. На проде alley всё ещё старый (деплой отдельно).
 
 ### 2026-11-05: Claude Sonnet 5.5 (orders.ts: runVerification, captureOrder, submitProof, retryFulfilment, createDonation, createOrder)
 - Рефакторинг без смены поведения и сигнатур. `runVerification` теперь только выбирает ветку по вердикту (`settleConfirmed` / `parkPending` / `rejectPayment`); `captureOrder` = `captureRefusal` → `paypalCapture` → `captureIsClean` → `fulfilPaypal` / `holdForReview`; `submitProof` = `proofOrderError` → `readProofInput` → `claimTx` → `manualReview` / `runVerification`; `retryFulfilment` = `retrySkipReason` → `claimAttempt` → `tryPrintful` → `recordRetry`; `createDonation` и `createOrder` = preflight → чтение входа → лимиты/цены → запись.
 - Общие куски: `tryPrintful` (был скопирован в 3 местах), `claimKey` (регистр tx-хеша, 3 места), `claimTx` (защита от повторного использования tx, общая для `submitProof` и `settleFromScan`), `OPEN_STATES`. Порядок этапов = поведение (CAS при settle, release claim до ответа об ошибке), не менять.
 - Тесты: новый `tests/ordersLifecycle.test.mjs` (43 теста: donation, capture, proof, verify, runVerification, scan, recheck, retry), написан на старом коде и прогнан на обоих вариантах; `tests/helpers/loadOrders.mjs` подменяет `verifyCrypto` (`state.verifyCrypto`) и понимает `ORDERS_FILE`.
-- На проде всё ещё v25 (fecb182): ни это, ни alley-правки не задеплоены. Деплой = новый SHA в stub + pg_net проверка + `npm run test:agent`.
+- Задеплоено 2026-11-05: agent-api v26 и alley v3, оба stub-ами на коммит 88f45d0 (alley теперь тоже stub: `import` из raw.githubusercontent на закреплённом SHA). Проверка через pg_net: agent-api /v1, /v1/donate, /v1/catalog, /status = 200/404 как раньше; alley /info, /threads = 200, /report и /post отвечают 400 на плохие входы. Деплой = новый SHA в stub (+ тот же минифицированный openapi.json для agent-api), затем pg_net и `npm run test:agent`.
 - Остались вне этого прохода: `priceItems` (CCN 23, N+1 ложный: каталог кэшируется), `nextAction` (CCN 14).
 
 ### 2026-10-30 (ещё позже): Claude Sonnet 5.5 (orders.ts: validShipping, createIntent)
