@@ -80,6 +80,13 @@
 - [ ] T15 · P3 · Проверить a11y (контраст неоновых цветов, focus-стили) и добавить `prefers-reduced-motion`.
 
 ## 3. Журнал сессий (дописывай сверху, новая запись первой)
+### 2026-11-05: Claude Sonnet 5.5 (orders.ts: runVerification, captureOrder, submitProof, retryFulfilment, createDonation, createOrder)
+- Рефакторинг без смены поведения и сигнатур. `runVerification` теперь только выбирает ветку по вердикту (`settleConfirmed` / `parkPending` / `rejectPayment`); `captureOrder` = `captureRefusal` → `paypalCapture` → `captureIsClean` → `fulfilPaypal` / `holdForReview`; `submitProof` = `proofOrderError` → `readProofInput` → `claimTx` → `manualReview` / `runVerification`; `retryFulfilment` = `retrySkipReason` → `claimAttempt` → `tryPrintful` → `recordRetry`; `createDonation` и `createOrder` = preflight → чтение входа → лимиты/цены → запись.
+- Общие куски: `tryPrintful` (был скопирован в 3 местах), `claimKey` (регистр tx-хеша, 3 места), `claimTx` (защита от повторного использования tx, общая для `submitProof` и `settleFromScan`), `OPEN_STATES`. Порядок этапов = поведение (CAS при settle, release claim до ответа об ошибке), не менять.
+- Тесты: новый `tests/ordersLifecycle.test.mjs` (43 теста: donation, capture, proof, verify, runVerification, scan, recheck, retry), написан на старом коде и прогнан на обоих вариантах; `tests/helpers/loadOrders.mjs` подменяет `verifyCrypto` (`state.verifyCrypto`) и понимает `ORDERS_FILE`.
+- На проде всё ещё v25 (fecb182): ни это, ни alley-правки не задеплоены. Деплой = новый SHA в stub + pg_net проверка + `npm run test:agent`.
+- Остались вне этого прохода: `priceItems` (CCN 23, N+1 ложный: каталог кэшируется), `nextAction` (CCN 14).
+
 ### 2026-10-30 (ещё позже): Claude Sonnet 5.5 (orders.ts: validShipping, createIntent)
 `supabase/functions/agent-api/orders.ts`: `validShipping` → список правил `SHIPPING_RULES` (порядок = приоритет сообщений об ошибках); `createIntent` → `intentContact` + `intentHowTo`. Находка «N+1 в priceItems» признана ложной: `resolveLine` → `loadMerch` читает кэш изолята (TTL 10 мин, single-flight), а `saveSnap` вызывается только при обновлении кэша, не на каждую позицию; `loadDbItems` кэшируется на 60 с. Находка про длину `createOrder` устарела (после прошлого рефакторинга функция 24 строки).
 Тесты: `tests/ordersIntent.test.mjs` (8: `createIntent` и все правила доставки), проходят на коде до и после правки. Всего 241 тест.

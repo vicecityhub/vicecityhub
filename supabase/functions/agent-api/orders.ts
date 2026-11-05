@@ -100,6 +100,19 @@ async function printfulDraft(o: any) {
   return d.result?.id as number;
 }
 
+/** Sends the merch lines to Printful and merges the outcome (order id + state, or the error) into `fulfillment`. Never throws. */
+async function tryPrintful(o: any, fulfillment: any): Promise<any> {
+  try {
+    const pfId = await printfulDraft(o);
+    return pfId ? { ...fulfillment, printful_order_id: pfId, printful_state: PF_STATE } : fulfillment;
+  } catch (e) { return { ...fulfillment, printful_error: String((e as Error).message) }; }
+}
+
+const isMerch = (i: any) => i.kind === "merch";
+/** the form in which a tx hash is stored for replay protection (Solana signatures are case-sensitive) */
+const claimKey = (chain: string, tx: string) => (chain === "solana" ? tx : tx.toLowerCase());
+const OPEN_STATES = ["awaiting_payment", "payment_review"];
+
 // ───────────── Views ─────────────
 /** exact on-chain amount (6 decimals) the payer must send for a crypto order */
 function dueAmount(o: any): string {
@@ -365,62 +378,111 @@ async function startPaypal(o: any, lines: any[]): Promise<{ order: any } | Failu
 
 const idempotencyKeyValid = (idem: string | null): idem is string => !!idem && idem.length >= 8 && idem.length <= 128;
 
-export async function createOrder(key: Key, body: any, idem: string | null): Promise<R> {
+/** scope, Idempotency-Key and replay: the answer to send before any work is done, if there is one */
+async function orderPreflight(key: Key, idem: string | null): Promise<R | null> {
   if (!key.scopes.includes("order")) return fail(403, "scope_missing", "This key lacks the 'order' scope.");
   if (!idempotencyKeyValid(idem)) return fail(400, "idempotency_key_required", "Send an `Idempotency-Key` header (8-128 chars, unique per purchase attempt).");
   const existing = await findByIdempotencyKey(key, idem);
-  if (existing) return replayed(existing);
+  return existing ? replayed(existing) : null;
+}
 
+type Priced = Awaited<ReturnType<typeof priceItems>>;
+
+/** Items (from the body or a quote), prices, limits and quote drift: the priced order or the first refusal. */
+async function priceOrder(key: Key, body: any): Promise<{ p: Priced } | Failure> {
   const source = await orderSource(key, body);
-  if ("error" in source) return source.error;
+  if ("error" in source) return source;
   const p = await priceItems(key, source.input);
-  if (p.error) return p.error;
+  if (p.error) return { error: p.error };
   const drift = priceDrift(source.quoted, p.total!);
-  if (drift) return drift;
+  return drift ? { error: drift } : { p };
+}
 
-  const rail = body?.payment_rail;
-  if (!rail || !p.rails!.includes(rail)) return fail(422, "invalid_payment_rail", `payment_rail must be one of: ${p.rails!.join(", ")}`);
-  const fulfilment = collectRequirements(p.requires!, body);
-  if ("error" in fulfilment) return fulfilment.error;
+function railError(rail: any, rails: string[]): R | null {
+  if (!rail || !rails.includes(rail)) return fail(422, "invalid_payment_rail", `payment_rail must be one of: ${rails.join(", ")}`);
+  return null;
+}
 
-  const stored = await storeOrder(key, idem, p, rail, fulfilment);
-  if ("error" in stored) return stored.error;
-  if (rail !== "paypal") return ok(view(stored.order, true), 201);
-  const paypal = await startPaypal(stored.order, p.lines!);
+/** PayPal orders need a PayPal order created for the stored row; crypto orders are answered as stored. */
+async function finishOrder(o: any, rail: string, lines: any[]): Promise<R> {
+  if (rail !== "paypal") return ok(view(o, true), 201);
+  const paypal = await startPaypal(o, lines);
   return "error" in paypal ? paypal.error : ok(view(paypal.order, true), 201);
 }
 
-/** Voluntary donation for AI development: crypto only, fully automatic detection, receipt on completion. */
-export async function createDonation(key: Key, body: any, idem: string | null): Promise<R> {
+export async function createOrder(key: Key, body: any, idem: string | null): Promise<R> {
+  const early = await orderPreflight(key, idem);
+  if (early) return early;
+  const priced = await priceOrder(key, body);
+  if ("error" in priced) return priced.error;
+  const { p } = priced;
+
+  const rail = body?.payment_rail;
+  const badRail = railError(rail, p.rails!);
+  if (badRail) return badRail;
+  const fulfilment = collectRequirements(p.requires!, body);
+  if ("error" in fulfilment) return fulfilment.error;
+
+  const stored = await storeOrder(key, idem!, p, rail, fulfilment);
+  if ("error" in stored) return stored.error;
+  return await finishOrder(stored.order, rail, p.lines!);
+}
+
+// ───────────── Donations ─────────────
+/** amount_usd rules: finite, within the donation range, at most 2 decimals */
+const DONATION_AMOUNT_RULES: ((n: number) => boolean)[] = [
+  Number.isFinite,
+  (n) => n >= DONATION.min_usd,
+  (n) => n <= DONATION.max_usd,
+  (n) => Math.abs(n * 100 - Math.round(n * 100)) <= 1e-6,
+];
+
+/** scope, 'donation' kind, Idempotency-Key and replay: the answer to send before any work is done, if there is one */
+async function donationPreflight(key: Key, idem: string | null): Promise<R | null> {
   if (!key.scopes.includes("order")) return fail(403, "scope_missing", "This key lacks the 'order' scope.");
   if (!key.allowed_kinds.includes("donation")) return fail(403, "kind_not_allowed", "This API key may not donate.", "A human owner can allow the 'donation' kind when minting a key on the Agents page.");
-  if (!idem || idem.length < 8 || idem.length > 128) return fail(400, "idempotency_key_required", "Send an `Idempotency-Key` header (8-128 chars, unique per donation attempt).");
-  const ex = await db.from("agent_orders").select("*").eq("agent_key_id", key.id).eq("idempotency_key", idem).maybeSingle();
-  if (ex.data) return ok(view(ex.data, true), 200, { "Idempotent-Replayed": "true" });
+  if (!idempotencyKeyValid(idem)) return fail(400, "idempotency_key_required", "Send an `Idempotency-Key` header (8-128 chars, unique per donation attempt).");
+  const existing = await findByIdempotencyKey(key, idem);
+  return existing ? replayed(existing) : null;
+}
+
+/** The principal's explicit authorisation and a valid amount; returns the rounded total. */
+function readDonation(body: any): { total: number } | Failure {
   if (body?.authorized_by_principal !== true)
-    return fail(422, "authorization_required", "Set `authorized_by_principal: true` only if the person or organization you act for has explicitly authorized this donation.", "Agents must not donate on their own initiative. GET /v1/donate explains the terms.");
+    return { error: fail(422, "authorization_required", "Set `authorized_by_principal: true` only if the person or organization you act for has explicitly authorized this donation.", "Agents must not donate on their own initiative. GET /v1/donate explains the terms.") };
   const amount = Number(body?.amount_usd);
-  if (!Number.isFinite(amount) || amount < DONATION.min_usd || amount > DONATION.max_usd || Math.abs(amount * 100 - Math.round(amount * 100)) > 1e-6)
-    return fail(422, "invalid_amount", `amount_usd must be a number between ${DONATION.min_usd} and ${DONATION.max_usd} with at most 2 decimals.`);
-  const total = round2(amount);
-  const limited = await limitsError(key, total);
-  if (limited) return limited;
-  const str = (v: unknown, n: number) => (typeof v === "string" && v.trim() ? v.trim().slice(0, n) : null);
-  const donor = { name: str(body?.donor?.name, 120), agent: str(body?.donor?.agent, 120), operator: str(body?.donor?.operator, 120) };
-  const message = str(body?.message, 500);
-  const lines = [{ sku: DONATION.sku, kind: "donation", title: DONATION.title, quantity: 1, unit_usd: total, line_usd: total, extra: { donor, message } }];
+  if (!DONATION_AMOUNT_RULES.every((rule) => rule(amount)))
+    return { error: fail(422, "invalid_amount", `amount_usd must be a number between ${DONATION.min_usd} and ${DONATION.max_usd} with at most 2 decimals.`) };
+  return { total: round2(amount) };
+}
+
+const trimmed = (v: unknown, n: number) => (typeof v === "string" && v.trim() ? v.trim().slice(0, n) : null);
+
+function donationLines(total: number, body: any) {
+  const donor = { name: trimmed(body?.donor?.name, 120), agent: trimmed(body?.donor?.agent, 120), operator: trimmed(body?.donor?.operator, 120) };
+  return [{ sku: DONATION.sku, kind: "donation", title: DONATION.title, quantity: 1, unit_usd: total, line_usd: total, extra: { donor, message: trimmed(body?.message, 500) } }];
+}
+
+/** Writes the donation row. A unique-key race with the same Idempotency-Key replays the winner instead of failing. */
+async function storeDonation(key: Key, idem: string, lines: any[], total: number): Promise<R> {
   const { data: o, error } = await db.from("agent_orders").insert({
     agent_key_id: key.id, owner_id: key.owner_id, idempotency_key: idem, items: lines, total_usd: total,
     payment_rail: "crypto", shipping: null, delivery: null, payment: { crypto: await allocateCryptoTag(total) },
   }).select("*").single();
-  if (error) {
-    if ((error as any).code === "23505") {
-      const again = await db.from("agent_orders").select("*").eq("agent_key_id", key.id).eq("idempotency_key", idem).maybeSingle();
-      if (again.data) return ok(view(again.data, true), 200, { "Idempotent-Replayed": "true" });
-    }
-    return fail(500, "db_error", "Could not create the donation.");
-  }
-  return ok({ ...view(o, true), purpose: PURPOSE }, 201);
+  if (!error) return ok({ ...view(o, true), purpose: PURPOSE }, 201);
+  const winner = (error as any).code === "23505" ? await findByIdempotencyKey(key, idem) : null;
+  return winner ? replayed(winner) : fail(500, "db_error", "Could not create the donation.");
+}
+
+/** Voluntary donation for AI development: crypto only, fully automatic detection, receipt on completion. */
+export async function createDonation(key: Key, body: any, idem: string | null): Promise<R> {
+  const early = await donationPreflight(key, idem);
+  if (early) return early;
+  const donation = readDonation(body);
+  if ("error" in donation) return donation.error;
+  const limited = await limitsError(key, donation.total);
+  if (limited) return limited;
+  return await storeDonation(key, idem!, donationLines(donation.total, body), donation.total);
 }
 
 export async function getOrder(key: Key, id: string): Promise<R> {
@@ -434,73 +496,126 @@ export async function orderStatus(id: string): Promise<R> {
   return ok({ id: o.public_id, status: o.status, total_usd: Number(o.total_usd), payment_rail: o.payment_rail, updated_at: o.updated_at, expires_at: o.expires_at });
 }
 
-export async function captureOrder(id: string): Promise<R> {
-  const o = await loadOrder(id);
+const CAPTURED_STATES = ["paid", "fulfilling", "completed", "payment_review"];
+
+/** Why this order cannot be captured (or the settled order to return as is); null when it can. */
+function captureRefusal(o: any): R | null {
   if (!o) return fail(404, "order_not_found", "No such order.");
   if (o.payment_rail !== "paypal") return fail(422, "wrong_rail", "Only PayPal orders can be captured.");
-  if (["paid", "fulfilling", "completed", "payment_review"].includes(o.status)) return ok(view(o));
+  if (CAPTURED_STATES.includes(o.status)) return ok(view(o));
   if (o.status !== "awaiting_payment") return fail(409, "bad_state", `Order is ${o.status}.`);
+  return null;
+}
+
+async function paypalCapture(o: any): Promise<{ data: any } | Failure> {
   const token = await ppToken();
   const r = await fetch(`${PAYPAL}/v2/checkout/orders/${o.payment.paypal_order_id}/capture`, {
     method: "POST",
     headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json", "PayPal-Request-Id": `cap-${o.public_id}` },
   });
   const d = await r.json();
-  if (!r.ok) {
-    const issue = d?.details?.[0]?.issue;
-    if (issue === "ORDER_NOT_APPROVED") return fail(409, "payment_not_approved", "The payer has not approved this PayPal order yet.", "Open payment.approve_url, approve, then call capture again.");
-    return fail(502, "paypal_error", `PayPal capture failed (${issue || r.status}).`);
-  }
-  const pu = d.purchase_units?.[0];
-  const cap = pu?.payments?.captures?.[0];
-  const good = cap && cap.status === "COMPLETED" && cap.amount?.currency_code === "USD" && Math.abs(Number(cap.amount.value) - Number(o.total_usd)) < 0.005 && pu.custom_id === o.public_id;
-  const payment = { ...o.payment, capture_id: cap?.id, payer_email: d.payer?.email_address || null, captured_at: new Date().toISOString() };
-  if (!good) {
-    const { data: u } = await db.from("agent_orders").update({ status: "payment_review", payment, updated_at: new Date().toISOString() }).eq("id", o.id).select("*").single();
-    await notifyOwner("VCH order needs manual review", `${o.public_id}: PayPal capture is not a clean COMPLETED/amount match.`);
-    return ok(view(u || o));
-  }
-  let fulfillment: any = { ...(o.fulfillment || {}) };
-  try {
-    const pfId = await printfulDraft(o);
-    if (pfId) fulfillment = { ...fulfillment, printful_order_id: pfId, printful_state: PF_STATE };
-  } catch (e) { fulfillment = { ...fulfillment, printful_error: String((e as Error).message) }; }
+  if (r.ok) return { data: d };
+  const issue = d?.details?.[0]?.issue;
+  return { error: issue === "ORDER_NOT_APPROVED"
+    ? fail(409, "payment_not_approved", "The payer has not approved this PayPal order yet.", "Open payment.approve_url, approve, then call capture again.")
+    : fail(502, "paypal_error", `PayPal capture failed (${issue || r.status}).`) };
+}
+
+const firstCapture = (d: any) => d.purchase_units?.[0]?.payments?.captures?.[0];
+
+/** A capture is accepted automatically only if it is COMPLETED, in USD, for the exact total and tagged with this order's id. */
+function captureIsClean(o: any, d: any): boolean {
+  const cap = firstCapture(d);
+  if (!cap || cap.status !== "COMPLETED" || cap.amount?.currency_code !== "USD") return false;
+  return Math.abs(Number(cap.amount.value) - Number(o.total_usd)) < 0.005 && d.purchase_units[0].custom_id === o.public_id;
+}
+
+const capturedPayment = (o: any, d: any) => ({ ...o.payment, capture_id: firstCapture(d)?.id, payer_email: d.payer?.email_address || null, captured_at: new Date().toISOString() });
+
+async function holdForReview(o: any, payment: any): Promise<R> {
+  const { data: u } = await db.from("agent_orders").update({ status: "payment_review", payment, updated_at: new Date().toISOString() }).eq("id", o.id).select("*").single();
+  await notifyOwner("VCH order needs manual review", `${o.public_id}: PayPal capture is not a clean COMPLETED/amount match.`);
+  return ok(view(u || o));
+}
+
+async function fulfilPaypal(o: any, payment: any): Promise<R> {
+  const fulfillment = await tryPrintful(o, { ...(o.fulfillment || {}) });
   const { data: u } = await db.from("agent_orders").update({ status: fulfillment.printful_error ? "paid" : "fulfilling", payment, fulfillment, updated_at: new Date().toISOString() }).eq("id", o.id).select("*").single();
   await notifyOwner("VCH agent order PAID", `${o.public_id} — $${o.total_usd}\nItems: ${(o.items || []).map((i: any) => `${i.quantity}× ${i.title}`).join(", ")}\n${fulfillment.printful_error ? "Printful error: " + fulfillment.printful_error : "Fulfilment started."}`);
   return ok(view(u || o));
 }
 
-export async function submitProof(key: Key, id: string, body: any): Promise<R> {
-  const o = await ownOrder(key, id);
+export async function captureOrder(id: string): Promise<R> {
+  const o = await loadOrder(id);
+  const refused = captureRefusal(o);
+  if (refused) return refused;
+  const captured = await paypalCapture(o);
+  if ("error" in captured) return captured.error;
+  const payment = capturedPayment(o, captured.data);
+  return captureIsClean(o, captured.data) ? await fulfilPaypal(o, payment) : await holdForReview(o, payment);
+}
+
+/** Why this order takes no payment proof; null when it does. */
+function proofOrderError(o: any): R | null {
   if (!o) return fail(404, "order_not_found", "No such order for this key.");
   if (o.payment_rail !== "crypto") return fail(422, "wrong_rail", "Payment proof applies to crypto orders only.");
-  if (!["awaiting_payment", "payment_review"].includes(o.status)) return fail(409, "bad_state", `Order is ${o.status}.`);
+  if (!OPEN_STATES.includes(o.status)) return fail(409, "bad_state", `Order is ${o.status}.`);
+  return null;
+}
+
+const TX_FORMATS = new Map<string, RegExp>([["tron", /^[0-9a-fA-F]{64}$/], ["evm", /^0x[0-9a-fA-F]{64}$/]]);
+const OTHER_TX_FORMAT = /^[1-9A-HJ-NP-Za-km-z]{60,100}$/; // Solana signature (base58)
+
+function evmNetworkError(chain: string, network: string | undefined): R | null {
+  if (chain !== "evm" || !network || EVM_NETWORKS[network]) return null;
+  return fail(422, "invalid_network", `network must be one of: ${Object.keys(EVM_NETWORKS).join(", ")}`);
+}
+
+type ProofInput = { chain: string; tx: string; network: string | undefined; txKey: string };
+
+/** chain, tx hash and (EVM) network of a payment proof, validated. */
+function readProofInput(body: any): ProofInput | Failure {
   const chain = String(body?.chain || ""), tx = String(body?.tx_hash || "").trim();
-  if (!CRYPTO_WALLETS.some((w: any) => w.chain === chain)) return fail(422, "invalid_chain", `chain must be one of: ${CRYPTO_WALLETS.map((w: any) => w.chain).join(", ")}`);
-  const okTx = chain === "tron" ? /^[0-9a-fA-F]{64}$/.test(tx) : chain === "evm" ? /^0x[0-9a-fA-F]{64}$/.test(tx) : /^[1-9A-HJ-NP-Za-km-z]{60,100}$/.test(tx);
-  if (!okTx) return fail(422, "invalid_tx_hash", "tx_hash format does not match the chain.");
+  if (!CRYPTO_WALLETS.some((w: any) => w.chain === chain)) return { error: fail(422, "invalid_chain", `chain must be one of: ${CRYPTO_WALLETS.map((w: any) => w.chain).join(", ")}`) };
+  if (!(TX_FORMATS.get(chain) || OTHER_TX_FORMAT).test(tx)) return { error: fail(422, "invalid_tx_hash", "tx_hash format does not match the chain.") };
   const network = body?.network ? String(body.network).toLowerCase() : undefined;
-  if (chain === "evm" && network && !EVM_NETWORKS[network]) return fail(422, "invalid_network", `network must be one of: ${Object.keys(EVM_NETWORKS).join(", ")}`);
-  const txKey = chain === "solana" ? tx : tx.toLowerCase();
+  const badNetwork = evmNetworkError(chain, network);
+  return badNetwork ? { error: badNetwork } : { chain, tx, network, txKey: claimKey(chain, tx) };
+}
 
-  // replay protection: one tx hash pays for exactly one order
-  const { error: ce } = await db.from("agent_tx_claims").insert({ chain, tx_hash: txKey, order_id: o.id });
-  if (ce) {
-    if ((ce as any).code !== "23505") return fail(500, "db_error", "Could not register the transaction.");
-    const { data: cl } = await db.from("agent_tx_claims").select("order_id").eq("chain", chain).eq("tx_hash", txKey).maybeSingle();
-    if (!cl || cl.order_id !== o.id) return fail(409, "tx_already_used", "This transaction hash is already attached to another order.");
-  }
+/** replay protection: one tx hash pays for exactly one order (the same order may claim its own hash again) */
+async function claimTx(orderId: string, chain: string, txKey: string): Promise<"claimed" | "db_error" | "taken"> {
+  const { error } = await db.from("agent_tx_claims").insert({ chain, tx_hash: txKey, order_id: orderId });
+  if (!error) return "claimed";
+  if ((error as any).code !== "23505") return "db_error";
+  const { data: cl } = await db.from("agent_tx_claims").select("order_id").eq("chain", chain).eq("tx_hash", txKey).maybeSingle();
+  return cl && cl.order_id === orderId ? "claimed" : "taken";
+}
 
-  const proof: any = { chain, network: network || null, tx_hash: tx, note: body?.note ? String(body.note).slice(0, 300) : null, submitted_at: new Date().toISOString() };
+/** explicit opt-out: skip on-chain verification, the operator reviews by hand */
+async function manualReview(o: any, proof: any): Promise<R> {
+  const reviewed = { ...proof, verification: "manual" };
+  const { data: u } = await db.from("agent_orders").update({ status: "payment_review", payment: { ...o.payment, proof: reviewed }, updated_at: new Date().toISOString() }).eq("id", o.id).select("*").single();
+  await notifyOwner("VCH crypto payment submitted (manual review)", `${o.public_id} — $${o.total_usd}\nchain=${proof.chain}\ntx=${proof.tx_hash}\nItems: ${(o.items || []).map((i: any) => i.title).join(", ")}\nDelivery: ${JSON.stringify(o.delivery)}`);
+  return ok(view(u || o, true));
+}
 
-  // explicit opt-out: skip on-chain verification, operator reviews by hand
-  if (body?.request_manual_review === true) {
-    proof.verification = "manual";
-    const { data: u } = await db.from("agent_orders").update({ status: "payment_review", payment: { ...o.payment, proof }, updated_at: new Date().toISOString() }).eq("id", o.id).select("*").single();
-    await notifyOwner("VCH crypto payment submitted (manual review)", `${o.public_id} — $${o.total_usd}\nchain=${chain}\ntx=${tx}\nItems: ${(o.items || []).map((i: any) => i.title).join(", ")}\nDelivery: ${JSON.stringify(o.delivery)}`);
-    return ok(view(u || o, true));
-  }
-  return await runVerification(o, proof);
+const newProof = (input: ProofInput, body: any): any =>
+  ({ chain: input.chain, network: input.network || null, tx_hash: input.tx, note: body?.note ? String(body.note).slice(0, 300) : null, submitted_at: new Date().toISOString() });
+
+export async function submitProof(key: Key, id: string, body: any): Promise<R> {
+  const o = await ownOrder(key, id);
+  const refused = proofOrderError(o);
+  if (refused) return refused;
+  const input = readProofInput(body);
+  if ("error" in input) return input.error;
+
+  const claim = await claimTx(o.id, input.chain, input.txKey);
+  if (claim === "db_error") return fail(500, "db_error", "Could not register the transaction.");
+  if (claim === "taken") return fail(409, "tx_already_used", "This transaction hash is already attached to another order.");
+
+  const proof = newProof(input, body);
+  return body?.request_manual_review === true ? await manualReview(o, proof) : await runVerification(o, proof);
 }
 
 /** Re-check a previously submitted crypto payment (agents call this while confirmations accumulate). */
@@ -517,8 +632,89 @@ export async function verifyOrder(key: Key, id: string): Promise<R> {
 }
 
 async function releaseClaim(o: any, proof: any) {
-  const h = proof.chain === "solana" ? proof.tx_hash : String(proof.tx_hash).toLowerCase();
-  await db.from("agent_tx_claims").delete().eq("chain", proof.chain).eq("tx_hash", h).eq("order_id", o.id);
+  await db.from("agent_tx_claims").delete().eq("chain", proof.chain).eq("tx_hash", claimKey(proof.chain, String(proof.tx_hash))).eq("order_id", o.id);
+}
+
+type Confirmed = Extract<Verdict, { state: "confirmed" }>;
+type Pending = Extract<Verdict, { state: "pending" }>;
+
+/** What the order contains decides how it is fulfilled: merch goes to Printful, domains / store slots are delivered by the operator, donations complete on payment. */
+type ItemMix = { hasMerch: boolean; isDonation: boolean; hasManual: boolean };
+function itemMix(items: any[]): ItemMix {
+  return {
+    hasMerch: items.some(isMerch),
+    isDonation: items.length > 0 && items.every((i) => i.kind === "donation"),
+    hasManual: items.some((i) => i.kind !== "merch" && i.kind !== "donation"),
+  };
+}
+
+const MANUAL_DELIVERY_NOTE = "Payment verified on-chain automatically. Delivery (domain transfer / slot activation) is done by the operator, usually within 24h.";
+
+function donationReceipt(o: any, v: Confirmed, proof: any, now: string) {
+  return {
+    receipt: { type: "donation", reference: o.public_id, amount_usd: Number(o.total_usd), currency: "USD", network: v.network, tx_hash: proof.tx_hash, verified_at: now, purpose: PURPOSE },
+    note: "Thank you! Your donation was received and verified on-chain. It supports the development of AI projects and the benefit of AI development. No goods or services are provided in return.",
+  };
+}
+
+function settledStatus(mix: ItemMix, fulfillment: any): string {
+  if (mix.isDonation) return "completed";
+  return mix.hasMerch && !mix.hasManual && !fulfillment.printful_error ? "fulfilling" : "paid";
+}
+
+const printfulLine = (mix: ItemMix, f: any) =>
+  mix.hasMerch ? (f.printful_error ? "Printful error: " + f.printful_error : "Printful order created (" + PF_STATE + ").") + " " : "";
+
+async function notifyDonation(o: any, proof: any, v: Confirmed) {
+  const dn = (o.items || [])[0]?.extra || {};
+  await notifyOwner("VCH DONATION received (auto-verified)", `${o.public_id} — $${o.total_usd}\nnetwork=${v.network}\ntx=${proof.tx_hash}\nDonor: ${JSON.stringify(dn.donor || {})}\nMessage: ${dn.message || "-"}\nAgent key: ${o.agent_key_id}`);
+}
+
+async function notifyOrderPaid(o: any, proof: any, v: Confirmed, mix: ItemMix, fulfillment: any) {
+  await notifyOwner("VCH crypto order PAID (auto-verified)", `${o.public_id} — $${o.total_usd}\nnetwork=${v.network}\ntx=${proof.tx_hash}\nItems: ${(o.items || []).map((i: any) => `${i.quantity}× ${i.title}`).join(", ")}\nDelivery: ${JSON.stringify(o.delivery)}\n${printfulLine(mix, fulfillment)}${mix.hasManual ? "ACTION: deliver the item." : ""}`);
+}
+
+async function notifySettled(o: any, proof: any, v: Confirmed, mix: ItemMix, fulfillment: any) {
+  if (mix.isDonation) await notifyDonation(o, proof, v);
+  else await notifyOrderPaid(o, proof, v, mix, fulfillment);
+}
+
+/** Fulfilment of a settled order: Printful for merch, an operator note for manual delivery, a receipt for donations. */
+async function fulfilSettled(o: any, proof: any, v: Confirmed, now: string, mix: ItemMix, fulfillment: any): Promise<any> {
+  let f = mix.hasMerch ? await tryPrintful(o, fulfillment) : fulfillment;
+  if (mix.hasManual) f = { ...f, note: MANUAL_DELIVERY_NOTE };
+  if (mix.isDonation) f = { ...f, ...donationReceipt(o, v, proof, now) };
+  return f;
+}
+
+/** The payment is verified on-chain: settle the order, start fulfilment, tell the operator. */
+async function settleConfirmed(o: any, proof: any, v: Confirmed, now: string): Promise<R> {
+  const done = { ...proof, verification: "confirmed", verified: true, network: v.network, verified_at: now, paid_units: v.paid_units, block_time: v.block_time };
+  const mix = itemMix(o.items || []);
+  const initial: any = { ...(o.fulfillment || {}) };
+  // atomic: only ONE concurrent verifier (cron / agent / status poll) may settle and fulfill this order
+  const { data: won } = await db.from("agent_orders").update({ status: "paid", payment: { ...o.payment, proof: done }, fulfillment: initial, updated_at: now }).eq("id", o.id).in("status", OPEN_STATES).select("*").maybeSingle();
+  if (!won) { const { data: cur } = await db.from("agent_orders").select("*").eq("id", o.id).single(); return ok(view(cur || o, true)); }
+
+  const fulfillment = await fulfilSettled(o, proof, v, now, mix, initial);
+  const { data: u } = await db.from("agent_orders").update({ status: settledStatus(mix, fulfillment), fulfillment, updated_at: new Date().toISOString() }).eq("id", o.id).select("*").single();
+  await notifySettled(o, proof, v, mix, fulfillment);
+  return ok(view(u || o, true));
+}
+
+/** Not enough confirmations yet: park the order in payment_review and let the caller poll again. */
+async function parkPending(o: any, proof: any, v: Pending, now: string): Promise<R> {
+  const pend = { ...proof, verification: "pending_confirmations", detail: v.detail, checked_at: now };
+  const { data: u } = await db.from("agent_orders").update({ status: "payment_review", payment: { ...o.payment, proof: pend }, updated_at: now }).eq("id", o.id).select("*").single();
+  return ok(view(u || o, true), 202);
+}
+
+/** Not accepted: free the hash so it can't be used to grief the real payer, then explain why. */
+async function rejectPayment(o: any, proof: any, v: Verdict): Promise<R> {
+  await releaseClaim(o, proof);
+  if (v.state === "not_found") return fail(409, "tx_not_found", v.detail + ".", "Wait until the transaction is broadcast, then resubmit.");
+  if (v.state === "mismatch") return fail(422, "payment_mismatch", v.detail + ".", `Send exactly the order's amount_due, or resubmit with request_manual_review=true / email vicecityhub@proton.me quoting ${o.public_id}.`);
+  return fail(503, "verification_unavailable", "On-chain verification is temporarily unavailable.", "Retry in a minute (the order stays open).");
 }
 
 async function runVerification(o: any, proof: any): Promise<R> {
@@ -531,81 +727,58 @@ async function runVerification(o: any, proof: any): Promise<R> {
     createdAtMs: new Date(o.created_at).getTime(),
   });
   const now = new Date().toISOString();
-
-  if (v.state === "confirmed") {
-    const done = { ...proof, verification: "confirmed", verified: true, network: v.network, verified_at: now, paid_units: v.paid_units, block_time: v.block_time };
-    const hasMerch = (o.items || []).some((i: any) => i.kind === "merch");
-    let fulfillment: any = { ...(o.fulfillment || {}) };
-    // atomic: only ONE concurrent verifier (cron / agent / status poll) may settle and fulfill this order
-    const { data: won } = await db.from("agent_orders").update({ status: "paid", payment: { ...o.payment, proof: done }, fulfillment, updated_at: now }).eq("id", o.id).in("status", ["awaiting_payment", "payment_review"]).select("*").maybeSingle();
-    if (!won) { const { data: cur } = await db.from("agent_orders").select("*").eq("id", o.id).single(); return ok(view(cur || o, true)); }
-    if (hasMerch) {
-      try { const pfId = await printfulDraft(o); if (pfId) fulfillment = { ...fulfillment, printful_order_id: pfId, printful_state: PF_STATE }; }
-      catch (e) { fulfillment = { ...fulfillment, printful_error: String((e as Error).message) }; }
-    }
-    const isDonation = (o.items || []).length > 0 && (o.items || []).every((i: any) => i.kind === "donation");
-    const hasManual = (o.items || []).some((i: any) => i.kind !== "merch" && i.kind !== "donation"); // domains / store slots are delivered by the operator
-    if (hasManual) fulfillment = { ...fulfillment, note: "Payment verified on-chain automatically. Delivery (domain transfer / slot activation) is done by the operator, usually within 24h." };
-    if (isDonation) {
-      fulfillment = {
-        ...fulfillment,
-        receipt: { type: "donation", reference: o.public_id, amount_usd: Number(o.total_usd), currency: "USD", network: v.network, tx_hash: proof.tx_hash, verified_at: now, purpose: PURPOSE },
-        note: "Thank you! Your donation was received and verified on-chain. It supports the development of AI projects and the benefit of AI development. No goods or services are provided in return.",
-      };
-    }
-    const { data: u } = await db.from("agent_orders").update({ status: isDonation ? "completed" : hasMerch && !hasManual && !fulfillment.printful_error ? "fulfilling" : "paid", fulfillment, updated_at: new Date().toISOString() }).eq("id", o.id).select("*").single();
-    const dn = isDonation ? ((o.items || [])[0]?.extra || {}) : null;
-    if (isDonation) await notifyOwner("VCH DONATION received (auto-verified)", `${o.public_id} — $${o.total_usd}\nnetwork=${v.network}\ntx=${proof.tx_hash}\nDonor: ${JSON.stringify(dn?.donor || {})}\nMessage: ${dn?.message || "-"}\nAgent key: ${o.agent_key_id}`);
-    else await notifyOwner("VCH crypto order PAID (auto-verified)", `${o.public_id} — $${o.total_usd}\nnetwork=${v.network}\ntx=${proof.tx_hash}\nItems: ${(o.items || []).map((i: any) => `${i.quantity}× ${i.title}`).join(", ")}\nDelivery: ${JSON.stringify(o.delivery)}\n${hasMerch ? (fulfillment.printful_error ? "Printful error: " + fulfillment.printful_error : "Printful order created (" + PF_STATE + ").") + " " : ""}${hasManual ? "ACTION: deliver the item." : ""}`);
-    return ok(view(u || o, true));
-  }
-  if (v.state === "pending") {
-    const pend = { ...proof, verification: "pending_confirmations", detail: v.detail, checked_at: now };
-    const { data: u } = await db.from("agent_orders").update({ status: "payment_review", payment: { ...o.payment, proof: pend }, updated_at: now }).eq("id", o.id).select("*").single();
-    return ok(view(u || o, true), 202);
-  }
-  // not accepted → free the hash so it can't be used to grief the real payer
-  await releaseClaim(o, proof);
-  if (v.state === "not_found") return fail(409, "tx_not_found", v.detail + ".", "Wait until the transaction is broadcast, then resubmit.");
-  if (v.state === "mismatch") return fail(422, "payment_mismatch", v.detail + ".", `Send exactly the order's amount_due, or resubmit with request_manual_review=true / email vicecityhub@proton.me quoting ${o.public_id}.`);
-  return fail(503, "verification_unavailable", "On-chain verification is temporarily unavailable.", "Retry in a minute (the order stays open).");
+  if (v.state === "confirmed") return await settleConfirmed(o, proof, v, now);
+  if (v.state === "pending") return await parkPending(o, proof, v, now);
+  return await rejectPayment(o, proof, v);
 }
 
 /** Auto-settlement entry point: a scanned on-chain transfer matched this order's exact tagged amount. Full verification still runs. */
 export async function settleFromScan(o: any, c: { chain: string; network: string; tx: string }): Promise<string> {
-  const txKey = c.chain === "solana" ? c.tx : c.tx.toLowerCase();
-  const { error: ce } = await db.from("agent_tx_claims").insert({ chain: c.chain, tx_hash: txKey, order_id: o.id });
-  if (ce) {
-    if ((ce as any).code !== "23505") return "db_error";
-    const { data: cl } = await db.from("agent_tx_claims").select("order_id").eq("chain", c.chain).eq("tx_hash", txKey).maybeSingle();
-    if (!cl || cl.order_id !== o.id) return "claimed_by_other_order";
-  }
+  const claim = await claimTx(o.id, c.chain, claimKey(c.chain, c.tx));
+  if (claim === "db_error") return "db_error";
+  if (claim === "taken") return "claimed_by_other_order";
   const proof = { chain: c.chain, network: c.chain === "evm" ? c.network : null, tx_hash: c.tx, note: "auto-detected on-chain", auto_detected: true, submitted_at: new Date().toISOString() };
   const r = await runVerification(o, proof);
   return `verification -> HTTP ${r.status}`;
 }
 
+const MAX_PRINTFUL_ATTEMPTS = 6;
+
+/** Why a paid order is not retried (null: it should be). */
+function retrySkipReason(o: any, f: any): string | null {
+  if (o.status !== "paid" || f.printful_order_id) return "nothing_to_retry";
+  if (!(o.items || []).some(isMerch)) return "nothing_to_retry";
+  return Number(f.printful_attempts || 0) >= MAX_PRINTFUL_ATTEMPTS ? "gave_up" : null;
+}
+
+/** compare-and-swap on updated_at: only one worker may own this attempt */
+async function claimAttempt(o: any, f: any, attempt: number): Promise<boolean> {
+  const { data: mine } = await db.from("agent_orders").update({ fulfillment: { ...f, printful_attempts: attempt }, updated_at: new Date().toISOString() }).eq("id", o.id).eq("status", "paid").eq("updated_at", o.updated_at).select("id").maybeSingle();
+  return !!mine;
+}
+
+/** Stores the outcome of a retry; the 6th failed attempt alerts the operator. */
+async function recordRetry(o: any, fulfillment: any, attempt: number): Promise<string> {
+  const done = !!fulfillment.printful_order_id && (o.items || []).every(isMerch);
+  await db.from("agent_orders").update({ status: done ? "fulfilling" : "paid", fulfillment, updated_at: new Date().toISOString() }).eq("id", o.id);
+  if (!fulfillment.printful_order_id && attempt >= MAX_PRINTFUL_ATTEMPTS) await alertStuck(o, fulfillment);
+  return done ? "fulfilled" : "retry_failed";
+}
+
+const alertStuck = (o: any, fulfillment: any) =>
+  notifyOwner("VCH order stuck: Printful fulfillment failed 6x", `${o.public_id} — $${o.total_usd}\n${fulfillment.printful_error || "unknown error"}\nACTION: create the Printful order manually (payment is verified).`);
+
 /** Self-healing fulfillment: a verified-paid merch order that never reached Printful (crash, 5xx, rate limit) is retried by the reconciler. */
 export async function retryFulfilment(o: any): Promise<string> {
   const f = o.fulfillment || {};
-  if (o.status !== "paid" || f.printful_order_id) return "nothing_to_retry";
-  if (!(o.items || []).some((i: any) => i.kind === "merch")) return "nothing_to_retry";
-  const attempts = Number(f.printful_attempts || 0);
-  if (attempts >= 6) return "gave_up";
-  // compare-and-swap on updated_at: only one worker may own this attempt
-  const stamp = new Date().toISOString();
-  const { data: mine } = await db.from("agent_orders").update({ fulfillment: { ...f, printful_attempts: attempts + 1 }, updated_at: stamp }).eq("id", o.id).eq("status", "paid").eq("updated_at", o.updated_at).select("id").maybeSingle();
-  if (!mine) return "claimed_elsewhere";
-  let fulfillment: any = { ...f, printful_attempts: attempts + 1 };
-  try {
-    const pfId = await printfulDraft(o);
-    if (pfId) { fulfillment = { ...fulfillment, printful_order_id: pfId, printful_state: PF_STATE }; delete fulfillment.printful_error; }
-  } catch (e) { fulfillment = { ...fulfillment, printful_error: String((e as Error).message) }; }
-  const hasManual = (o.items || []).some((i: any) => i.kind !== "merch");
-  const done = !!fulfillment.printful_order_id && !hasManual;
-  await db.from("agent_orders").update({ status: done ? "fulfilling" : "paid", fulfillment, updated_at: new Date().toISOString() }).eq("id", o.id);
-  if (!fulfillment.printful_order_id && attempts + 1 >= 6) await notifyOwner("VCH order stuck: Printful fulfillment failed 6x", `${o.public_id} — $${o.total_usd}\n${fulfillment.printful_error || "unknown error"}\nACTION: create the Printful order manually (payment is verified).`);
-  return done ? "fulfilled" : "retry_failed";
+  const skip = retrySkipReason(o, f);
+  if (skip) return skip;
+  const attempt = Number(f.printful_attempts || 0) + 1;
+  if (!(await claimAttempt(o, f, attempt))) return "claimed_elsewhere";
+
+  const fulfillment = await tryPrintful(o, { ...f, printful_attempts: attempt });
+  if (fulfillment.printful_order_id) delete fulfillment.printful_error;
+  return await recordRetry(o, fulfillment, attempt);
 }
 
 /** Re-run verification for an order whose proof is waiting for confirmations. */
