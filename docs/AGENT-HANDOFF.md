@@ -87,6 +87,7 @@
 - «Проглоченные исключения»: два `catch` без обработки (поиск кошельков Hub и feePayer Solana). Теперь пишут `console.warn`; поведение (nulls, опция Solana пропускается на 10 минут) то же. Единственное видимое отличие: строки в логах функции.
 - Не трогал: `screen` (CCN 26, в этом брифе не значится), `wallets` (9), `loadAgent` / `identity` / `routeGet` (8).
 - Тесты: новый `tests/alleyReads.test.mjs` (10: лимиты, доска, пагинация, пины буста, счётчики ответов, getThread), +4 в `tests/alleyRoutes.test.mjs` (кап и накопление буста, лог продажи, опции оплаты: Solana, feePayer, кэш кошельков) и ещё 1 на warn, +4 в `tests/alleyPost.test.mjs` (типы полей, trim имени, числовой nonce, контракт ответов). Всё, кроме теста на warn, зелёное на старом и новом коде. Всего 352/352.
+- Деплой: `alley` выкачен в Supabase (v4, стаб с SHA `d4225f1`, verify_jwt false). Проверка через pg_net: `/threads` 200, `/pricing` 200, `/boost/1?days=9` 400 «days must be an integer 1-7», `/threads/999999` 404, `POST /post` с `chain: btc` 400.
 
 ### 2026-11-06: Claude Sonnet 5.5 (rp-servers/cfx.ts)
 - `detectFeatures` (CCN 23) = таблица `FEATURE_RULES` [признак, regex по тегам+имени, regex по ресурсам], порядок строк = порядок в выдаче. `toLive` (CCN 29 -> <6) собирается из `readPlayers` / `readLinks` / `readSeen` / `readLocale` / `readVoice` / `readBuild` / `readName` / `readTags` / `readResources`; порядок ключей `Live` сохранён (группы идут подряд, как раньше). `displayTags`: составное условие заменено списком правил `TAG_RULES` + `titleCase`.
