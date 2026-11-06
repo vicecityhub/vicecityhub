@@ -84,6 +84,7 @@
 - `detectFeatures` (CCN 23) = таблица `FEATURE_RULES` [признак, regex по тегам+имени, regex по ресурсам], порядок строк = порядок в выдаче. `toLive` (CCN 29 -> <6) собирается из `readPlayers` / `readLinks` / `readSeen` / `readLocale` / `readVoice` / `readBuild` / `readName` / `readTags` / `readResources`; порядок ключей `Live` сохранён (группы идут подряд, как раньше). `displayTags`: составное условие заменено списком правил `TAG_RULES` + `titleCase`.
 - `fetchLive` (I/O in loop): ложное срабатывание, это намеренный повтор запроса (2 попытки одному и тому же коду), не N+1. Не трогал.
 - Тесты: новый `tests/cfxLive.test.mjs` (16), написан на старом коде, зелёный на старом и новом. Фиксирует и странности: `\b` в `titleCase` не поднимает «2fast», «élan» -> «éLan».
+- Деплой: `rp-servers` выкачен в Supabase (v2, verify_jwt false, vendored-файлы index/util/cfx/discord/submit, cfx.ts из коммита 1f7303c). Проверка через pg_net: `/health` 200 (listed 100, live 99), `/lookup?code=zzzzz` 200 с причиной «Cfx.re does not list this code», `/` отдаёт индекс маршрутов. Следующий cron `/sync` на новом коде обновил 60 серверов (все live, resources_count и last_seen_at заполнены), то есть `toLive` на живых данных работает.
 
 ### 2026-11-05 (вечер, 3): Claude Sonnet 5.5 (src/lib/radio.ts)
 - `attachAutoResume` (CCN 9 -> 3): попытка старта при монтировании (`tryPlayOnMount`) и обработчик первого жеста (`resumeOnGesture`) вынесены, общее состояние `resumed` лежит в `ResumeState`; `isThenable` вместо дублирующейся проверки `typeof p.then`.
