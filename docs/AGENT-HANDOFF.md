@@ -80,6 +80,13 @@
 - [ ] T15 · P3 · Проверить a11y (контраст неоновых цветов, focus-стили) и добавить `prefers-reduced-motion`.
 
 ## 3. Журнал сессий (дописывай сверху, новая запись первой)
+### 2026-11-06 (3): Claude Sonnet 5.5 (rp-servers/index.ts)
+- `sync` (CCN 20 -> 4): строка обрабатывается `syncRow` (бюджет 45 с, запрос к Cfx.re, затем патч), патч собирают `offlinePatch` (сервер пропал из списка, «dead» через 14 дней без сигнала у active), `sightingFields` (поля, которые обновляет каждое наблюдение) и `conditionalFields` (locale, access, name, возврат dead -> active); счётчики те же, `pool` по 6 тот же.
+- `enrich` (CCN 17 -> 6, вложенность 4 -> 2): `checkRowInvite` (сохранённый инвайт, затем тот, что сервер объявляет сейчас, если он другой), `advertisedInvite`, `recordInvite` (валидный обновляет поля, мёртвый очищает, ошибка ничего не меняет). `BUDGET_MS` и `DISCORD_PAUSE_MS` вынесены в константы.
+- «I/O в цикле» по `enrich -> checkInvite`: ложное срабатывание. Инвайты Discord проверяются по одному с паузой 400 мс из-за лимитов (429), это намеренный темп, а не N+1; поясняющий комментарий добавлен у константы. Не трогал.
+- Не трогал: обработчик `Deno.serve` (CCN 19, это роутер, в этом брифе не значится).
+- Тесты: новый загрузчик `tests/helpers/loadRpServers.mjs` и `tests/rpServersCron.test.mjs` (21: throttle 90/600 с, запросы, патчи, dead/revived, бюджет 45 с, не более 6 параллельно, пауза 400 мс, замена инвайта, счётчики). Зелёные на старом и новом коде. Всего 373/373.
+
 ### 2026-11-06 (2): Claude Sonnet 5.5 (alley/index.ts)
 - `paywall` (CCN 25 -> 6) = конвейер этапов: `openOffer` (включено ли x402, `precheck`, есть ли способ оплаты), `paymentRequired` (402), `acceptPayment` (заголовок, версия 2, лимит по IP, выбор варианта), `verifyPayment`, `confirmAndSettle` (повторный `precheck` и `settlePayment`), `receiptFor`, `applyEffect`. Порядок этапов = поведение, ничего не переставлено.
 - `listThreads` (20 -> 6): `boardParam`, `limitParam`, `boostedThreads`, `organicThreads`, `replyCounts`, `threadSummary`; порядок фильтров запросов сохранён. `boost` (11 -> 2): `boostDays`, `boostPrecheck`, `applyBoost`. `post` (14 -> 5): `readPost` (запрос и форма) + `admit` (подпись, кошелёк, лимит, скрининг, дубликат через `firstStop`) + сохранение. `postFields` (9 -> 2): `textField` / `signedField` (их же использует `readReport`).
