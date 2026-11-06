@@ -51,24 +51,30 @@ function detectFramework(res: string[]): string | null {
   return null;
 }
 
+/** [feature, regex over tags + name (lower-case), regex over resource names]; a feature appears when either matches. Order = output order. */
+type FeatureRule = [feature: string, text: RegExp | null, resources: RegExp | null];
+const FEATURE_RULES: FeatureRule[] = [
+  ["police", /police|lspd|\bpd\b/, /police|lspd/i],
+  ["ems", /\bems\b|medic|ambulance/, /ambulance|medic/i],
+  ["gangs", /gang/, /gang/i],
+  ["mafia", /mafia|\bmc\b|cartel|organi[sz]/, null],
+  ["economy", /economy/, /banking|economy/i],
+  ["jobs", /\bjobs?\b/, null],
+  ["businesses", /business/, /business/i],
+  ["drugs", /drug/, /drug/i],
+  ["heists", /heist/, /heist/i],
+  ["racing", /racing|race/, /racing/i],
+  ["custom_cars", /custom cars|custom vehicles|addon cars|custom car/, null],
+  ["voice", null, /pma-voice|saltychat|tokovoip|mumble-voip/i],
+  ["streamer", /streamer/, null],
+  ["miami", /miami|vice city|south beach|\b305\b|florida|leonida/, null],
+];
+
 function detectFeatures(tags: string[], res: string[], name: string): string[] {
   const t = (tags.join(" ") + " " + name).toLowerCase();
-  const f = new Set<string>();
-  if (/police|lspd|\bpd\b/.test(t) || has(res, /police|lspd/i)) f.add("police");
-  if (/\bems\b|medic|ambulance/.test(t) || has(res, /ambulance|medic/i)) f.add("ems");
-  if (/gang/.test(t) || has(res, /gang/i)) f.add("gangs");
-  if (/mafia|\bmc\b|cartel|organi[sz]/.test(t)) f.add("mafia");
-  if (/economy/.test(t) || has(res, /banking|economy/i)) f.add("economy");
-  if (/\bjobs?\b/.test(t)) f.add("jobs");
-  if (/business/.test(t) || has(res, /business/i)) f.add("businesses");
-  if (/drug/.test(t) || has(res, /drug/i)) f.add("drugs");
-  if (/heist/.test(t) || has(res, /heist/i)) f.add("heists");
-  if (/racing|race/.test(t) || has(res, /racing/i)) f.add("racing");
-  if (/custom cars|custom vehicles|addon cars|custom car/.test(t)) f.add("custom_cars");
-  if (has(res, /pma-voice|saltychat|tokovoip|mumble-voip/i)) f.add("voice");
-  if (/streamer/.test(t)) f.add("streamer");
-  if (/miami|vice city|south beach|\b305\b|florida|leonida/.test(t)) f.add("miami");
-  return [...f];
+  return FEATURE_RULES
+    .filter(([, text, resources]) => text?.test(t) || (resources !== null && has(res, resources)))
+    .map(([feature]) => feature);
 }
 
 function detectStyle(tags: string[], name: string, gametype: string): Live["style"] {
@@ -79,40 +85,80 @@ function detectStyle(tags: string[], name: string, gametype: string): Live["styl
   return "mixed";
 }
 
+const LOCALE_RE = /^[a-z]{2,3}(-[A-Za-z0-9]{2,8})?$/;
+const FRESH_MS = 20 * 60_000;
+
 // deno-lint-ignore no-explicit-any
-function toLive(code: string, d: any): Live {
-  const v = d?.vars || {};
-  const res: string[] = Array.isArray(d?.resources) ? d.resources.map(String) : [];
-  const tags: string[] = String(v.tags || "").split(",").map((s: string) => cleanText(s, 30)).filter(Boolean);
-  const name = cleanText(v.sv_projectName, 80) || cleanText(d?.hostname, 80);
-  const last = d?.lastSeen ? Date.parse(d.lastSeen) : NaN;
-  const bannerRaw = String(v.banner_detail || v.banner_connecting || "");
+type Raw = any;
+
+/** The number itself when it is a finite number, else the fallback. */
+const finiteOr = <T>(n: unknown, fallback: T): number | T => (Number.isFinite(n) ? (n as number) : fallback);
+
+/** Player counts and votes. */
+function readPlayers(d: Raw, v: Raw) {
+  return {
+    online_count: finiteOr(d?.clients, 0),
+    max_players: Number(d?.sv_maxclients || d?.svMaxclients || 0),
+    peak_players: finiteOr(parseInt(String(v.peak_players ?? ""), 10), null),
+    upvotes: Number(d?.upvotePower || 0),
+  };
+}
+
+const nonEmptyString = (x: unknown): string | null => (typeof x === "string" && x ? x : null);
+
+/** The banner is only trusted from the Cfx hosts. */
+const trustedBanner = (raw: string): string | null => (BANNER_OK.some((p) => raw.startsWith(p)) ? raw.slice(0, 300) : null);
+
+/** Discord invite, icon and banner. */
+function readLinks(d: Raw, v: Raw, code: string) {
   const iconV = typeof d?.iconVersion === "number" ? d.iconVersion : null;
-  const peak = parseInt(String(v.peak_players ?? ""), 10);
-  const build = String(d?.server || "").match(/v1\.0\.0\.(\d+)/);
+  return {
+    discord_link: nonEmptyString(v.discord_link),
+    icon_url: iconV !== null ? `${CFX_BASE}/icon/${code}/${iconV}.png` : null,
+    banner_url: trustedBanner(String(v.banner_detail || v.banner_connecting || "")),
+  };
+}
+
+/** When the server was last seen and whether that is recent enough to call it live. */
+function readSeen(d: Raw) {
+  const last = d?.lastSeen ? Date.parse(d.lastSeen) : NaN;
+  return {
+    last_seen_at: Number.isFinite(last) ? new Date(last).toISOString() : null,
+    fresh: Number.isFinite(last) && FRESH_MS > Date.now() - last,
+  };
+}
+
+const readLocale = (v: Raw): string | null => (LOCALE_RE.test(String(v.locale || "")) ? String(v.locale) : null);
+const readVoice = (v: Raw): boolean | null => (v.sv_voiceChat === undefined ? null : String(v.sv_voiceChat) === "true");
+const readBuild = (d: Raw): string | null => String(d?.server || "").match(/v1\.0\.0\.(\d+)/)?.[0] ?? null;
+
+const orNull = (s: string): string | null => s || null;
+const readResources = (d: Raw): string[] => (Array.isArray(d?.resources) ? d.resources.map(String) : []);
+const readTags = (v: Raw): string[] => String(v.tags || "").split(",").map((s: string) => cleanText(s, 30)).filter(Boolean);
+const readName = (d: Raw, v: Raw): string => cleanText(v.sv_projectName, 80) || cleanText(d?.hostname, 80);
+
+function toLive(code: string, d: Raw): Live {
+  const v = d?.vars || {};
+  const res = readResources(d);
+  const tags = readTags(v);
+  const name = readName(d, v);
   return {
     code,
     name,
     host_name: cleanText(d?.hostname, 140),
-    project_desc: cleanText(v.sv_projectDesc, 500) || null,
+    project_desc: orNull(cleanText(v.sv_projectDesc, 500)),
     gametype: cleanText(d?.gametype, 60),
     gamename: String(v.gamename || "gta5"),
-    online_count: Number.isFinite(d?.clients) ? d.clients : 0,
-    max_players: Number(d?.sv_maxclients || d?.svMaxclients || 0),
-    peak_players: Number.isFinite(peak) ? peak : null,
-    upvotes: Number(d?.upvotePower || 0),
-    locale: /^[a-z]{2,3}(-[A-Za-z0-9]{2,8})?$/.test(String(v.locale || "")) ? String(v.locale) : null,
+    ...readPlayers(d, v),
+    locale: readLocale(v),
     allowlist: String(v.sv_appearAllowlisted) === "true",
     tags_raw: tags,
-    discord_link: typeof v.discord_link === "string" && v.discord_link ? v.discord_link : null,
-    icon_url: iconV !== null ? `${CFX_BASE}/icon/${code}/${iconV}.png` : null,
-    banner_url: BANNER_OK.some((p) => bannerRaw.startsWith(p)) ? bannerRaw.slice(0, 300) : null,
+    ...readLinks(d, v, code),
     resources_count: res.length,
-    owner_name: cleanText(d?.ownerName, 40) || null,
-    fx_build: build ? build[0] : null,
-    last_seen_at: Number.isFinite(last) ? new Date(last).toISOString() : null,
-    fresh: Number.isFinite(last) && Date.now() - last < 20 * 60_000,
-    voice: v.sv_voiceChat === undefined ? null : String(v.sv_voiceChat) === "true",
+    owner_name: orNull(cleanText(d?.ownerName, 40)),
+    fx_build: readBuild(d),
+    ...readSeen(d),
+    voice: readVoice(v),
     framework: detectFramework(res),
     features: detectFeatures(tags, res, name),
     style: detectStyle(tags, name, String(d?.gametype || "")),
@@ -151,15 +197,19 @@ export function isRoleplay(l: Live): boolean {
 }
 
 const JUNK_TAGS = new Set(["default", "official", "enhanced", "onesync", "rp", "roleplay", "esx", "qb", "vrp"]);
+/** A tag is shown when its length is 2-24 and it is not junk (an empty tag fails the length rule). */
+const TAG_RULES: ((k: string) => boolean)[] = [(k) => k.length >= 2, (k) => k.length <= 24, (k) => !JUNK_TAGS.has(k)];
+const titleCase = (s: string) => s.replace(/\b([a-z])/g, (m) => m.toUpperCase());
+
 /** Display tags: Title Case, de-duplicated, no junk, max 8. */
 export function displayTags(l: Live): string[] {
   const out: string[] = [];
   const seen = new Set<string>();
   const add = (s: string) => {
     const k = s.toLowerCase();
-    if (!k || k.length < 2 || k.length > 24 || seen.has(k) || JUNK_TAGS.has(k)) return;
+    if (seen.has(k) || !TAG_RULES.every((rule) => rule(k))) return;
     seen.add(k);
-    out.push(s.replace(/\b([a-z])/g, (m) => m.toUpperCase()));
+    out.push(titleCase(s));
   };
   add(l.allowlist ? "Allowlist" : "Public");
   if (l.voice) add("In-Game Voice");
