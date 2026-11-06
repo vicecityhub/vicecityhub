@@ -59,10 +59,10 @@ Array of objects:
 Selection policy: GTA V RP only; live now; `discord_url` valid per Discord API with >= 150 members; no NSFW/hate/scam; no duplicates of the same community (keep the flagship instance, mention siblings in `description` only if verified); no impersonators of famous brands (rule 1.3); mix: ~75-90 servers total, English first, plus the biggest RP communities per language (pt-BR, es, fr, de, tr, ar, ru, pl, asian locales), allowlist and public, serious/semi/casual, and a **Miami / Vice City themed** group (on-brand for the Hub; feature key `miami`).
 
 ## 6. File ownership (nobody edits files outside their list)
-- Backend: `supabase/functions/rp-servers/*`, `supabase/14_rp_servers_live.sql` (already written by commander, read-only), `supabase/15_rp_servers_cron.sql`, `scripts/rp-servers-selftest.mjs`.
+- Backend: `supabase/functions/rp-servers/*`, `supabase/15_rp_servers_cron.sql`; the live-fields table migration was applied in Supabase and its file is no longer in the repo. Tests: `tests/cfxLive.test.mjs`, `tests/rpServersCron.test.mjs` (they replaced the old selftest script).
 - Curation: `supabase/seed/*` and scratch files in `vice_hub_agent\curation\`.
-- Frontend: `src/rp-hub/servers/*` (except `types.ts`, read-only), `src/rp-hub/components/ServersTab.tsx`, `src/rp-hub/data/mockData.ts` (only to delete the fake server mocks; it is imported nowhere).
-- Surfaces/SEO: `scripts/gen-rp-servers-page.mjs`, `supabase/functions/agent-api/handlers.ts` (+`mcp.ts` if it lists servers), `scripts/gen-agent-surface.mjs`, `vite-plugins/agent-surface.ts`, `package.json` (only the `prebuild` script line). `scripts/gen-seo-pages.mjs` is dirty from another session: **do not edit it**.
+- Frontend: `src/rp-hub/servers/*` (except `types.ts`, read-only), `src/rp-hub/components/ServersTab.tsx`, the fake server mocks (already deleted).
+- Surfaces/SEO: the RP servers page generator (its script is no longer in the repo), `supabase/functions/agent-api/handlers.ts` (+`mcp.ts` if it lists servers), `scripts/gen-agent-surface.mjs`, `vite-plugins/agent-surface.ts`, `package.json` (only the `prebuild` script line). `scripts/gen-seo-pages.mjs` is dirty from another session: **do not edit it**.
 - Commander only: git, DB writes/seed insert, cron SQL apply, `docs/AGENT-HANDOFF.md`, `docs/RP-SERVERS.md`, memory.
 
 ## 7. Verification commands (PowerShell on the user's machine, repo `C:\Users\sarma\Documents\deployd\hub`)
