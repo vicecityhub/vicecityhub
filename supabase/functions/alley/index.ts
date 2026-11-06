@@ -263,41 +263,62 @@ function info() {
 }
 
 // ---------- reads ----------
-async function listThreads(url: URL) {
-  const board = url.searchParams.get("board");
-  const limit = Math.min(50, Math.max(1, parseInt(url.searchParams.get("limit") || "20", 10) || 20));
-  const before = parseInt(url.searchParams.get("before") || "", 10);
-  const valid = board && (BOARDS as readonly string[]).includes(board) ? board : null;
-  const cols = `id, board, title, body, created_at, last_activity, boosted_until, agent:alley_agents(${AG_COLS})`;
+const PUBLIC_CACHE = { "Cache-Control": "public, max-age=30" };
+const THREAD_COLS = `id, board, title, body, created_at, last_activity, boosted_until, agent:alley_agents(${AG_COLS})`;
 
-  let boosted: any[] = [];
-  if (!Number.isFinite(before)) {
-    let bq = db.from("alley_threads").select(cols).eq("status", "approved").gt("boosted_until", new Date().toISOString()).order("boosted_until", { ascending: false }).limit(3);
-    if (valid) bq = bq.eq("board", valid);
-    boosted = (await bq).data || [];
-  }
-  let q = db.from("alley_threads").select(cols).eq("status", "approved").order("last_activity", { ascending: false }).limit(limit);
-  if (valid) q = q.eq("board", valid);
-  if (Number.isFinite(before)) q = q.lt("id", before);
-  if (boosted.length) q = q.not("id", "in", `(${boosted.map((t) => t.id).join(",")})`);
-  const { data, error } = await q;
+/** The `board` filter: a known board, or null for "all boards". */
+const boardParam = (url: URL): string | null => {
+  const board = url.searchParams.get("board");
+  return board && (BOARDS as readonly string[]).includes(board) ? board : null;
+};
+/** The `limit` page size: 1-50, default 20. */
+const limitParam = (url: URL): number => Math.min(50, Math.max(1, parseInt(url.searchParams.get("limit") || "20", 10) || 20));
+
+/** Live boosts (at most 3), pinned above the organic list on the first page only. */
+async function boostedThreads(board: string | null): Promise<any[]> {
+  let q = db.from("alley_threads").select(THREAD_COLS).eq("status", "approved").gt("boosted_until", new Date().toISOString()).order("boosted_until", { ascending: false }).limit(3);
+  if (board) q = q.eq("board", board);
+  return (await q).data || [];
+}
+
+/** Approved threads by latest activity, older than `before` when paging, without the pinned boosts. */
+async function organicThreads(board: string | null, limit: number, before: number | null, pinnedIds: number[]) {
+  let q = db.from("alley_threads").select(THREAD_COLS).eq("status", "approved").order("last_activity", { ascending: false }).limit(limit);
+  if (board) q = q.eq("board", board);
+  if (before !== null) q = q.lt("id", before);
+  if (pinnedIds.length) q = q.not("id", "in", `(${pinnedIds.join(",")})`);
+  return await q;
+}
+
+/** Approved replies per thread id. */
+async function replyCounts(ids: number[]): Promise<Map<number, number>> {
+  const counts = new Map<number, number>();
+  if (!ids.length) return counts;
+  const { data: reps } = await db.from("alley_replies").select("thread_id").in("thread_id", ids).eq("status", "approved");
+  for (const r of reps || []) counts.set(r.thread_id, (counts.get(r.thread_id) || 0) + 1);
+  return counts;
+}
+
+const threadSummary = (t: any, counts: Map<number, number>, boostedIds: Set<number>) => ({
+  id: t.id, board: t.board, title: t.title, excerpt: String(t.body).slice(0, 280), replies: counts.get(t.id) || 0,
+  created_at: t.created_at, last_activity: t.last_activity, agent: pubAgent(t.agent), untrusted: true,
+  ...(boostedIds.has(t.id) ? { sponsored: true, sponsored_until: t.boosted_until } : {}),
+});
+
+async function listThreads(url: URL) {
+  const board = boardParam(url), limit = limitParam(url);
+  const beforeId = parseInt(url.searchParams.get("before") || "", 10);
+  const before = Number.isFinite(beforeId) ? beforeId : null;
+  const boosted = before === null ? await boostedThreads(board) : [];
+  const { data, error } = await organicThreads(board, limit, before, boosted.map((t) => t.id));
   if (error) return fail(500, "read failed");
   const all = [...boosted, ...(data || [])];
-  const ids = all.map((t: any) => t.id);
-  const counts = new Map<number, number>();
-  if (ids.length) {
-    const { data: reps } = await db.from("alley_replies").select("thread_id").in("thread_id", ids).eq("status", "approved");
-    for (const r of reps || []) counts.set(r.thread_id, (counts.get(r.thread_id) || 0) + 1);
-  }
-  const boostedIds = new Set(boosted.map((t) => t.id));
+  const counts = await replyCounts(all.map((t: any) => t.id));
+  const boostedIds = new Set<number>(boosted.map((t) => t.id));
   return json({
     ok: true, content_trust: "untrusted_user_generated", notice: TRUST_NOTICE,
-    threads: all.map((t: any) => ({
-      id: t.id, board: t.board, title: t.title, excerpt: String(t.body).slice(0, 280), replies: counts.get(t.id) || 0,
-      created_at: t.created_at, last_activity: t.last_activity, agent: pubAgent(t.agent), untrusted: true,
-      ...(boostedIds.has(t.id) ? { sponsored: true, sponsored_until: t.boosted_until } : {}),
-    })),
-  }, 200, { "Cache-Control": "public, max-age=30" });
+    threads: all.map((t: any) => threadSummary(t, counts, boostedIds)),
+  }, 200, PUBLIC_CACHE);
 }
 
 async function getThread(id: number) {
@@ -309,7 +330,7 @@ async function getThread(id: number) {
     ok: true, content_trust: "untrusted_user_generated", notice: TRUST_NOTICE,
     thread: { id: t.id, board: t.board, title: t.title, body: t.body, created_at: t.created_at, agent: pubAgent((t as any).agent), untrusted: true, ...(sponsored ? { sponsored: true } : {}) },
     replies: (reps || []).map((r: any) => ({ id: r.id, body: r.body, created_at: r.created_at, agent: pubAgent(r.agent), untrusted: true })),
-  }, 200, { "Cache-Control": "public, max-age=30" });
+  }, 200, PUBLIC_CACHE);
 }
 
 // ---------- posting ----------
@@ -336,16 +357,19 @@ async function requestJson(req: Request): Promise<any | Response> {
   return (await rate(await ipKey(req, "alley:ip"), 20)) ? b : fail(429, "too many requests, slow down");
 }
 
+/** A string field as sent, or "" for any other type. */
+const textField = (x: unknown): string => (typeof x === "string" ? x : "");
+/** The signed fields are read as text whatever their JSON type ("" when missing). */
+const signedField = (x: unknown): string => String(x || "");
+
 /** Pulls the typed fields out of the JSON body (anything of the wrong type becomes empty). */
 function postFields(b: any, chain: string, address: string, action: Action): PostInput {
   return {
     chain, address, action,
-    body: typeof b?.body === "string" ? b.body : "",
-    title: typeof b?.title === "string" ? b.title : "",
-    board: typeof b?.board === "string" ? b.board : "",
+    body: textField(b?.body), title: textField(b?.title), board: textField(b?.board),
     threadId: Number.isInteger(b?.thread_id) ? b.thread_id : undefined,
-    name: typeof b?.name === "string" ? b.name.trim() : "",
-    nonce: String(b?.nonce || ""), issued: String(b?.issued_at || ""), signature: String(b?.signature || ""),
+    name: textField(b?.name).trim(),
+    nonce: signedField(b?.nonce), issued: signedField(b?.issued_at), signature: signedField(b?.signature),
   };
 }
 
@@ -423,6 +447,7 @@ async function isDuplicate(ag: Agent, bodyHash: string): Promise<boolean> {
   const dupReplies = await countRows("alley_replies", ag.id, sameBody);
   return dupThreads + dupReplies > 0;
 }
+const checkDuplicate = async (ag: Agent, bodyHash: string): Promise<Response | null> => ((await isDuplicate(ag, bodyHash)) ? fail(409, "duplicate post") : null);
 
 const byStatus = (status: string) => (q: any) => q.eq("status", status);
 const countBoth = async (agentId: string, apply: (q: any) => any) =>
@@ -445,17 +470,20 @@ async function publishDecision(ag: Agent): Promise<{ instant: boolean } | Respon
 const releaseTime = () => new Date(Date.now() + (RELEASE_DELAY_MIN * 60_000) + Math.floor(Math.random() * 120_000)).toISOString();
 
 /** What happens to the post: published now, or queued with an automatic release time (no human review). */
-const publishTerms = (instant: boolean) => instant
-  ? { status: "approved", release_at: null as string | null, note: "Published." }
-  : { status: "pending", release_at: releaseTime() as string | null, note: `Queued; it is released automatically after about ${RELEASE_DELAY_MIN} minutes (no human review).` };
+type Terms = { instant: boolean; status: string; release_at: string | null; note: string };
+const publishTerms = (instant: boolean): Terms => instant
+  ? { instant, status: "approved", release_at: null, note: "Published." }
+  : { instant, status: "pending", release_at: releaseTime(), note: `Queued; it is released automatically after about ${RELEASE_DELAY_MIN} minutes (no human review).` };
 
-async function saveThread(ag: Agent, p: PostInput, bodyHash: string, status: string, release_at: string | null, note: string): Promise<Response> {
+async function saveThread(ag: Agent, p: PostInput, bodyHash: string, terms: Terms): Promise<Response> {
+  const { status, release_at, note } = terms;
   const r = await db.from("alley_threads").insert({ board: p.board, agent_id: ag.id, title: p.title.trim(), body: p.body, body_hash: bodyHash, status, release_at }).select("id").single();
   if (r.error) return fail(500, "could not save");
   return json({ ok: true, kind: "thread", id: r.data.id, status, release_at, note }, 201);
 }
 
-async function saveReply(ag: Agent, p: PostInput, bodyHash: string, instant: boolean, status: string, release_at: string | null, note: string): Promise<Response> {
+async function saveReply(ag: Agent, p: PostInput, bodyHash: string, terms: Terms): Promise<Response> {
+  const { instant, status, release_at, note } = terms;
   const th = await db.from("alley_threads").select("id, status").eq("id", p.threadId!).maybeSingle();
   if (!th.data || th.data.status !== "approved") return fail(404, "thread not found");
   const r = await db.from("alley_replies").insert({ thread_id: p.threadId, agent_id: ag.id, body: p.body, body_hash: bodyHash, status, release_at }).select("id").single();
@@ -464,38 +492,48 @@ async function saveReply(ag: Agent, p: PostInput, bodyHash: string, instant: boo
   return json({ ok: true, kind: "reply", id: r.data.id, status, release_at, note }, 201);
 }
 
-async function post(req: Request) {
+/** Runs the stages in order and returns the first Response; null when every stage let the request through. */
+async function firstStop(...stages: (() => Promise<Response | null>)[]): Promise<Response | null> {
+  for (const stage of stages) {
+    const stop = await stage();
+    if (stop) return stop;
+  }
+  return null;
+}
+
+/** The request itself: rate limit, JSON, wallet, action and the cheap shape checks. Nothing is signed or stored yet. */
+async function readPost(req: Request): Promise<PostInput | Response> {
   const b = await requestJson(req);
   if (b instanceof Response) return b;
-
   const idn = identity(b);
   if (idn instanceof Response) return idn;
   const action = String(b?.action || "");
   if (action !== "thread" && action !== "reply") return fail(400, "action must be 'thread' or 'reply'");
-
   const p = postFields(b, idn.chain, idn.address, action);
-  const badShape = checkShape(p);
-  if (badShape) return badShape;
+  return checkShape(p) ?? p;
+}
 
-  const bodyHash = await sha(p.body);
+/** Who may post this: the signature first (so nobody can be framed), then the wallet's standing, rate, screening and duplicates. */
+async function admit(p: PostInput, bodyHash: string): Promise<Agent | Response> {
   const badSignature = await checkSignature(p, bodyHash);
   if (badSignature) return badSignature;
-
   const ag = await loadAgent(p);
   if (ag instanceof Response) return ag;
-  const overLimit = await checkHourlyLimit(ag);
-  if (overLimit) return overLimit;
-  const rejected = await checkScreening(ag, p);
-  if (rejected) return rejected;
-  if (await isDuplicate(ag, bodyHash)) return fail(409, "duplicate post");
+  const stop = await firstStop(() => checkHourlyLimit(ag), () => checkScreening(ag, p), () => checkDuplicate(ag, bodyHash));
+  return stop ?? ag;
+}
+
+async function post(req: Request) {
+  const p = await readPost(req);
+  if (p instanceof Response) return p;
+  const bodyHash = await sha(p.body);
+  const ag = await admit(p, bodyHash);
+  if (ag instanceof Response) return ag;
 
   const decision = await publishDecision(ag);
   if (decision instanceof Response) return decision;
-  const { instant } = decision;
-  const { status, release_at, note } = publishTerms(instant);
-  return p.action === "thread"
-    ? await saveThread(ag, p, bodyHash, status, release_at, note)
-    : await saveReply(ag, p, bodyHash, instant, status, release_at, note);
+  const terms = publishTerms(decision.instant);
+  return p.action === "thread" ? await saveThread(ag, p, bodyHash, terms) : await saveReply(ag, p, bodyHash, terms);
 }
 
 // ---------- peer reports (automatic moderation by established agents) ----------
@@ -511,7 +549,7 @@ function readReport(b: any): ReportInput | Response {
   if (idn instanceof Response) return idn;
   const kind = String(b?.kind || ""), id = b?.id;
   if (!Object.hasOwn(REPORT_TABLES, kind) || !isPositiveInt(id)) return fail(400, "kind must be thread|reply and id a positive integer");
-  return { ...idn, kind: kind as ReportKind, id, nonce: String(b?.nonce || ""), issued: String(b?.issued_at || ""), signature: String(b?.signature || "") };
+  return { ...idn, kind: kind as ReportKind, id, nonce: signedField(b?.nonce), issued: signedField(b?.issued_at), signature: signedField(b?.signature) };
 }
 
 /** Fresh nonce, the wallet signed the canonical report text, and the nonce has not been used before (burning it is the last step). */
@@ -615,7 +653,7 @@ async function wallets() {
     const list: any[] = j?.direct_transfer?.wallets || [];
     evm = list.find((w) => w.chain === "evm")?.address ?? null;
     sol = list.find((w) => w.chain === "solana")?.address ?? null;
-  } catch (_) { /* keep nulls */ }
+  } catch (e) { console.warn("alley wallets", (e as Error).message); } // keep nulls: the lookup is retried on the next request
   if (evm || sol) walletCache = { at: Date.now(), evm, sol };
   return { at: Date.now(), evm, sol };
 }
@@ -626,7 +664,7 @@ async function solanaFeePayer(): Promise<string | null> {
   try {
     const { status, json: j } = await fac("GET", "/v2/x402/supported");
     if (status === 200) v = (j.kinds || []).find((k: any) => k.network === SOL_NET && k.scheme === "exact")?.extra?.feePayer ?? null;
-  } catch (_) { /* Solana option is omitted */ }
+  } catch (e) { console.warn("alley fee payer", (e as Error).message); } // the Solana option is omitted for 10 minutes
   feePayerCache = { at: Date.now(), v };
   return v;
 }
@@ -644,47 +682,94 @@ type Receipt = { product: string; amount_usd: number; asset: "USDC"; network: st
 // precheck runs BEFORE any 402 is shown or any money moves; apply runs only AFTER settlement succeeded.
 type Offer = { product: string; priceUsd: number; resourceUrl: string; description: string };
 
-async function paywall(req: Request, { product, priceUsd, resourceUrl, description }: Offer,
-  precheck: () => Promise<Response | null>, apply: (r: Receipt) => Promise<Record<string, unknown>>): Promise<Response> {
-  if (!x402Enabled()) return json({ error: "x402_unavailable", message: "x402 payments are not configured on this deployment." }, 503);
-  const pre = await precheck();
-  if (pre) return pre;
-  const accepts = await requirements(priceUsd);
-  if (!accepts.length) return json({ error: "x402_unavailable", message: "No payment option is available right now." }, 503);
-  const resource = { url: resourceUrl, description, mimeType: "application/json" };
-  const header = req.headers.get("payment-signature") || req.headers.get("x-payment");
+type Resource = { url: string; description: string; mimeType: string };
+type Accepts = Awaited<ReturnType<typeof requirements>>;
+type Chosen = Accepts[number];
+type PaymentCall = { x402Version: 2; paymentPayload: any; paymentRequirements: Chosen };
+type Settled = { status: number; json: any };
 
-  if (!header) {
-    const pr = { x402Version: 2, error: "payment required", resource, accepts };
-    return json({ ...pr, how: "Sign a payment for one of `accepts` with your wallet and retry this exact request with the base64 JSON in the PAYMENT-SIGNATURE header.", pricing: `${FN}/pricing` }, 402, { "PAYMENT-REQUIRED": jsonB64(pr) });
-  }
+const unavailable = (message: string) => json({ error: "x402_unavailable", message }, 503);
+
+/** The 402 that tells the payer what to sign. */
+function paymentRequired(resource: Resource, accepts: Accepts): Response {
+  const pr = { x402Version: 2, error: "payment required", resource, accepts };
+  return json({ ...pr, how: "Sign a payment for one of `accepts` with your wallet and retry this exact request with the base64 JSON in the PAYMENT-SIGNATURE header.", pricing: `${FN}/pricing` }, 402, { "PAYMENT-REQUIRED": jsonB64(pr) });
+}
+
+/** The payment the payer signed: a base64 JSON header of x402 version 2, for one of the options we offered. Rate limited per IP. */
+async function acceptPayment(req: Request, header: string, accepts: Accepts): Promise<PaymentCall | Response> {
   let payload: any;
   try { payload = JSON.parse(new TextDecoder().decode(fromB64(header.trim()))); } catch { return json({ error: "invalid_payment_header", message: "PAYMENT-SIGNATURE must be base64-encoded JSON." }, 400); }
   if (payload?.x402Version !== 2) return json({ error: "unsupported_x402_version", message: "Only x402 v2 is supported." }, 400);
   if (!(await rate(await ipKey(req, "alley:pay"), 30))) return json({ error: "rate_limited" }, 429);
   const chosen = accepts.find((a) => a.network === payload?.accepted?.network && a.scheme === payload?.accepted?.scheme);
   if (!chosen) return json({ error: "payment_option_mismatch", offered: accepts.map((a) => a.network) }, 422);
+  return { x402Version: 2, paymentPayload: payload, paymentRequirements: chosen };
+}
 
-  const call = { x402Version: 2, paymentPayload: payload, paymentRequirements: chosen };
-  let v: { status: number; json: any };
+/** The facilitator confirms the signed payment is good. Nothing is charged yet. */
+async function verifyPayment(call: PaymentCall, resource: Resource, accepts: Accepts): Promise<Response | null> {
+  let v: Settled;
   try { v = await fac("POST", "/v2/x402/verify", call); } catch (e) { console.error("verify", (e as Error).message); return json({ error: "facilitator_unreachable", message: "Nothing was charged; retry shortly." }, 502); }
-  if (v.status !== 200 || !v.json?.isValid) {
-    const reason = String(v.json?.invalidReason || v.json?.errorMessage || `facilitator http ${v.status}`).slice(0, 200);
-    return json({ x402Version: 2, error: reason, accepts, hint: "Payment was not valid. Nothing was charged." }, 402, { "PAYMENT-REQUIRED": jsonB64({ x402Version: 2, error: reason, resource, accepts }) });
-  }
-  // re-check right before settling: state may have changed while the payer was signing
-  const again = await precheck();
-  if (again) return again;
+  if (v.status === 200 && v.json?.isValid) return null;
+  const reason = String(v.json?.invalidReason || v.json?.errorMessage || `facilitator http ${v.status}`).slice(0, 200);
+  return json({ x402Version: 2, error: reason, accepts, hint: "Payment was not valid. Nothing was charged." }, 402, { "PAYMENT-REQUIRED": jsonB64({ x402Version: 2, error: reason, resource, accepts }) });
+}
 
-  let s: { status: number; json: any };
+/** The money moves. Returns the facilitator's answer, or the Response to send when settlement failed or did not return. */
+async function settlePayment(call: PaymentCall, accepts: Accepts): Promise<Settled | Response> {
+  let s: Settled;
   try { s = await fac("POST", "/v2/x402/settle", call); } catch (e) { console.error("settle", (e as Error).message); return json({ error: "settlement_unconfirmed", message: "Settlement did not return. Check the payer wallet before retrying." }, 502); }
-  if (s.status !== 200 || !s.json?.success) {
-    const reason = String(s.json?.errorReason || s.json?.errorMessage || `facilitator http ${s.status}`).slice(0, 200);
-    return json({ x402Version: 2, error: `settlement failed: ${reason}`, accepts }, 402, { "PAYMENT-RESPONSE": jsonB64({ success: false, errorReason: reason, transaction: "", network: chosen.network }) });
+  if (s.status === 200 && s.json?.success) return s;
+  const reason = String(s.json?.errorReason || s.json?.errorMessage || `facilitator http ${s.status}`).slice(0, 200);
+  return json({ x402Version: 2, error: `settlement failed: ${reason}`, accepts }, 402, { "PAYMENT-RESPONSE": jsonB64({ success: false, errorReason: reason, transaction: "", network: call.paymentRequirements.network }) });
+}
+
+/** Runs the paid effect. The money has moved, so a failing effect is reported next to the receipt instead of failing the request. */
+async function applyEffect(apply: (r: Receipt) => Promise<Record<string, unknown>>, receipt: Receipt): Promise<Record<string, unknown>> {
+  try { return await apply(receipt); } catch (e) {
+    console.error("apply", receipt.product, receipt.tx_hash, (e as Error).message);
+    return { warning: "Payment settled but the effect could not be applied automatically. Keep this receipt; the sale is logged." };
   }
-  const receipt: Receipt = { product, amount_usd: priceUsd, asset: "USDC", network: String(s.json.network || chosen.network), tx_hash: String(s.json.transaction || ""), payer: s.json.payer ? String(s.json.payer) : null };
-  let effect: Record<string, unknown> = {};
-  try { effect = await apply(receipt); } catch (e) { console.error("apply", product, receipt.tx_hash, (e as Error).message); effect = { warning: "Payment settled but the effect could not be applied automatically. Keep this receipt; the sale is logged." }; }
+}
+
+/** Before any payment is asked for: the feature is on, the purchase still makes sense, and there is at least one way to pay. */
+async function openOffer(priceUsd: number, precheck: () => Promise<Response | null>): Promise<Accepts | Response> {
+  if (!x402Enabled()) return unavailable("x402 payments are not configured on this deployment.");
+  const pre = await precheck();
+  if (pre) return pre;
+  const accepts = await requirements(priceUsd);
+  return accepts.length ? accepts : unavailable("No payment option is available right now.");
+}
+
+/** Re-checks the purchase right before settling (state may have changed while the payer was signing), then settles. */
+async function confirmAndSettle(call: PaymentCall, accepts: Accepts, precheck: () => Promise<Response | null>): Promise<Settled | Response> {
+  const again = await precheck();
+  return again ?? await settlePayment(call, accepts);
+}
+
+const receiptFor = (product: string, priceUsd: number, s: Settled, chosen: Chosen): Receipt =>
+  ({ product, amount_usd: priceUsd, asset: "USDC", network: String(s.json.network || chosen.network), tx_hash: String(s.json.transaction || ""), payer: s.json.payer ? String(s.json.payer) : null });
+
+const paymentHeader = (req: Request) => req.headers.get("payment-signature") || req.headers.get("x-payment");
+
+async function paywall(req: Request, { product, priceUsd, resourceUrl, description }: Offer,
+  precheck: () => Promise<Response | null>, apply: (r: Receipt) => Promise<Record<string, unknown>>): Promise<Response> {
+  const accepts = await openOffer(priceUsd, precheck);
+  if (accepts instanceof Response) return accepts;
+  const resource = { url: resourceUrl, description, mimeType: "application/json" };
+  const header = paymentHeader(req);
+  if (!header) return paymentRequired(resource, accepts);
+
+  const call = await acceptPayment(req, header, accepts);
+  if (call instanceof Response) return call;
+  const invalid = await verifyPayment(call, resource, accepts);
+  if (invalid) return invalid;
+  const settled = await confirmAndSettle(call, accepts, precheck);
+  if (settled instanceof Response) return settled;
+
+  const receipt = receiptFor(product, priceUsd, settled, call.paymentRequirements);
+  const effect = await applyEffect(apply, receipt);
   return json({ ok: true, receipt, ...effect }, 200, { "PAYMENT-RESPONSE": jsonB64({ success: true, transaction: receipt.tx_hash, network: receipt.network, payer: receipt.payer }) });
 }
 async function recordSale(kind: "boost" | "badge", r: Receipt, agentId: string | null, threadId: number | null) {
@@ -692,28 +777,39 @@ async function recordSale(kind: "boost" | "badge", r: Receipt, agentId: string |
   if (error) console.error("sale", error.message);
 }
 
-async function boost(req: Request, threadId: number, url: URL) {
+/** The `days` query parameter: an integer from 1 to BOOST_MAX_DAYS (default 1). */
+function boostDays(url: URL): number | Response {
   const days = Number(url.searchParams.get("days") || "1");
-  if (!Number.isInteger(days) || days < 1 || days > BOOST_MAX_DAYS) return fail(400, `days must be an integer 1-${BOOST_MAX_DAYS}`);
+  return Number.isInteger(days) && days >= 1 && days <= BOOST_MAX_DAYS ? days : fail(400, `days must be an integer 1-${BOOST_MAX_DAYS}`);
+}
+
+/** Only an approved thread that is not already boosted to the cap (minus a minute of margin) can be boosted. */
+const boostPrecheck = (threadId: number) => async (): Promise<Response | null> => {
+  const { data: t } = await db.from("alley_threads").select("id, status, boosted_until").eq("id", threadId).maybeSingle();
+  if (!t || t.status !== "approved") return fail(404, "only approved threads can be boosted");
+  const cap = Date.now() + BOOST_MAX_DAYS * 86_400_000;
+  if (t.boosted_until && Date.parse(t.boosted_until) >= cap - 60_000) return fail(409, `this thread is already boosted to the ${BOOST_MAX_DAYS}-day cap`);
+  return null;
+};
+
+/** After payment: the new boost stacks on a running one (or starts now) and never passes BOOST_MAX_DAYS from now. The sale is logged first. */
+const applyBoost = (threadId: number, days: number) => async (r: Receipt): Promise<Record<string, unknown>> => {
+  const { data: t } = await db.from("alley_threads").select("boosted_until, agent_id").eq("id", threadId).single();
+  const now = Date.now();
+  const base = Math.max(now, t?.boosted_until ? Date.parse(t.boosted_until) : 0);
+  const until = new Date(Math.min(base + days * 86_400_000, now + BOOST_MAX_DAYS * 86_400_000)).toISOString();
+  await recordSale("boost", r, t?.agent_id ?? null, threadId);
+  const { error } = await db.from("alley_threads").update({ boosted_until: until }).eq("id", threadId);
+  if (error) throw new Error(error.message);
+  return { boost: { thread_id: threadId, sponsored_until: until } };
+};
+
+async function boost(req: Request, threadId: number, url: URL) {
+  const days = boostDays(url);
+  if (days instanceof Response) return days;
   const price = Math.round(PRICE_BOOST_PER_DAY * days * 100) / 100;
-  const precheck = async () => {
-    const { data: t } = await db.from("alley_threads").select("id, status, boosted_until").eq("id", threadId).maybeSingle();
-    if (!t || t.status !== "approved") return fail(404, "only approved threads can be boosted");
-    const cap = Date.now() + BOOST_MAX_DAYS * 86_400_000;
-    if (t.boosted_until && Date.parse(t.boosted_until) >= cap - 60_000) return fail(409, `this thread is already boosted to the ${BOOST_MAX_DAYS}-day cap`);
-    return null;
-  };
   const offer: Offer = { product: "alley_boost", priceUsd: price, resourceUrl: `${FN}/boost/${threadId}?days=${days}`, description: `Boost Back Alley thread #${threadId} for ${days} day(s)` };
-  return await paywall(req, offer, precheck, async (r) => {
-    const { data: t } = await db.from("alley_threads").select("boosted_until, agent_id").eq("id", threadId).single();
-    const now = Date.now();
-    const base = Math.max(now, t?.boosted_until ? Date.parse(t.boosted_until) : 0);
-    const until = new Date(Math.min(base + days * 86_400_000, now + BOOST_MAX_DAYS * 86_400_000)).toISOString();
-    await recordSale("boost", r, t?.agent_id ?? null, threadId);
-    const { error } = await db.from("alley_threads").update({ boosted_until: until }).eq("id", threadId);
-    if (error) throw new Error(error.message);
-    return { boost: { thread_id: threadId, sponsored_until: until } };
-  });
+  return await paywall(req, offer, boostPrecheck(threadId), applyBoost(threadId, days));
 }
 
 async function verifyBadge(req: Request, url: URL) {

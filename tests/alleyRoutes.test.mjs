@@ -272,3 +272,134 @@ test('paywall: verified success, and a failing effect still returns the receipt 
   assert.match(w.json.warning, /Payment settled but the effect could not be applied/);
   assert.equal(w.json.ok, true);
 });
+
+// ---------- boost: price, cap and stacking ----------
+test('boost: days default to 1, the price is days x $0.10, the 7-day cap leaves a 60 second margin', async () => {
+  ENV.CDP_API_KEY_ID = 'kid'; ENV.CDP_API_KEY_SECRET = SECRET;
+  stubNetwork();
+  for (const [path, amount] of [['/boost/5', '100000'], ['/boost/5?days=', '100000'], ['/boost/5?days=1', '100000'], ['/boost/5?days=7', '700000']]) {
+    const r = await get(path);
+    assert.deepEqual([r.status, r.json.accepts[0].amount], [402, amount], path);
+  }
+  const cap = NOW + 7 * 86_400_000;
+  S.thread = { id: 5, status: 'approved', boosted_until: new Date(cap - 60_000).toISOString() };
+  assert.equal((await get('/boost/5')).status, 409);
+  S.thread = { id: 5, status: 'approved', boosted_until: new Date(cap - 60_001).toISOString() };
+  assert.equal((await get('/boost/5')).status, 402);
+  S.thread = { id: 5, status: 'pending', boosted_until: null };
+  assert.deepEqual([(await get('/boost/5')).status, (await get('/boost/5')).json.error], [404, 'only approved threads can be boosted']);
+});
+
+test('boost: a new boost stacks on the running one, an expired one restarts from now, the total never passes 7 days', async () => {
+  ENV.CDP_API_KEY_ID = 'kid'; ENV.CDP_API_KEY_SECRET = SECRET;
+  stubNetwork();
+  const day = 86_400_000;
+  for (const [until, days, expected] of [[NOW + 3 * day, 2, NOW + 5 * day], [NOW - 5 * day, 2, NOW + 2 * day], [NOW + 6 * day, 5, NOW + 7 * day], [null, 7, NOW + 7 * day]]) {
+    S.thread = { id: 5, status: 'approved', boosted_until: until === null ? null : new Date(until).toISOString(), agent_id: 'ag1' };
+    S.updates.length = 0;
+    const r = await get(`/boost/5?days=${days}`, { headers: payHeader() });
+    assert.equal(r.status, 200, String(until));
+    assert.equal(r.json.boost.sponsored_until, new Date(expected).toISOString(), String(until));
+    assert.deepEqual(r.json.boost, { thread_id: 5, sponsored_until: new Date(expected).toISOString() });
+  }
+});
+
+test('boost: the sale is logged before the thread update; a failing update keeps the receipt with a warning', async () => {
+  ENV.CDP_API_KEY_ID = 'kid'; ENV.CDP_API_KEY_SECRET = SECRET;
+  stubNetwork();
+  S.updateError = { message: 'db down' };
+  const r = await get('/boost/5', { headers: payHeader() });
+  assert.equal(r.status, 200);
+  assert.match(r.json.warning, /Payment settled but the effect could not be applied/);
+  assert.equal(r.json.receipt.tx_hash, '0xtx');
+  assert.equal(r.json.boost, undefined);
+  const sale = S.inserts.find((i) => i[0] === 'alley_sales');
+  assert.deepEqual(sale[1], { kind: 'boost', agent_id: 'ag1', thread_id: 5, amount_usd: 0.1, network: 'eip155:8453', payer: '0xpayer', tx: '0xtx' });
+});
+
+// ---------- payment options: the Hub wallets and the Solana fee payer ----------
+// The wallet and fee-payer lookups are cached for 10 minutes of Date.now(); every test below moves the clock past that.
+let clock = 0;
+const SOL_WALLET = '8'.repeat(44);
+const SOL_NET = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
+function network({ donate, supported }) {
+  clock += 1_000_000;
+  Date.now = () => NOW + clock;
+  globalThis.fetch = async (url) => {
+    const u = String(url);
+    if (u.includes('/v1/donate')) return { json: async () => donate() };
+    if (u.endsWith('/supported')) return supported();
+    return { status: 200, json: async () => ({}) };
+  };
+}
+const wallets = (...list) => () => ({ direct_transfer: { wallets: list } });
+const evmW = { chain: 'evm', address: EVM_WALLET }, solW = { chain: 'solana', address: SOL_WALLET };
+const feePayerKinds = (fp) => () => ({ status: 200, json: async () => ({ kinds: [{ network: 'other', scheme: 'exact', extra: { feePayer: 'x' } }, { network: SOL_NET, scheme: 'upto', extra: { feePayer: 'y' } }, { network: SOL_NET, scheme: 'exact', extra: { feePayer: fp } }] }) });
+
+test('payment options: EVM and Solana (with the facilitator fee payer) are offered together, EVM first', async () => {
+  ENV.CDP_API_KEY_ID = 'kid'; ENV.CDP_API_KEY_SECRET = SECRET;
+  network({ donate: wallets(evmW, solW), supported: feePayerKinds('FEEPAYER') });
+  const r = await get('/boost/5');
+  assert.equal(r.status, 402);
+  assert.deepEqual(r.json.accepts.map((a) => [a.network, a.payTo, a.amount, a.extra]), [
+    ['eip155:8453', EVM_WALLET, '100000', { name: 'USD Coin', version: '2' }],
+    [SOL_NET, SOL_WALLET, '100000', { feePayer: 'FEEPAYER' }],
+  ]);
+  assert.equal(r.json.accepts[1].asset, 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v');
+});
+
+test('payment options: a Solana wallet without a fee payer is dropped (facilitator down or no exact kind)', async () => {
+  ENV.CDP_API_KEY_ID = 'kid'; ENV.CDP_API_KEY_SECRET = SECRET;
+  for (const supported of [() => { throw new Error('down'); }, () => ({ status: 500, json: async () => ({}) }), () => ({ status: 200, json: async () => ({ kinds: [] }) })]) {
+    network({ donate: wallets(evmW, solW), supported });
+    const r = await get('/boost/5');
+    assert.deepEqual([r.status, r.json.accepts.map((a) => a.network)], [402, ['eip155:8453']]);
+  }
+  network({ donate: wallets(solW), supported: () => { throw new Error('down'); } });
+  const none = await get('/boost/5');
+  assert.deepEqual([none.status, none.json.error, none.json.message], [503, 'x402_unavailable', 'No payment option is available right now.']);
+});
+
+test('payment options: a Solana-only Hub still sells; no wallet list or a broken donate endpoint means 503', async () => {
+  ENV.CDP_API_KEY_ID = 'kid'; ENV.CDP_API_KEY_SECRET = SECRET;
+  network({ donate: wallets(solW), supported: feePayerKinds('FP') });
+  assert.deepEqual((await get('/boost/5')).json.accepts.map((a) => a.network), [SOL_NET]);
+  for (const donate of [() => { throw new Error('down'); }, () => ({}), () => ({ direct_transfer: { wallets: [{ chain: 'btc', address: 'x' }] } })]) {
+    network({ donate, supported: feePayerKinds('FP') });
+    const r = await get('/boost/5');
+    assert.deepEqual([r.status, r.json.error], [503, 'x402_unavailable']);
+  }
+});
+
+test('payment options: the wallet lookup is cached for 10 minutes, a failed lookup is retried at once', async () => {
+  ENV.CDP_API_KEY_ID = 'kid'; ENV.CDP_API_KEY_SECRET = SECRET;
+  let donates = 0;
+  network({ donate: () => { donates++; return { direct_transfer: { wallets: [evmW] } }; }, supported: feePayerKinds('FP') });
+  await get('/boost/5'); await get('/boost/5');
+  assert.equal(donates, 1);
+  Date.now = () => NOW + clock + 599_999;
+  await get('/boost/5');
+  assert.equal(donates, 1);
+  Date.now = () => NOW + clock + 600_000;
+  await get('/boost/5');
+  assert.equal(donates, 2);
+  let tries = 0;
+  clock += 1_000_000; // the previous step ended 10 minutes into the clock
+  network({ donate: () => { tries++; throw new Error('down'); }, supported: feePayerKinds('FP') });
+  await get('/boost/5'); await get('/boost/5');
+  assert.equal(tries, 2);
+});
+
+test('payment options: a failing wallet or fee-payer lookup is logged as a warning, not swallowed', async () => {
+  ENV.CDP_API_KEY_ID = 'kid'; ENV.CDP_API_KEY_SECRET = SECRET;
+  const warned = [];
+  const warn = console.warn;
+  console.warn = (...a) => warned.push(a);
+  try {
+    network({ donate: () => { throw new Error('donate down'); }, supported: feePayerKinds('FP') });
+    await get('/boost/5');
+    network({ donate: wallets(evmW, solW), supported: () => { throw new Error('facilitator down'); } });
+    await get('/boost/5');
+  } finally { console.warn = warn; }
+  assert.deepEqual(warned, [['alley wallets', 'donate down'], ['alley fee payer', 'facilitator down']]);
+});

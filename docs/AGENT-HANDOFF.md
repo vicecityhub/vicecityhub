@@ -80,6 +80,14 @@
 - [ ] T15 · P3 · Проверить a11y (контраст неоновых цветов, focus-стили) и добавить `prefers-reduced-motion`.
 
 ## 3. Журнал сессий (дописывай сверху, новая запись первой)
+### 2026-11-06 (2): Claude Sonnet 5.5 (alley/index.ts)
+- `paywall` (CCN 25 -> 6) = конвейер этапов: `openOffer` (включено ли x402, `precheck`, есть ли способ оплаты), `paymentRequired` (402), `acceptPayment` (заголовок, версия 2, лимит по IP, выбор варианта), `verifyPayment`, `confirmAndSettle` (повторный `precheck` и `settlePayment`), `receiptFor`, `applyEffect`. Порядок этапов = поведение, ничего не переставлено.
+- `listThreads` (20 -> 6): `boardParam`, `limitParam`, `boostedThreads`, `organicThreads`, `replyCounts`, `threadSummary`; порядок фильтров запросов сохранён. `boost` (11 -> 2): `boostDays`, `boostPrecheck`, `applyBoost`. `post` (14 -> 5): `readPost` (запрос и форма) + `admit` (подпись, кошелёк, лимит, скрининг, дубликат через `firstStop`) + сохранение. `postFields` (9 -> 2): `textField` / `signedField` (их же использует `readReport`).
+- `saveThread` / `saveReply` (6 и 7 параметров -> 4): условия публикации едут одним объектом `Terms` (`instant`, `status`, `release_at`, `note`) из `publishTerms`.
+- «Проглоченные исключения»: два `catch` без обработки (поиск кошельков Hub и feePayer Solana). Теперь пишут `console.warn`; поведение (nulls, опция Solana пропускается на 10 минут) то же. Единственное видимое отличие: строки в логах функции.
+- Не трогал: `screen` (CCN 26, в этом брифе не значится), `wallets` (9), `loadAgent` / `identity` / `routeGet` (8).
+- Тесты: новый `tests/alleyReads.test.mjs` (10: лимиты, доска, пагинация, пины буста, счётчики ответов, getThread), +4 в `tests/alleyRoutes.test.mjs` (кап и накопление буста, лог продажи, опции оплаты: Solana, feePayer, кэш кошельков) и ещё 1 на warn, +4 в `tests/alleyPost.test.mjs` (типы полей, trim имени, числовой nonce, контракт ответов). Всё, кроме теста на warn, зелёное на старом и новом коде. Всего 352/352.
+
 ### 2026-11-06: Claude Sonnet 5.5 (rp-servers/cfx.ts)
 - `detectFeatures` (CCN 23) = таблица `FEATURE_RULES` [признак, regex по тегам+имени, regex по ресурсам], порядок строк = порядок в выдаче. `toLive` (CCN 29 -> <6) собирается из `readPlayers` / `readLinks` / `readSeen` / `readLocale` / `readVoice` / `readBuild` / `readName` / `readTags` / `readResources`; порядок ключей `Live` сохранён (группы идут подряд, как раньше). `displayTags`: составное условие заменено списком правил `TAG_RULES` + `titleCase`.
 - `fetchLive` (I/O in loop): ложное срабатывание, это намеренный повтор запроса (2 попытки одному и тому же коду), не N+1. Не трогал.

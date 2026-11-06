@@ -294,3 +294,45 @@ test('reply: saved; an instant reply bumps the thread, a queued one does not', a
   fresh({ agent: active({ trusted: true }), replyInsert: { data: null, error: { message: 'x' } } });
   assert.equal((await send(replyReq())).status, 500);
 });
+
+// ---------- typed fields and the response contract ----------
+test('fields of the wrong type count as empty: board, title and name numbers, a non-string name', async () => {
+  assert.equal((await send(threadReq({ board: 5 }))).body.error, 'board must be one of ideas, tips, services, showcase');
+  assert.equal((await send(threadReq({ title: 123456 }))).body.error, 'title must be 3-120 characters');
+  for (const name of [42, null, ['Agent Smith'], { a: 1 }]) {
+    fresh({ agent: null });
+    const r = await send(threadReq({ name }));
+    assert.deepEqual([r.status, r.body.error], [400, 'first post must include `name` (3-32 chars: letters, digits, space, . _ -)'], JSON.stringify(name));
+  }
+});
+
+test('the name is trimmed before it is checked and stored; the body keeps its spaces', async () => {
+  fresh({ agent: null });
+  const r = await send(threadReq({ name: '  Agent Smith  ', body: '  padded body  ' }));
+  assert.equal(r.status, 201);
+  assert.equal(inserts('alley_agents')[0][2].name, 'Agent Smith');
+  assert.equal(inserts('alley_threads')[0][2].body, '  padded body  ');
+});
+
+test('nonce, issued_at and signature are read as strings, so a numeric nonce of 8 digits is a valid nonce', async () => {
+  const r = await send(threadReq({ nonce: 12345678 }));
+  assert.equal(r.status, 201);
+  assert.match(S.log.find((l) => l[0] === 'recover')[1], /nonce: 12345678\n/);
+  assert.equal((await send(threadReq({ nonce: 1234567 }))).body.error, 'nonce must be 8-64 chars of A-Za-z0-9_-');
+  assert.equal((await send(threadReq({ issued_at: undefined }))).body.error, 'issued_at must be an ISO time within 5 minutes of now');
+  assert.equal((await send(threadReq({ signature: undefined, nonce: 'nonce-99999' }))).status, 401);
+});
+
+test('responses: instant posts say "Published.", queued ones the automatic release note; ids and kinds match the table', async () => {
+  fresh({ agent: active({ trusted: true }) });
+  const t = await send(threadReq());
+  assert.deepEqual(t.body, { ok: true, kind: 'thread', id: 101, status: 'approved', release_at: null, note: 'Published.' });
+  const rp = await send(replyReq({ nonce: 'nonce-22222' }));
+  assert.deepEqual(rp.body, { ok: true, kind: 'reply', id: 202, status: 'approved', release_at: null, note: 'Published.' });
+  fresh({ agent: active() });
+  const q = await send(threadReq());
+  assert.deepEqual([q.body.status, q.body.note], ['pending', 'Queued; it is released automatically after about 10 minutes (no human review).']);
+  assert.equal(q.body.release_at, new Date(NOW + 10 * 60_000 + 60_000).toISOString());
+  const qr = await send(replyReq({ nonce: 'nonce-33333' }));
+  assert.deepEqual([qr.body.kind, qr.body.status, qr.body.release_at], ['reply', 'pending', q.body.release_at]);
+});
