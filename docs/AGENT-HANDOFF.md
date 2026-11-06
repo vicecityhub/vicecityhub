@@ -86,6 +86,7 @@
 - «I/O в цикле» по `enrich -> checkInvite`: ложное срабатывание. Инвайты Discord проверяются по одному с паузой 400 мс из-за лимитов (429), это намеренный темп, а не N+1; поясняющий комментарий добавлен у константы. Не трогал.
 - Не трогал: обработчик `Deno.serve` (CCN 19, это роутер, в этом брифе не значится).
 - Тесты: новый загрузчик `tests/helpers/loadRpServers.mjs` и `tests/rpServersCron.test.mjs` (21: throttle 90/600 с, запросы, патчи, dead/revived, бюджет 45 с, не более 6 параллельно, пауза 400 мс, замена инвайта, счётчики). Зелёные на старом и новом коде. Всего 373/373.
+- Деплой: `rp-servers` выкачен в Supabase (v3, vendored-файлы, `index.ts` из коммита `1c20c66`; `cfx.ts`, `util.ts`, `discord.ts`, `submit.ts` без изменений). Содержимое v3 сверено с репозиторием.
 
 ### 2026-11-06 (2): Claude Sonnet 5.5 (alley/index.ts)
 - `paywall` (CCN 25 -> 6) = конвейер этапов: `openOffer` (включено ли x402, `precheck`, есть ли способ оплаты), `paymentRequired` (402), `acceptPayment` (заголовок, версия 2, лимит по IP, выбор варианта), `verifyPayment`, `confirmAndSettle` (повторный `precheck` и `settlePayment`), `receiptFor`, `applyEffect`. Порядок этапов = поведение, ничего не переставлено.
