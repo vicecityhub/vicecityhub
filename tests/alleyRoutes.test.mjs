@@ -403,3 +403,16 @@ test('payment options: a failing wallet or fee-payer lookup is logged as a warni
   } finally { console.warn = warn; }
   assert.deepEqual(warned, [['alley wallets', 'donate down'], ['alley fee payer', 'facilitator down']]);
 });
+
+test('payment options: a malformed wallet list keeps what was read before the failure', async () => {
+  ENV.CDP_API_KEY_ID = 'kid'; ENV.CDP_API_KEY_SECRET = SECRET;
+  const warn = console.warn;
+  console.warn = () => {};
+  try {
+    network({ donate: () => ({ direct_transfer: { wallets: [evmW, null] } }), supported: feePayerKinds('FP') });
+    const r = await get('/boost/5');
+    assert.deepEqual([r.status, r.json.accepts.map((a) => a.network)], [402, ['eip155:8453']]);
+    network({ donate: () => ({ direct_transfer: { wallets: 'nope' } }), supported: feePayerKinds('FP') });
+    assert.equal((await get('/boost/5')).status, 503);
+  } finally { console.warn = warn; }
+});

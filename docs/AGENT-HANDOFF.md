@@ -80,6 +80,12 @@
 - [ ] T15 · P3 · Проверить a11y (контраст неоновых цветов, focus-стили) и добавить `prefers-reduced-motion`.
 
 ## 3. Журнал сессий (дописывай сверху, новая запись первой)
+### 2026-11-07 (2): Claude Sonnet 5.5 (alley: screen, wallets)
+- `screen` (CCN 26) вынесен в новый чистый модуль `supabase/functions/alley/screen.ts` (импортируется из `index.ts` по относительному пути, из стаба по SHA это работает). Таблицы правил `ALWAYS` (hidden, injection, credential, secret-like, scam: для всех, в том числе trusted) и `UNTRUSTED` (payment), затем `linkVerdict` (`urlVerdict`, `badLink`, `isPlainHttps`) и `spamVerdict`. Регулярные выражения перенесены без изменений. Максимум сложности в модуле 6.
+- Проверка эквивалентности: дифференциальный прогон новой `screen` против дословной старой копии на 300 000 случайных текстов x 4 уровня доверия = 1,2 млн сравнений, 0 расхождений (все 11 кодов вердиктов встретились). Скрипт одноразовый, не в репозитории; в репозитории табличный тест `tests/alleyScreen.test.mjs` (13).
+- `wallets` (9) и `solanaFeePayer` (8): `lookupWallets`, `walletOf`, `lookupFeePayer`, `feePayerOf`, `isFresh`; поведение то же, включая случай «Solana-поиск упал после найденного EVM-адреса» (тест добавлен). В `alley/index.ts` максимум сложности теперь 8 (`identity`, `loadAgent`, `routeGet`).
+- Тесты alley 98/98 (старый и новый `index.ts` дают одинаковый результат), всего 389/389.
+
 ### 2026-11-07: Claude Sonnet 5.5 (ConnectModal.tsx, битые ссылки в доках)
 - `src/rp-hub/servers/ConnectModal.tsx` (CCN 21 -> 4): эффект модалки и копирование команды вынесены в хуки `useModalChrome` и `useCopyCommand` (код дословно тот же, порядок хуков тот же), разметка разбита на `Header`, `OneClickOption`, `ConsoleOption`, `LinkRow`, `Stats`, `FeatureChips`; строки статистики собирает `serverStats` (`playersNow`, `orDash`). Состояние «copied» теперь живёт в `ConsoleOption`, на поведение это не влияет.
 - Тесты: `tests/connectModal.test.mjs` (2) + золотой снимок серверного HTML 16 вариантов сервера `tests/fixtures/connectModal.golden.json` (обновлять только осознанно: `UPDATE_GOLDEN=1`). Зелёные на старом и новом коде. DOM-окружения (jsdom) в проекте нет, поэтому Esc, фокус и блокировка прокрутки не проверяются автоматически: их код перенесён без изменений.

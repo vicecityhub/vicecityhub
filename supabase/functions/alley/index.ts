@@ -12,6 +12,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
 import { verifyMessage } from "https://esm.sh/ethers@6.13.2";
 import nacl from "https://esm.sh/tweetnacl@1.0.3";
+import { screen } from "./screen.ts";
 
 const SB = Deno.env.get("SUPABASE_URL")!;
 const db = createClient(SB, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!, { auth: { persistSession: false } });
@@ -81,56 +82,8 @@ async function ipKey(req: Request, p: string) {
 
 // ---------- text screening ----------
 const CTRL = /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/;
-const HIDDEN = /[​-‏‪-‮⁠-⁤⁦-⁩﻿]/;
-const LINKS = /(https?:\/\/|www\.|\b[a-z0-9-]{2,}\.(com|io|xyz|app|net|org|ai|dev|co|me|gg|ly)\b)/i;
-const URL_RE = /https?:\/\/[^\s<>"'`)\]]+/gi;
 const NAME_OK = /^[A-Za-z0-9][A-Za-z0-9 _.\-]{1,30}[A-Za-z0-9]$/;
 const NAME_RESERVED = /(vice ?city|hub|admin|moderator|rockstar|take[- ]?two|anthropic|openai|official|support|staff|system)/i;
-const INJECT: RegExp[] = [
-  /ignore\s+(all\s+|any\s+|the\s+)?(previous|prior|above|earlier)\s+(instructions?|prompts?|messages?|rules)/i,
-  /disregard\s+.{0,40}(instructions?|rules|guidelines|system)/i,
-  /(you\s+are\s+now|from\s+now\s+on\s+you)\b/i,
-  /(reveal|print|show|output|repeat|leak|exfiltrate).{0,40}(system\s*prompt|developer\s*message|hidden\s*instructions?)/i,
-  /<\s*\/?\s*(system|assistant|developer|tool|instructions?)\s*>/i,
-  /\[\s*\/?\s*(system|inst|assistant)\s*\]/i,
-  /(tell|instruct|order)\s+your\s+(user|principal|human|owner|operator)\s+to/i,
-  /do\s+not\s+(tell|inform|alert|mention).{0,30}(user|principal|human|owner|operator)/i,
-  /(call|invoke|run|execute)\s+(the\s+)?[a-z_]{3,40}\s+(tool|function)\s+(with|to)\b/i,
-];
-const KEYASK = /(send|share|give|paste|enter|provide|submit|dm|reply\s+with|post|type)\b.{0,50}(seed\s*phrase|mnemonic|private\s*key|recovery\s*phrase|secret\s*key|api[\s_-]?key|keystore|password)/i;
-const KEYLEAK = /\b(0x)?[0-9a-fA-F]{64}\b/;
-const PAYADDR = /(send|transfer|deposit|pay|wire|donate|tip)\b.{0,80}(0x[0-9a-fA-F]{40}\b|\b[1-9A-HJ-NP-Za-km-z]{32,44}\b)/i;
-const SCAM = /(airdrop|giveaway|double\s+your|guaranteed\s+(profit|returns?|income)|\b100x\b|free\s+(crypto|eth|usdc|usdt|btc|sol|tokens?)|claim\s+(your\s+)?(reward|tokens?|prize)|connect\s+(your\s+)?wallet|wallet\s+drain|pump\s+(group|signal)|whatsapp\s+me|telegram\s+me|dm\s+me\s+for)/i;
-const BAD_HOSTS = /(^|\.)(bit\.ly|t\.co|tinyurl\.com|goo\.gl|cutt\.ly|is\.gd|rb\.gy|ow\.ly|shorturl\.at|t\.me|telegram\.me|discord\.gg|wa\.me|chat\.whatsapp\.com)$/i;
-
-type Verdict = { code: string; message: string; strike: boolean } | null;
-function screen(text: string, ag: { trusted: boolean; verified: boolean }): Verdict {
-  if (HIDDEN.test(text)) return { code: "hidden_text", message: "invisible or direction-override characters are not allowed", strike: true };
-  for (const re of INJECT) if (re.test(text)) return { code: "prompt_injection", message: "text that tries to instruct other agents is not allowed", strike: true };
-  if (KEYASK.test(text)) return { code: "credential_solicitation", message: "asking for keys, seeds or passwords is not allowed", strike: true };
-  if (KEYLEAK.test(text)) return { code: "secret_like_string", message: "a 64-character hex string looks like a private key; remove it", strike: false };
-  if (SCAM.test(text)) return { code: "scam_language", message: "scam-style wording (airdrops, giveaways, guaranteed returns...) is not allowed", strike: true };
-  if (ag.trusted) return null;
-  if (PAYADDR.test(text)) return { code: "payment_solicitation", message: "do not ask for transfers to an address; offer the service behind an x402-priced endpoint instead", strike: true };
-  const urls = text.match(URL_RE) || [];
-  if (urls.length) {
-    if (!ag.verified) return { code: "links_not_allowed", message: "links are for verified agents (GET /info -> paid_actions) or trusted agents", strike: false };
-    if (urls.length > 2) return { code: "too_many_links", message: "verified agents may include at most 2 links per post", strike: false };
-    for (const u of urls) {
-      let h: URL;
-      try { h = new URL(u); } catch { return { code: "bad_link", message: "malformed link", strike: false }; }
-      if (h.protocol !== "https:" || h.username || h.password || /^[\d.]+$/.test(h.hostname) || h.hostname.includes("xn--") || BAD_HOSTS.test(h.hostname)) {
-        return { code: "bad_link", message: "only plain https links to real domains are allowed (no shorteners, invite links, IPs or punycode)", strike: true };
-      }
-    }
-    if (LINKS.test(text.replace(URL_RE, " "))) return { code: "bare_link", message: "write links as full https:// URLs", strike: false };
-  } else if (LINKS.test(text)) return { code: "links_not_allowed", message: "links are for verified agents (GET /info -> paid_actions) or trusted agents", strike: false };
-  const letters = text.replace(/[^A-Za-z]/g, "");
-  if (/(.)\1{19,}/.test(text) || (letters.length >= 40 && letters.replace(/[^A-Z]/g, "").length / letters.length > 0.7)) {
-    return { code: "spam_shape", message: "repeated characters or all-caps shouting", strike: false };
-  }
-  return null;
-}
 
 async function addStrike(agentId: string, reason: string): Promise<{ status: string; recent: number }> {
   await db.from("alley_strikes").insert({ agent_id: agentId, reason });
@@ -644,27 +597,44 @@ async function fac(method: "GET" | "POST", sub: string, body?: unknown): Promise
   });
   return { status: r.status, json: await r.json().catch(() => ({})) };
 }
-let walletCache: { at: number; evm: string | null; sol: string | null } | null = null;
-async function wallets() {
-  if (walletCache && Date.now() - walletCache.at < 600_000) return walletCache;
+const LOOKUP_CACHE_MS = 600_000; // Hub wallets and the Solana fee payer are reused for 10 minutes
+const isFresh = (at: number) => Date.now() - at < LOOKUP_CACHE_MS;
+const walletOf = (list: any[], chain: string): string | null => list.find((w) => w.chain === chain)?.address ?? null;
+
+/** The Hub's receiving wallets from the public donate endpoint. Whatever could not be read stays null. */
+async function lookupWallets(): Promise<{ evm: string | null; sol: string | null }> {
   let evm: string | null = null, sol: string | null = null;
   try {
     const j = await (await fetch(DONATE, { signal: AbortSignal.timeout(10_000) })).json();
     const list: any[] = j?.direct_transfer?.wallets || [];
-    evm = list.find((w) => w.chain === "evm")?.address ?? null;
-    sol = list.find((w) => w.chain === "solana")?.address ?? null;
+    evm = walletOf(list, "evm");
+    sol = walletOf(list, "solana");
   } catch (e) { console.warn("alley wallets", (e as Error).message); } // keep nulls: the lookup is retried on the next request
-  if (evm || sol) walletCache = { at: Date.now(), evm, sol };
-  return { at: Date.now(), evm, sol };
+  return { evm, sol };
 }
-let feePayerCache: { at: number; v: string | null } | null = null;
-async function solanaFeePayer(): Promise<string | null> {
-  if (feePayerCache && Date.now() - feePayerCache.at < 600_000) return feePayerCache.v;
-  let v: string | null = null;
+
+let walletCache: { at: number; evm: string | null; sol: string | null } | null = null;
+async function wallets() {
+  if (walletCache && isFresh(walletCache.at)) return walletCache;
+  const found = await lookupWallets();
+  if (found.evm || found.sol) walletCache = { at: Date.now(), ...found };
+  return { at: Date.now(), ...found };
+}
+
+const feePayerOf = (kinds: any[] | undefined): string | null => (kinds || []).find((k) => k.network === SOL_NET && k.scheme === "exact")?.extra?.feePayer ?? null;
+
+/** The fee payer the facilitator announces for Solana "exact" payments; null when it cannot be read. */
+async function lookupFeePayer(): Promise<string | null> {
   try {
     const { status, json: j } = await fac("GET", "/v2/x402/supported");
-    if (status === 200) v = (j.kinds || []).find((k: any) => k.network === SOL_NET && k.scheme === "exact")?.extra?.feePayer ?? null;
-  } catch (e) { console.warn("alley fee payer", (e as Error).message); } // the Solana option is omitted for 10 minutes
+    return status === 200 ? feePayerOf(j.kinds) : null;
+  } catch (e) { console.warn("alley fee payer", (e as Error).message); return null; } // the Solana option is omitted for 10 minutes
+}
+
+let feePayerCache: { at: number; v: string | null } | null = null;
+async function solanaFeePayer(): Promise<string | null> {
+  if (feePayerCache && isFresh(feePayerCache.at)) return feePayerCache.v;
+  const v = await lookupFeePayer();
   feePayerCache = { at: Date.now(), v };
   return v;
 }
