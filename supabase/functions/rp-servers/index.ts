@@ -141,23 +141,38 @@ async function health(): Promise<Response> {
   return json({ ok: true, listed: a.count ?? 0, live: b.count ?? 0, last_checked_at: c.data?.[0]?.last_checked_at ?? null, last_sync_at: lock("rp-sync"), last_enrich_at: lock("rp-enrich") }, 200, { "Cache-Control": "public, max-age=30" });
 }
 
-Deno.serve(async (req) => {
+async function lookup(req: Request, url: URL): Promise<Response> {
+  const code = (url.searchParams.get("code") || "").trim().toLowerCase();
+  if (!isCode(code)) return json({ ok: false, code, reasons: ["That is not a Cfx.re join code."] }, 422);
+  if (!(await rate(`rplook:${await ipHash(req)}`, 20, 3600))) return json({ ok: false, error: "rate_limited" }, 429);
+  return json(await lookupCode(code));
+}
+
+const INDEX = { name: "Vice City Hub RP servers API", routes: ["GET /sync", "GET /enrich", "GET /lookup?code=", "POST /submit", "GET /health"], docs: "docs/RP-SERVERS.md" };
+
+/** "METHOD /path" -> handler. */
+const ROUTES: Record<string, (req: Request, url: URL) => Promise<Response> | Response> = {
+  "GET /sync": () => sync(),
+  "GET /enrich": () => enrich(),
+  "GET /health": () => health(),
+  "GET /lookup": lookup,
+  "POST /submit": (req) => handleSubmit(req),
+  "GET /": () => json(INDEX),
+};
+
+const pathOf = (url: URL): string => url.pathname.replace(/^\/rp-servers/, "").replace(/\/+$/, "") || "/";
+
+async function route(req: Request): Promise<Response> {
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: CORS });
   const url = new URL(req.url);
-  const path = url.pathname.replace(/^\/rp-servers/, "").replace(/\/+$/, "") || "/";
+  const key = `${req.method} ${pathOf(url)}`;
+  const handler = Object.hasOwn(ROUTES, key) ? ROUTES[key] : undefined;
+  return handler ? await handler(req, url) : json({ error: "not_found" }, 404);
+}
+
+Deno.serve(async (req) => {
   try {
-    if (req.method === "GET" && path === "/sync") return await sync();
-    if (req.method === "GET" && path === "/enrich") return await enrich();
-    if (req.method === "GET" && path === "/health") return await health();
-    if (req.method === "GET" && path === "/lookup") {
-      const code = (url.searchParams.get("code") || "").trim().toLowerCase();
-      if (!isCode(code)) return json({ ok: false, code, reasons: ["That is not a Cfx.re join code."] }, 422);
-      if (!(await rate(`rplook:${await ipHash(req)}`, 20, 3600))) return json({ ok: false, error: "rate_limited" }, 429);
-      return json(await lookupCode(code));
-    }
-    if (req.method === "POST" && path === "/submit") return await handleSubmit(req);
-    if (req.method === "GET" && path === "/") return json({ name: "Vice City Hub RP servers API", routes: ["GET /sync", "GET /enrich", "GET /lookup?code=", "POST /submit", "GET /health"], docs: "docs/RP-SERVERS.md" });
-    return json({ error: "not_found" }, 404);
+    return await route(req);
   } catch (e) {
     console.error("rp-servers", (e as Error).message);
     return json({ error: "internal_error" }, 500);
