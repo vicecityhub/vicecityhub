@@ -131,26 +131,47 @@ async function allocateCryptoTag(totalUsd: number): Promise<{ tag: number; amoun
   return { tag, amount_due: fmtUnits(dueUnits(totalUsd, tag)) };
 }
 
-function nextAction(o: any) {
-  const id = o.public_id;
-  if (o.status === "awaiting_payment" && o.payment_rail === "paypal")
-    return { type: "approve_paypal", url: o.payment?.approve_url, then: `POST ${API}/v1/orders/${id}/capture` };
-  if (o.status === "awaiting_payment" && o.payment_rail === "crypto")
-    return {
-      type: "send_stablecoin",
-      amount_due: dueAmount(o),
-      exact_amount_required: true,
-      auto_detect: true,
-      note: "Send EXACTLY amount_due (the last 4 digits are a unique order tag). The transfer is detected and verified automatically; any other amount is never auto-accepted.",
-      options: CRYPTO_WALLETS.map((w: any) => (w.chain === "evm" ? { ...w, networks: Object.keys(EVM_NETWORKS) } : w)),
-      then: `Nothing else is required: payment is detected automatically (usually 1-5 min, depending on chain confirmations). Optional shortcut: POST ${API}/v1/orders/${id}/payment-proof {chain, tx_hash, network?}. Poll GET ${API}/v1/orders/${id}/status until paid/fulfilling.`,
-    };
-  if (o.status === "payment_review" && o.payment?.proof?.verification === "pending_confirmations")
-    return { type: "poll_verify", detail: o.payment.proof.detail || null, then: `POST ${API}/v1/orders/${id}/verify (retry in ~60s)` };
-  if (o.status === "payment_review") return { type: "wait", note: "Payment submitted; the operator verifies it manually (usually within 24h)." };
-  if (o.status === "paid" || o.status === "fulfilling") return { type: "wait", note: "Paid. Fulfillment in progress; poll the status endpoint." };
-  if (o.status === "completed" && (o.items || []).every((i: any) => i.kind === "donation")) return { type: "none", note: "Donation received and verified on-chain. Thank you. The receipt is in fulfillment.receipt." };
+const cryptoAction = (o: any) => ({
+  type: "send_stablecoin",
+  amount_due: dueAmount(o),
+  exact_amount_required: true,
+  auto_detect: true,
+  note: "Send EXACTLY amount_due (the last 4 digits are a unique order tag). The transfer is detected and verified automatically; any other amount is never auto-accepted.",
+  options: CRYPTO_WALLETS.map((w: any) => (w.chain === "evm" ? { ...w, networks: Object.keys(EVM_NETWORKS) } : w)),
+  then: `Nothing else is required: payment is detected automatically (usually 1-5 min, depending on chain confirmations). Optional shortcut: POST ${API}/v1/orders/${o.public_id}/payment-proof {chain, tx_hash, network?}. Poll GET ${API}/v1/orders/${o.public_id}/status until paid/fulfilling.`,
+});
+
+function awaitingPaymentAction(o: any) {
+  if (o.payment_rail === "paypal") return { type: "approve_paypal", url: o.payment?.approve_url, then: `POST ${API}/v1/orders/${o.public_id}/capture` };
+  if (o.payment_rail === "crypto") return cryptoAction(o);
   return { type: "none" };
+}
+
+function paymentReviewAction(o: any) {
+  if (o.payment?.proof?.verification === "pending_confirmations")
+    return { type: "poll_verify", detail: o.payment.proof.detail || null, then: `POST ${API}/v1/orders/${o.public_id}/verify (retry in ~60s)` };
+  return { type: "wait", note: "Payment submitted; the operator verifies it manually (usually within 24h)." };
+}
+
+const PAID_ACTION = { type: "wait", note: "Paid. Fulfillment in progress; poll the status endpoint." };
+
+function completedAction(o: any) {
+  if ((o.items || []).every((i: any) => i.kind === "donation")) return { type: "none", note: "Donation received and verified on-chain. Thank you. The receipt is in fulfillment.receipt." };
+  return { type: "none" };
+}
+
+/** What the agent should do next, by order status. */
+const NEXT_ACTIONS: Record<string, (o: any) => any> = {
+  awaiting_payment: awaitingPaymentAction,
+  payment_review: paymentReviewAction,
+  paid: () => PAID_ACTION,
+  fulfilling: () => PAID_ACTION,
+  completed: completedAction,
+};
+
+function nextAction(o: any) {
+  const rule = Object.hasOwn(NEXT_ACTIONS, o.status) ? NEXT_ACTIONS[o.status] : undefined;
+  return rule ? rule(o) : { type: "none" };
 }
 
 export function view(o: any, full = false) {
@@ -191,35 +212,61 @@ async function ownOrder(key: Key, publicId: string) {
 }
 
 // ───────────── Pricing / validation ─────────────
-async function priceItems(key: Key, input: any) {
+const invalidItems = (msg: string) => ({ error: fail(422, "invalid_items", msg) });
+
+/** Why a SKU could not be resolved; unknown reasons yield undefined, as before. */
+const LINE_FAILURES: Record<string, (sku: string) => R> = {
+  unknown_sku: (sku) => fail(404, "unknown_sku", `SKU not found: ${sku}`, "List SKUs with GET /v1/catalog."),
+  out_of_stock: (sku) => fail(409, "out_of_stock", `Out of stock: ${sku}`),
+  use_variant_sku: () => fail(422, "use_variant_sku", "Merch products are ordered by variant.", "Use a `merchv:<id>` SKU from the product's `variants` array."),
+  intent_only: (sku) => fail(422, "not_orderable", `${sku} is a peer listing without on-site checkout.`, "Use POST /v1/intents to contact the seller."),
+  no_price: (sku) => fail(409, "no_price", `${sku} has no price right now.`),
+};
+
+function lineFailure(sku: string, reason: string | undefined): R {
+  const key = reason || "unknown_sku";
+  return (Object.hasOwn(LINE_FAILURES, key) ? LINE_FAILURES[key] : undefined)?.(sku) as R;
+}
+
+/** One raw item as {sku, quantity}, or null when it is malformed. */
+function parseItem(it: any): { sku: string; q: number } | null {
+  const sku = typeof it?.sku === "string" ? it.sku.trim() : "";
+  const q = it?.quantity === undefined ? 1 : Number(it.quantity);
+  return sku && Number.isInteger(q) && q >= 1 && q <= 10 ? { sku, q } : null;
+}
+
+/** Validates the raw `items` and merges duplicate SKUs; quantities add up. */
+function mergeItems(input: any): { merged: Map<string, number> } | { error: R } {
   if (!Array.isArray(input) || input.length < 1 || input.length > 10)
-    return { error: fail(422, "invalid_items", "`items` must be an array of 1-10 {sku, quantity} objects.") };
+    return invalidItems("`items` must be an array of 1-10 {sku, quantity} objects.");
   const merged = new Map<string, number>();
   for (const it of input) {
-    const sku = typeof it?.sku === "string" ? it.sku.trim() : "";
-    const q = it?.quantity === undefined ? 1 : Number(it.quantity);
-    if (!sku || !Number.isInteger(q) || q < 1 || q > 10)
-      return { error: fail(422, "invalid_items", "Each item needs a string `sku` and an integer `quantity` between 1 and 10.") };
-    merged.set(sku, (merged.get(sku) || 0) + q);
+    const p = parseItem(it);
+    if (!p) return invalidItems("Each item needs a string `sku` and an integer `quantity` between 1 and 10.");
+    merged.set(p.sku, (merged.get(p.sku) || 0) + p.q);
   }
+  return { merged };
+}
+
+/** Key and quantity rules for one resolved line. */
+function lineRuleError(key: Key, line: any, qty: number): R | null {
+  if (!key.allowed_kinds.includes(line.kind)) return fail(403, "kind_not_allowed", `This API key may not buy '${line.kind}' items.`);
+  if ((line.kind === "domain" || line.kind === "plan") && qty !== 1) return fail(422, "invalid_items", `${line.kind} items are quantity 1 only.`);
+  return null;
+}
+
+async function priceItems(key: Key, input: any) {
+  const m = mergeItems(input);
+  if ("error" in m) return m;
   const lines: any[] = [];
   let rails: string[] | null = null;
   const requires = new Set<string>();
   let total = 0;
-  for (const [sku, qty] of merged) {
+  for (const [sku, qty] of m.merged) {
     const { line, reason } = await resolveLine(sku);
-    if (!line) {
-      const map: Record<string, R> = {
-        unknown_sku: fail(404, "unknown_sku", `SKU not found: ${sku}`, "List SKUs with GET /v1/catalog."),
-        out_of_stock: fail(409, "out_of_stock", `Out of stock: ${sku}`),
-        use_variant_sku: fail(422, "use_variant_sku", "Merch products are ordered by variant.", "Use a `merchv:<id>` SKU from the product's `variants` array."),
-        intent_only: fail(422, "not_orderable", `${sku} is a peer listing without on-site checkout.`, "Use POST /v1/intents to contact the seller."),
-        no_price: fail(409, "no_price", `${sku} has no price right now.`),
-      };
-      return { error: map[reason || "unknown_sku"] };
-    }
-    if (!key.allowed_kinds.includes(line.kind)) return { error: fail(403, "kind_not_allowed", `This API key may not buy '${line.kind}' items.`) };
-    if ((line.kind === "domain" || line.kind === "plan") && qty !== 1) return { error: fail(422, "invalid_items", `${line.kind} items are quantity 1 only.`) };
+    if (!line) return { error: lineFailure(sku, reason) };
+    const bad = lineRuleError(key, line, qty);
+    if (bad) return { error: bad };
     rails = rails ? rails.filter((r) => line.rails.includes(r)) : [...line.rails];
     line.requires.forEach((r) => requires.add(r));
     const lineUsd = round2(line.unit_usd * qty);

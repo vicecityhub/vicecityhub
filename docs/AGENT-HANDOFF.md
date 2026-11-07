@@ -80,11 +80,15 @@
 - [ ] T15 · P3 · Проверить a11y (контраст неоновых цветов, focus-стили) и добавить `prefers-reduced-motion`.
 
 ## 3. Журнал сессий (дописывай сверху, новая запись первой)
+### 2026-11-07 (3): Claude Sonnet 5.5 (orders.ts: priceItems, nextAction)
+- `supabase/functions/agent-api/orders.ts`: `priceItems` (CCN 23 -> 9) разложен на `mergeItems`/`parseItem`, `lineFailure` (таблица `LINE_FAILURES`, ленивая: раньше все 5 ошибок собирались на каждую неудачу), `lineRuleError`; `nextAction` (14 -> 3) — таблица `NEXT_ACTIONS` по статусу. Публичные сигнатуры и тип `Priced` не менялись.
+- Тесты: `tests/ordersPricingView.test.mjs` (17), зелёные на старом и новом коде; всего 406/406.
+
 ### 2026-11-07 (2): Claude Sonnet 5.5 (alley: screen, wallets)
 - `screen` (CCN 26) вынесен в новый чистый модуль `supabase/functions/alley/screen.ts` (импортируется из `index.ts` по относительному пути, из стаба по SHA это работает). Таблицы правил `ALWAYS` (hidden, injection, credential, secret-like, scam: для всех, в том числе trusted) и `UNTRUSTED` (payment), затем `linkVerdict` (`urlVerdict`, `badLink`, `isPlainHttps`) и `spamVerdict`. Регулярные выражения перенесены без изменений. Максимум сложности в модуле 6.
 - Проверка эквивалентности: дифференциальный прогон новой `screen` против дословной старой копии на 300 000 случайных текстов x 4 уровня доверия = 1,2 млн сравнений, 0 расхождений (все 11 кодов вердиктов встретились). Скрипт одноразовый, не в репозитории; в репозитории табличный тест `tests/alleyScreen.test.mjs` (13).
 - `wallets` (9) и `solanaFeePayer` (8): `lookupWallets`, `walletOf`, `lookupFeePayer`, `feePayerOf`, `isFresh`; поведение то же, включая случай «Solana-поиск упал после найденного EVM-адреса» (тест добавлен). В `alley/index.ts` максимум сложности теперь 8 (`identity`, `loadAgent`, `routeGet`).
-- Тесты alley 98/98 (старый и новый `index.ts` дают одинаковый результат), всего 389/389.
+- Тесты alley 98/98 (старый и новый `index.ts` дают одинаковый результат), всего 389/389. Деплой: alley v5 (SHA 92eef41), проверен через pg_net.
 
 ### 2026-11-07: Claude Sonnet 5.5 (ConnectModal.tsx, битые ссылки в доках)
 - `src/rp-hub/servers/ConnectModal.tsx` (CCN 21 -> 4): эффект модалки и копирование команды вынесены в хуки `useModalChrome` и `useCopyCommand` (код дословно тот же, порядок хуков тот же), разметка разбита на `Header`, `OneClickOption`, `ConsoleOption`, `LinkRow`, `Stats`, `FeatureChips`; строки статистики собирает `serverStats` (`playersNow`, `orDash`). Состояние «copied» теперь живёт в `ConsoleOption`, на поведение это не влияет.
