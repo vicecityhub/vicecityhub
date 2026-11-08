@@ -82,7 +82,7 @@
 ## 3. Журнал сессий (дописывай сверху, новая запись первой)
 ### 2026-11-08: Claude Sonnet 5.5 (orders.ts: ppCreate, printfulDraft)
 - `ppCreate` (CCN 10 -> 3) и `printfulDraft` (11 -> 5): тела запросов вынесены в чистые `ppOrderBody`/`ppShipping` и `pfRecipient`/`pfItems`; порядок проверок (нет позиций -> нет токена -> поиск существующего) прежний.
-- Тесты: в `ordersCreate` и `ordersLifecycle` добавлены проверки полного тела и заголовков запросов PayPal и Printful (зелёные на старом коде); всего 414/414.
+- Тесты: в `ordersCreate` и `ordersLifecycle` добавлены проверки полного тела и заголовков запросов PayPal и Printful (зелёные на старом коде); всего 414/414.  Деплой: agent-api v29 (SHA 678b628), проверен через pg_net (donate 200, catalog 200, quotes без ключа 401).
 
 ### 2026-11-07 (4): Claude Sonnet 5.5 (rp-servers: роутер)
 - `supabase/functions/rp-servers/index.ts`: `Deno.serve` (CCN 19) разложен на таблицу `ROUTES` («METHOD /path» -> обработчик), `route`, `pathOf`, `lookup`; поведение то же (OPTIONS 204, 404 для чужих методов и путей, 500 `internal_error` на исключение).
