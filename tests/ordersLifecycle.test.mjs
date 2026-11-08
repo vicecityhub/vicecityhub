@@ -253,7 +253,9 @@ test('capture: clean payment on a merch order starts fulfilment and records capt
   assert.ok(Date.parse(u.payment.captured_at));
   assert.match(S.notified[0], /VCH agent order PAID\*\*\nVCH-1 — \$25\nItems: 2× Tee\nFulfilment started\.$/);
   const pf = S.fetches.find(([x]) => x.includes('api.printful.com/orders?'));
-  assert.equal(JSON.parse(pf[1].body).items[0].sync_variant_id, 77);
+  assert.equal(pf[0], 'https://api.printful.com/orders?store_id=18377240&confirm=1');
+  assert.deepEqual(JSON.parse(pf[1].body), {"external_id":"VCH-1","shipping":"STANDARD","recipient":{"name":"A B","address1":"1 Main","city":"Vice City","country_code":"US","zip":"33101"},"items":[{"sync_variant_id":77,"quantity":2}]});
+  assert.deepEqual(pf[1].headers, {"Authorization":"Bearer pf","Content-Type":"application/json","X-PF-Store-Id":"18377240"});
 });
 
 test('capture: Printful failure keeps the order paid and reports the error', async () => {

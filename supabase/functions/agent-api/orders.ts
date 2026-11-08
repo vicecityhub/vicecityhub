@@ -26,34 +26,38 @@ async function ppToken(): Promise<string> {
   return d.access_token;
 }
 
-async function ppCreate(o: any, hasMerch: boolean) {
-  const s = o.shipping;
-  const body: any = {
+/** The PayPal shipping block (merch orders only). */
+const ppShipping = (s: any) => ({
+  name: { full_name: s.name },
+  address: { address_line_1: s.address1, address_line_2: s.address2 || undefined, admin_area_2: s.city, admin_area_1: s.state_code || undefined, postal_code: s.zip, country_code: s.country_code },
+});
+
+function ppOrderBody(o: any, shipTo: any | null) {
+  return {
     intent: "CAPTURE",
     purchase_units: [{
       reference_id: o.public_id,
       custom_id: o.public_id,
       description: `Vice City Hub order ${o.public_id}`,
       amount: { currency_code: "USD", value: Number(o.total_usd).toFixed(2) },
-      ...(hasMerch && s ? {
-        shipping: {
-          name: { full_name: s.name },
-          address: { address_line_1: s.address1, address_line_2: s.address2 || undefined, admin_area_2: s.city, admin_area_1: s.state_code || undefined, postal_code: s.zip, country_code: s.country_code },
-        },
-      } : {}),
+      ...(shipTo ? { shipping: ppShipping(shipTo) } : {}),
     }],
     payment_source: {
       paypal: {
         experience_context: {
           brand_name: "Vice City Hub",
           user_action: "PAY_NOW",
-          shipping_preference: hasMerch && s ? "SET_PROVIDED_ADDRESS" : "NO_SHIPPING",
+          shipping_preference: shipTo ? "SET_PROVIDED_ADDRESS" : "NO_SHIPPING",
           return_url: `${SITE}/agents.html?order=${o.public_id}&pp=return`,
           cancel_url: `${SITE}/agents.html?order=${o.public_id}&pp=cancel`,
         },
       },
     },
   };
+}
+
+async function ppCreate(o: any, hasMerch: boolean) {
+  const body = ppOrderBody(o, hasMerch && o.shipping ? o.shipping : null);
   const token = await ppToken();
   const r = await fetch(`${PAYPAL}/v2/checkout/orders`, {
     method: "POST",
@@ -77,23 +81,20 @@ async function printfulFind(publicId: string): Promise<number | null> {
   } catch { return null; }
 }
 
+const pfRecipient = (s: any) => ({ name: s.name, address1: s.address1, address2: s.address2 || undefined, city: s.city, state_code: s.state_code || undefined, country_code: s.country_code, zip: s.zip, email: s.email || undefined, phone: s.phone || undefined });
+const pfItems = (o: any) => o.items.filter((i: any) => i.kind === "merch").map((i: any) => ({ sync_variant_id: Number(i.extra?.sync_variant_id), quantity: i.quantity }));
+
 async function printfulDraft(o: any) {
-  const items = o.items.filter((i: any) => i.kind === "merch").map((i: any) => ({ sync_variant_id: Number(i.extra?.sync_variant_id), quantity: i.quantity }));
+  const items = pfItems(o);
   if (!items.length) return null;
   const t = Deno.env.get("PRINTFUL_API_TOKEN");
   if (!t) throw new Error("PRINTFUL_API_TOKEN missing");
   const existing = await printfulFind(o.public_id);
   if (existing) return existing;
-  const s = o.shipping;
   const r = await fetch(`https://api.printful.com/orders?store_id=${PF_STORE}${PF_AUTO ? "&confirm=1" : ""}`, {
     method: "POST",
     headers: { Authorization: `Bearer ${t}`, "Content-Type": "application/json", "X-PF-Store-Id": String(PF_STORE) },
-    body: JSON.stringify({
-      external_id: o.public_id,
-      shipping: "STANDARD",
-      recipient: { name: s.name, address1: s.address1, address2: s.address2 || undefined, city: s.city, state_code: s.state_code || undefined, country_code: s.country_code, zip: s.zip, email: s.email || undefined, phone: s.phone || undefined },
-      items,
-    }),
+    body: JSON.stringify({ external_id: o.public_id, shipping: "STANDARD", recipient: pfRecipient(o.shipping), items }),
   });
   const d = await r.json();
   if (!r.ok) throw new Error(`Printful: ${d?.error?.message || r.status}`);

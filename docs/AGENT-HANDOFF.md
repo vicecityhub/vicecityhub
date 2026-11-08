@@ -80,6 +80,10 @@
 - [ ] T15 · P3 · Проверить a11y (контраст неоновых цветов, focus-стили) и добавить `prefers-reduced-motion`.
 
 ## 3. Журнал сессий (дописывай сверху, новая запись первой)
+### 2026-11-08: Claude Sonnet 5.5 (orders.ts: ppCreate, printfulDraft)
+- `ppCreate` (CCN 10 -> 3) и `printfulDraft` (11 -> 5): тела запросов вынесены в чистые `ppOrderBody`/`ppShipping` и `pfRecipient`/`pfItems`; порядок проверок (нет позиций -> нет токена -> поиск существующего) прежний.
+- Тесты: в `ordersCreate` и `ordersLifecycle` добавлены проверки полного тела и заголовков запросов PayPal и Printful (зелёные на старом коде); всего 414/414.
+
 ### 2026-11-07 (4): Claude Sonnet 5.5 (rp-servers: роутер)
 - `supabase/functions/rp-servers/index.ts`: `Deno.serve` (CCN 19) разложен на таблицу `ROUTES` («METHOD /path» -> обработчик), `route`, `pathOf`, `lookup`; поведение то же (OPTIONS 204, 404 для чужих методов и путей, 500 `internal_error` на исключение).
 - Тесты: `tests/rpServersRoutes.test.mjs` (8), зелёные на старом и новом коде; всего 414/414. Деплой: agent-api v28 (SHA 33ac008, orders.ts), rp-servers v4 (роутер); оба проверены через pg_net (health, lookup 422, index, 404, donate, openapi).

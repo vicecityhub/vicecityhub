@@ -200,6 +200,8 @@ test('paypal: creates the PayPal order (shipping only for merch) and stores the 
     assert.equal(r.body.payment.approve_url, 'https://pay/x');
     assert.equal(S.updates[0].payment.paypal_order_id, 'PP1');
     const sent = JSON.parse(calls[1].init.body);
+    assert.deepEqual(sent, {"intent":"CAPTURE","purchase_units":[{"reference_id":"VCH-1","custom_id":"VCH-1","description":"Vice City Hub order VCH-1","amount":{"currency_code":"USD","value":"35.00"},"shipping":{"name":{"full_name":"A B"},"address":{"address_line_1":"1 Main","admin_area_2":"Vice City","admin_area_1":"FL","postal_code":"33101","country_code":"US"}}}],"payment_source":{"paypal":{"experience_context":{"brand_name":"Vice City Hub","user_action":"PAY_NOW","shipping_preference":"SET_PROVIDED_ADDRESS","return_url":"https://vicecityhub.github.io/vicecityhub/agents.html?order=VCH-1&pp=return","cancel_url":"https://vicecityhub.github.io/vicecityhub/agents.html?order=VCH-1&pp=cancel"}}}});
+    assert.deepEqual(calls[1].init.headers, {"Authorization":"Bearer T","Content-Type":"application/json","PayPal-Request-Id":"VCH-1"});
     assert.equal(sent.purchase_units[0].amount.value, '35.00');
     assert.equal(sent.purchase_units[0].shipping.name.full_name, 'A B');
     assert.equal(sent.payment_source.paypal.experience_context.shipping_preference, 'SET_PROVIDED_ADDRESS');
