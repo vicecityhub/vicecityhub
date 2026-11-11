@@ -1,5 +1,6 @@
 import React from 'react';
 import { useCountdown } from './useCountdown';
+import { StreamBanner } from './StreamBanner';
 
 const UNITS = [
   { key: 'days', label: 'Days' },
@@ -12,7 +13,7 @@ interface HeroSectionProps {
   onOpenModal: (id: string, tab?: 'login' | 'register') => void;
 }
 
-/** Hero banner with the release countdown and the two call-to-action buttons. */
+/** Hero banner: headline, stream trailer banner, release countdown and the two call-to-action buttons. */
 export function HeroSection({ onOpenModal }: HeroSectionProps) {
   const timeLeft = useCountdown();
 
@@ -37,6 +38,12 @@ export function HeroSection({ onOpenModal }: HeroSectionProps) {
           The definitive hub for everything Grand Theft Auto VI. Real news, interactive cartography, syndicate forum posts, Web3 domain listings, and live investor analytics. Zero fluff.
         </p>
 
+      </div>
+
+      {/* STREAM TRAILER: full-width banner, sits right above the countdown */}
+      <StreamBanner />
+
+      <div className="relative z-10 flex flex-col items-center max-w-4xl">
         {/* COUNTDOWN TIMER */}
         <div className="countdown mt-6 lg:mt-7" id="countdown">
           {UNITS.map(u => (
