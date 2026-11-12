@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { supa } from '../lib/SupabaseClient';
+import { HubQueryAnalyticsPanel } from '../components/HubQueryAnalyticsPanel';
 import { agentApi, ApiError, API, SITE, type CatalogItem, type OwnerKey } from '../lib/agentApi';
 
 /* ───────────────────────── helpers ───────────────────────── */
@@ -411,7 +412,7 @@ export default function Agents() {
         </p>
         <StatusStrip />
         <nav className="flex flex-wrap justify-center gap-4 mt-8 text-[11px] uppercase tracking-widest font-bold">
-          {[['connect', 'Connect'], ['mandates', 'Mandates'], ['catalog', 'Catalog'], ['track', 'Track order'], ['rules', 'Rules']].map(([h, l]) => (
+          {[['connect', 'Connect'], ['mandates', 'Mandates'], ['catalog', 'Catalog'], ['track', 'Track order'], ['ai-analytics', 'AI Analytics'], ['rules', 'Rules']].map(([h, l]) => (
             <a key={h} href={`#${h}`} className="text-gray-400 hover:text-neonCyan transition-colors">{l}</a>
           ))}
         </nav>
@@ -421,6 +422,10 @@ export default function Agents() {
       <Section id="mandates" kicker="Step 2" title="Hand it a budget"><MandateConsole /></Section>
       <Section id="catalog" kicker="Step 3" title="What the bots can buy"><CatalogBrowser /></Section>
       <Section id="track" kicker="Step 4" title="Track an order"><OrderTracker /></Section>
+      <Section id="ai-analytics" kicker="Live Intelligence" title="AI query & pain-point analytics">
+        <HubQueryAnalyticsPanel />
+      </Section>
+
       <Section id="rules" kicker="Fine print" title="House rules">
         <div className="grid md:grid-cols-2 gap-4">
           {RULES.map(([t, d]) => (

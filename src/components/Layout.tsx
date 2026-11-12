@@ -7,6 +7,7 @@ import { KofiModal } from './layout/KofiModal';
 import { SiteFooter } from './layout/SiteFooter';
 import { SiteHeader } from './layout/SiteHeader';
 import { SitemapModal } from './layout/SitemapModal';
+import { HubAIWidget } from './HubAIWidget';
 import { Toasts } from './layout/Toasts';
 import { useAccountArea } from './layout/useAccountArea';
 import { useModalEvents } from './layout/useModalEvents';
@@ -70,6 +71,8 @@ export default function Layout({ children, activePage }: LayoutProps) {
       <BottomTabs activePage={activePage} />
 
       <SiteFooter onOpenKofi={shell.openKofi} />
+
+      <HubAIWidget activePage={activePage} />
 
       {shell.kofiOpen && <KofiModal onClose={shell.closeKofi} />}
       {auth.open && <AuthModal auth={auth} />}
