@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom/client';
 import { supa } from './lib/SupabaseClient';
+import { HubAIWidget } from './components/HubAIWidget';
 import './index.css';
 
 /*
@@ -105,6 +106,7 @@ function ResetPasswordPage() {
           </div>
         )}
       </div>
+      <HubAIWidget activePage="reset-password" />
     </div>
   );
 }

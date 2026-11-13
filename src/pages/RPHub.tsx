@@ -9,6 +9,7 @@ import CommunityTab  from '../rp-hub/components/CommunityTab'
 import RpHeader from '../rp-hub/components/RpHeader'
 import RpHero from '../rp-hub/components/RpHero'
 import RpFooter from '../rp-hub/components/RpFooter'
+import { HubAIWidget } from '../components/HubAIWidget'
 import { useRadio } from '../components/layout/useRadio'
 import { tabBodyStyle } from '../lib/rpTabs'
 
@@ -40,6 +41,7 @@ export default function RPHub() {
       </div>
 
       <RpFooter />
+      <HubAIWidget activePage="rp" />
     </div>
   )
 }

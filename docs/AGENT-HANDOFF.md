@@ -83,6 +83,15 @@
 
 ## 3. Журнал сессий (дописывай сверху, новая запись первой)
 
+### 2026-11-13 UTC: Глобальный AI-виджет на всех страницах + поиск по интернету
+- **Покрытие всего хаба**:
+  - React-страницы без `Layout.tsx`: `HubAIWidget` подключён в `src/pages/RPHub.tsx` (`rp.html`) и `src/main-reset-password.tsx` (`reset-password.html`).
+  - Все статические SEO/утилитарные страницы (`/n/*`, `/vehicles/*`, `/alley/`, `/map/`, `/gta-6-release-date/`, `/is-gta-6-out-yet/`, `/supporters/`): добавлен лёгкий автономный скрипт `public/ai-widget.js` в `scripts/lib/seo.mjs` (переносится в `dist/` при `npm run build`, разделяет историю `vch_recent_searches_v1` в `sessionStorage`).
+- **Поиск по интернету (Web Grounding + Free Web Fallback)**:
+  - В `HubAIWidget.tsx`, `public/ai-widget.js` и `src/lib/aiSupport.ts` добавлен переключатель режима `Web: Auto / Web: On / Hub Only` и отображение кликабельных ссылок **Web Sources**.
+  - В Edge Function `supabase/functions/ai-support/index.ts` добавлена поддержка нативного `googleSearch` в Gemini + быстрый бесплатный живой веб-поиск через Google News RSS и Wikipedia API с синтезом ответа в Gemini (и детерминированным фолбэком `200` при исчерпании бесплатных лимитов RPM).
+- **Проверки**: `npm run typecheck`, `npm run test:unit`, `npm run build`, `npm run verify:dist`, live smoke-test `ai-support` (web search + RU/EN chat + analytics; тестовые строки удалены).
+
 ### 2026-11-12 / 2026-11-13 UTC: Gemini AI Integration (виджет поддержки, нейропоиск, аналитика и деплой Supabase)
 - **Фронтенд (`main`, коммит `eb20482`)**:
   - `src/lib/aiSupport.ts` + `src/components/HubAIWidget.tsx` подключены в `src/components/Layout.tsx` после `SiteFooter` (левый нижний угол, не перекрывает `Toasts` справа и не ломает порядок DOM в `tests/layout.test.mjs`): чат поддержки и нейропоиск по живым JSON-фидам хаба (`news`, `catalog`, `rp-servers`, `rp-factions`, `rp-jobs`, `rp-mods`), плюс компактный сессионный виджет **Recent Searches** (`sessionStorage`, до 8 уникальных запросов, повтор в 1 клик). Интерфейс на American English с автоответом на языке пользователя (RU/ES/EN и др.).

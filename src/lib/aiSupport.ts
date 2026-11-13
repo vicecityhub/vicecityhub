@@ -24,9 +24,17 @@ export interface QueryAnalysisSummary {
   summary: string;
 }
 
+export interface WebSource {
+  title: string;
+  uri: string;
+}
+
 export interface HubAIResponse {
   answer: string;
   matches: HubSearchMatch[];
+  webSources?: WebSource[];
+  webSearchQueries?: string[];
+  usedWebSearch?: boolean;
   analysis: QueryAnalysisSummary | null;
   latencyMs: number;
 }
@@ -166,6 +174,7 @@ export function askHubAI(params: {
   action: 'search' | 'chat';
   query: string;
   category?: string;
+  webSearch?: 'auto' | 'always' | 'off';
   messages?: Array<{ role: 'user' | 'assistant'; text: string }>;
   pagePath?: string;
 }): Promise<HubAIResponse> {

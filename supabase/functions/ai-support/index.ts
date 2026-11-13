@@ -318,12 +318,131 @@ function searchEntities(
   return matches.sort((a, b) => b.score - a.score).slice(0, limit);
 }
 
-async function callGemini(
+interface WebSource {
+  title: string;
+  uri: string;
+}
+
+function extractWebGrounding(candidates: any[]): {
+  webSources: WebSource[];
+  webSearchQueries: string[];
+} {
+  const seen = new Set<string>();
+  const webSources: WebSource[] = [];
+  const querySet = new Set<string>();
+
+  for (const cand of candidates ?? []) {
+    const meta = cand?.groundingMetadata;
+    if (!meta) continue;
+    for (const q of meta.webSearchQueries ?? []) {
+      if (typeof q === "string" && q.trim()) querySet.add(q.trim());
+    }
+    for (const chunk of meta.groundingChunks ?? []) {
+      const uri = typeof chunk?.web?.uri === "string" ? chunk.web.uri.trim() : "";
+      if (!uri || !/^https?:\/\//i.test(uri) || seen.has(uri)) continue;
+      seen.add(uri);
+      const title =
+        typeof chunk?.web?.title === "string" && chunk.web.title.trim()
+          ? chunk.web.title.trim()
+          : uri;
+      webSources.push({ title, uri });
+    }
+  }
+
+  return {
+    webSources: webSources.slice(0, 8),
+    webSearchQueries: Array.from(querySet).slice(0, 5),
+  };
+}
+
+function shouldUseWebSearch(
+  query: string,
+  matchCount: number,
+  mode = "auto"
+): boolean {
+  if (mode === "always") return true;
+  if (mode === "off") return false;
+  if (matchCount < 2) return true;
+  return /\b(2025|2026|2027|latest|release|date|news|rumor|trailer|rockstar|take-two|ps5|xbox|pc|fivem|cfx|google|internet|web|online|search|update|patch|price)\b|интернет|в сети|погугл|поищи|новост|релиз|дата выхода|последн|актуальн|цен|патч|обновлен/i.test(
+    query
+  );
+}
+
+
+function decodeXmlEntities(str: string): string {
+  return str
+    .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, "$1")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+async function fetchFreeWebSearch(
+  query: string
+): Promise<{ snippets: string[]; webSources: WebSource[] }> {
+  const webSources: WebSource[] = [];
+  const snippets: string[] = [];
+  const seen = new Set<string>();
+
+  const [newsRes, wikiRes] = await Promise.allSettled([
+    fetch(
+      `https://news.google.com/rss/search?q=${encodeURIComponent(query)}&hl=en-US&gl=US&ceid=US:en`,
+      { headers: { "User-Agent": "ViceCityHubAI/1.0" }, signal: AbortSignal.timeout(5000) }
+    ).then((r) => (r.ok ? r.text() : "")),
+    fetch(
+      `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(query)}&srlimit=3&format=json&utf8=1`,
+      { headers: { "User-Agent": "ViceCityHubAI/1.0" }, signal: AbortSignal.timeout(5000) }
+    ).then((r) => (r.ok ? r.json() : null)),
+  ]);
+
+  if (newsRes.status === "fulfilled" && newsRes.value) {
+    const items = newsRes.value.match(/<item>[\s\S]*?<\/item>/gi) ?? [];
+    for (const item of items.slice(0, 5)) {
+      const titleM = item.match(/<title>([\s\S]*?)<\/title>/i);
+      const linkM = item.match(/<link>([\s\S]*?)<\/link>/i);
+      const pubM = item.match(/<pubDate>([\s\S]*?)<\/pubDate>/i);
+      const srcM = item.match(/<source[^>]*>([\s\S]*?)<\/source>/i);
+      const title = titleM ? decodeXmlEntities(titleM[1]) : "";
+      const uri = linkM ? linkM[1].trim() : "";
+      const pub = pubM ? decodeXmlEntities(pubM[1]).slice(0, 16) : "";
+      const sourceName = srcM ? decodeXmlEntities(srcM[1]) : "";
+      if (title && /^https?:\/\//i.test(uri) && !seen.has(uri)) {
+        seen.add(uri);
+        webSources.push({ title: sourceName ? `${title} (${sourceName})` : title, uri });
+        snippets.push(`[Web News${pub ? " · " + pub : ""}] ${title}${sourceName ? " — " + sourceName : ""} | ${uri}`);
+      }
+    }
+  }
+
+  if (wikiRes.status === "fulfilled" && Array.isArray(wikiRes.value?.query?.search)) {
+    for (const hit of wikiRes.value.query.search.slice(0, 3)) {
+      const title = String(hit?.title ?? "").trim();
+      const snippet = decodeXmlEntities(String(hit?.snippet ?? ""));
+      if (!title) continue;
+      const uri = `https://en.wikipedia.org/wiki/${encodeURIComponent(title.replace(/\s+/g, "_"))}`;
+      if (!seen.has(uri)) {
+        seen.add(uri);
+        webSources.push({ title: `Wikipedia: ${title}`, uri });
+        snippets.push(`[Wikipedia: ${title}] ${snippet} | ${uri}`);
+      }
+    }
+  }
+
+  return { snippets, webSources: webSources.slice(0, 6) };
+}
+
+async function callGeminiFull(
   apiKey: string,
   models: string[],
-  body: Record<string, unknown>
-): Promise<string> {
-  let lastError = "Gemini API request failed.";
+  body: Record<string, unknown>,
+  timeoutMs = 16000
+): Promise<{ text: string; webSources: WebSource[]; webSearchQueries: string[] }> {
+  const errors: string[] = [];
   for (const model of models) {
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(apiKey)}`;
     try {
@@ -331,7 +450,7 @@ async function callGemini(
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
-        signal: AbortSignal.timeout(18000),
+        signal: AbortSignal.timeout(timeoutMs),
       });
       if (res.ok) {
         const json = await res.json();
@@ -339,18 +458,125 @@ async function callGemini(
           json?.candidates?.[0]?.content?.parts
             ?.map((p: any) => p?.text ?? "")
             .join("") ?? "";
-        return text;
+        const { webSources, webSearchQueries } = extractWebGrounding(
+          json?.candidates ?? []
+        );
+        return { text, webSources, webSearchQueries };
       }
       const errText = await res.text();
-      lastError = `Gemini ${model} (${res.status}): ${errText}`;
-      if (![404, 429, 500, 502, 503, 504].includes(res.status)) {
-        throw new Error(lastError);
+      const shortErr = `Gemini ${model} (${res.status}): ${errText.slice(0, 220)}`;
+      errors.push(shortErr);
+      if (false && res.status === 400 && Array.isArray((body as any).tools)) {
+        const strippedBody = { ...body };
+        delete (strippedBody as any).tools;
+        const retry = await fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(strippedBody),
+          signal: AbortSignal.timeout(15000),
+        });
+        if (retry.ok) {
+          const json = await retry.json();
+          const text =
+            json?.candidates?.[0]?.content?.parts
+              ?.map((p: any) => p?.text ?? "")
+              .join("") ?? "";
+          return { text, webSources: [], webSearchQueries: [] };
+        }
+      }
+      if (![400, 404, 429, 500, 502, 503, 504].includes(res.status)) {
+        throw new Error(errors.join(" | "));
       }
     } catch (err) {
-      lastError = err instanceof Error ? err.message : String(err);
+      errors.push(`${model}: ${err instanceof Error ? err.message : String(err)}`);
     }
   }
-  throw new Error(lastError);
+  throw new Error(errors.join(" | ") || "Gemini API request failed.");
+}
+
+async function callGemini(
+  apiKey: string,
+  models: string[],
+  body: Record<string, unknown>
+): Promise<string> {
+  const res = await callGeminiFull(apiKey, models, body);
+  return res.text;
+}
+
+function localClassifyQuery(query: string, matches: HubMatch[]): Record<string, unknown> {
+  const q = query.toLowerCase();
+  const hasCyrillic = /[а-яё]/i.test(query);
+  const language = hasCyrillic ? "ru" : "en";
+  let intent = "general_info";
+  let hubSection = "index.html";
+  let topicCluster = "General Hub Inquiry";
+  if (/rp|fivem|server|сервер|фракц|faction|police|lspd|gang|job|mod|мод/.test(q)) {
+    intent = /mod|мод/.test(q) ? "modding_help" : "rp_navigation";
+    hubSection = "rp.html";
+    topicCluster = "RP Servers & Factions";
+  } else if (/merch|order|buy|domain|paypal|usdc|crypto|маркет|мерч|куп|домен|оплат/.test(q)) {
+    intent = "market_order";
+    hubSection = "market.html";
+    topicCluster = "Market & Checkout";
+  } else if (/agent|api|mcp|token|key|llms|openapi|агент|ключ/.test(q)) {
+    intent = "agent_api";
+    hubSection = "agents.html";
+    topicCluster = "Agent API & MCP";
+  } else if (/gta|rockstar|news|release|trailer|новост|релиз|дата|гта/.test(q)) {
+    intent = "news_gta6";
+    hubSection = "news.html";
+    topicCluster = "GTA VI News & Release";
+  } else if (/vehicle|car|leonida|real estate|house|машин|недвиж/.test(q)) {
+    intent = "general_info";
+    hubSection = /real estate|house|недвиж/.test(q) ? "realestate.html" : "document.html";
+    topicCluster = "Leonida Vehicles & Property";
+  } else if (matches[0]?.type === "news") {
+    intent = "news_gta6";
+    hubSection = "news.html";
+    topicCluster = "GTA VI News & Release";
+  }
+  const frustrated = /broken|bug|error|fail|scam|не работ|ошибк|сломал|ужас|помогите срочно/i.test(q);
+  return {
+    language,
+    intent,
+    urgency: frustrated ? "high" : "low",
+    sentiment: frustrated ? "frustrated" : "neutral",
+    hubSection,
+    topicCluster,
+    painPoint: frustrated ? "User reported an issue or error" : "None",
+    suggestedAction: "Review top matching Hub feed results",
+    summary: query.slice(0, 120),
+  };
+}
+
+function localSynthesizeFallback(
+  query: string,
+  matches: HubMatch[],
+  useWebSearch: boolean
+): { answer: string; webSources: WebSource[]; webSearchQueries: string[] } {
+  const isRu = /[а-яё]/i.test(query);
+  const lines = matches.slice(0, 4).map((m, i) => `${i + 1}. ${m.title} (${m.meta}) -> ${m.url}`);
+  const fallbackSources: WebSource[] = useWebSearch
+    ? [
+        {
+          title: isRu ? `Поиск в Google: ${query}` : `Google Search: ${query}`,
+          uri: `https://www.google.com/search?q=${encodeURIComponent(query)}`,
+        },
+      ]
+    : [];
+  const joinedLines = lines.join("\n");
+  const answer = isRu
+    ? (lines.length > 0
+        ? "Ниже приведены наиболее релевантные разделы и материалы Vice City Hub по вашему запросу (нейросеть временно перегружена по бесплатному лимиту):\n\n" + joinedLines
+        : "В данный момент бесплатный лимит Gemini API временно исчерпан. Вы можете открыть прямой поиск в Google по ссылке ниже или перейти в нужный раздел хаба: " + HUB_BASE_URL + "/rp.html | " + HUB_BASE_URL + "/news.html | " + HUB_BASE_URL + "/market.html")
+    : (lines.length > 0
+        ? "Here are the top live Vice City Hub matches for your request (Gemini free-tier rate limit temporarily active):\n\n" + joinedLines
+        : "Free-tier AI capacity is temporarily busy. Open the live Google Search link below or browse Vice City Hub directly: " + HUB_BASE_URL + "/rp.html | " + HUB_BASE_URL + "/news.html | " + HUB_BASE_URL + "/market.html");
+  return {
+    answer,
+    webSources: fallbackSources,
+    webSearchQueries: useWebSearch ? [query] : [],
+  };
 }
 
 async function classifyQuery(
@@ -367,7 +593,7 @@ Valid sentiment: positive, neutral, frustrated.`;
 
   const text = await callGemini(
     apiKey,
-    ["gemini-3.5-flash-lite", "gemini-3.1-flash-lite", "gemini-4-hydrogen"],
+    ["gemini-3.1-flash-lite", "gemini-3.5-flash-lite"],
     {
       contents: [{ role: "user", parts: [{ text: prompt }] }],
       generationConfig: {
@@ -693,6 +919,9 @@ serve(async (req) => {
     const query = String(body?.query || "").trim();
     const category = String(body?.category || "all");
     const pagePath = String(body?.pagePath || "");
+    const webModeRaw = String(body?.webSearch || "auto");
+    const webMode =
+      webModeRaw === "always" || webModeRaw === "off" ? webModeRaw : "auto";
     const history = Array.isArray(body?.messages) ? body.messages : [];
 
     if (!query) {
@@ -705,6 +934,7 @@ serve(async (req) => {
     const started = Date.now();
     const cache = await getHubCache();
     const matches = searchEntities(cache, query, category, 8);
+    const useWebSearch = shouldUseWebSearch(query, matches.length, webMode);
 
     const matchedBlock =
       matches.length > 0
@@ -737,23 +967,84 @@ ${matchedBlock}`;
       },
     ];
 
-    const [answer, analysis] = await Promise.all([
-      callGemini(
-        geminiKey,
-        ["gemini-3.5-flash-lite", "gemini-4-hydrogen", "gemini-3.8-flash"],
-        {
-          systemInstruction: {
-            parts: [
-              {
-                text: "You are the official AI customer support and neural search assistant for Vice City Hub (https://vicecityhub.github.io/vicecityhub/). Respond in American English by default, or automatically reply in the user's language if they write in another language (e.g., Russian, Spanish). Ground answers strictly in the provided Hub context, include exact URLs and numbers, and never invent facts.",
-              },
-            ],
+    let answer = "";
+    let webSources: WebSource[] = [];
+    let webSearchQueries: string[] = [];
+    let usedFallback = false;
+
+    const systemPrompt =
+      "You are the official AI customer support and neural search assistant for Vice City Hub (https://vicecityhub.github.io/vicecityhub/). Respond in American English by default, or automatically reply in the user's language if they write in another language (e.g., Russian, Spanish). Prioritize the provided Hub context with exact URLs and numbers. When live web results or Google Search grounding are provided, synthesize accurate, up-to-date answers and cite key sources clearly.";
+
+    let handledGrounded = false;
+    if (useWebSearch) {
+      try {
+        const grounded = await callGeminiFull(
+          geminiKey,
+          ["gemini-4-hydrogen"],
+          {
+            systemInstruction: { parts: [{ text: systemPrompt }] },
+            tools: [{ googleSearch: {} }],
+            contents,
           },
-          contents,
+          5000
+        );
+        if (grounded.text) {
+          answer = grounded.text;
+          webSources = grounded.webSources;
+          webSearchQueries = grounded.webSearchQueries;
+          handledGrounded = true;
         }
-      ),
-      classifyQuery(geminiKey, query).catch(() => null),
-    ]);
+      } catch (groundErr) {
+        console.warn("[ai-support] Native googleSearch grounding unavailable, switching to free live web search + Gemini:", groundErr instanceof Error ? groundErr.message : String(groundErr));
+      }
+    }
+
+    if (!handledGrounded) {
+      let augmentedContents = contents;
+      let fetchedWebSources: WebSource[] = [];
+      if (useWebSearch) {
+        const freeWeb = await fetchFreeWebSearch(query);
+        fetchedWebSources = freeWeb.webSources;
+        if (freeWeb.snippets.length > 0) {
+          const webBlock = "LIVE WEB SEARCH RESULTS:\n" + freeWeb.snippets.join("\n");
+          augmentedContents = [
+            ...contents.slice(0, -1),
+            {
+              role: "user",
+              parts: [{ text: hubContext + "\n\n" + webBlock + "\n\nUSER QUERY: \"" + query + "\"" }],
+            },
+          ];
+          webSearchQueries = [query];
+        }
+      }
+
+      try {
+        const aiResult = await callGeminiFull(
+          geminiKey,
+          ["gemini-3.5-flash-lite", "gemini-3.1-flash-lite", "gemini-4-hydrogen"],
+          {
+            systemInstruction: { parts: [{ text: systemPrompt }] },
+            contents: augmentedContents,
+          }
+        );
+        answer = aiResult.text;
+        webSources = aiResult.webSources.length > 0 ? aiResult.webSources : fetchedWebSources;
+        if (aiResult.webSearchQueries.length > 0) {
+          webSearchQueries = aiResult.webSearchQueries;
+        }
+      } catch (geminiErr) {
+        usedFallback = true;
+        console.error("[ai-support] Gemini chain failed:", geminiErr instanceof Error ? geminiErr.message : String(geminiErr));
+        const fb = localSynthesizeFallback(query, matches, useWebSearch);
+        answer = fb.answer;
+        webSources = fetchedWebSources.length > 0 ? fetchedWebSources : fb.webSources;
+        webSearchQueries = fb.webSearchQueries;
+      }
+    }
+
+    const analysis = usedFallback
+      ? localClassifyQuery(query, matches)
+      : await classifyQuery(geminiKey, query).catch(() => localClassifyQuery(query, matches));
 
     const latencyMs = Date.now() - started;
 
@@ -782,6 +1073,10 @@ ${matchedBlock}`;
       JSON.stringify({
         answer,
         matches,
+        webSources,
+        webSearchQueries,
+        usedWebSearch: useWebSearch,
+        usedFallback,
         analysis,
         latencyMs,
       }),

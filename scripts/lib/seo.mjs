@@ -274,6 +274,7 @@ ${body}
 </main>
 ${footer()}
 <script>${JS}</script>
+<script src="/vicecityhub/ai-widget.js" defer></script>
 </body></html>
 `;
 }
