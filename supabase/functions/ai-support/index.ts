@@ -326,23 +326,28 @@ async function callGemini(
   let lastError = "Gemini API request failed.";
   for (const model of models) {
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(apiKey)}`;
-    const res = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    });
-    if (res.ok) {
-      const json = await res.json();
-      const text =
-        json?.candidates?.[0]?.content?.parts
-          ?.map((p: any) => p?.text ?? "")
-          .join("") ?? "";
-      return text;
-    }
-    const errText = await res.text();
-    lastError = `Gemini ${model} (${res.status}): ${errText}`;
-    if (res.status !== 404) {
-      throw new Error(lastError);
+    try {
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+        signal: AbortSignal.timeout(18000),
+      });
+      if (res.ok) {
+        const json = await res.json();
+        const text =
+          json?.candidates?.[0]?.content?.parts
+            ?.map((p: any) => p?.text ?? "")
+            .join("") ?? "";
+        return text;
+      }
+      const errText = await res.text();
+      lastError = `Gemini ${model} (${res.status}): ${errText}`;
+      if (![404, 429, 500, 502, 503, 504].includes(res.status)) {
+        throw new Error(lastError);
+      }
+    } catch (err) {
+      lastError = err instanceof Error ? err.message : String(err);
     }
   }
   throw new Error(lastError);
@@ -362,7 +367,7 @@ Valid sentiment: positive, neutral, frustrated.`;
 
   const text = await callGemini(
     apiKey,
-    ["gemini-3.1-flash-lite", "gemini-2.5-flash-lite", "gemini-2.5-flash"],
+    ["gemini-3.5-flash-lite", "gemini-3.1-flash-lite", "gemini-4-hydrogen"],
     {
       contents: [{ role: "user", parts: [{ text: prompt }] }],
       generationConfig: {
@@ -579,7 +584,7 @@ serve(async (req) => {
 
       const raw = await callGemini(
         geminiKey,
-        ["gemini-4-hydrogen", "gemini-2.5-flash"],
+        ["gemini-4-hydrogen", "gemini-3.5-flash-lite", "gemini-3.8-flash"],
         {
           systemInstruction: {
             parts: [
@@ -735,7 +740,7 @@ ${matchedBlock}`;
     const [answer, analysis] = await Promise.all([
       callGemini(
         geminiKey,
-        ["gemini-4-hydrogen", "gemini-2.5-flash"],
+        ["gemini-3.5-flash-lite", "gemini-4-hydrogen", "gemini-3.8-flash"],
         {
           systemInstruction: {
             parts: [
@@ -753,8 +758,8 @@ ${matchedBlock}`;
     const latencyMs = Date.now() - started;
 
     if (analysis) {
-      db.from("ai_query_analytics")
-        .insert({
+      try {
+        await db.from("ai_query_analytics").insert({
           source: action === "search" ? "search" : "support",
           query: query.slice(0, 500),
           language: String(analysis.language ?? "en"),
@@ -767,9 +772,10 @@ ${matchedBlock}`;
           suggested_action: String(analysis.suggestedAction ?? ""),
           latency_ms: latencyMs,
           page_path: pagePath.slice(0, 120),
-        })
-        .then(() => {})
-        .catch(() => {});
+        });
+      } catch {
+        /* non-blocking analytics fallback */
+      }
     }
 
     return new Response(

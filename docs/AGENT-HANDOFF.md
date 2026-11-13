@@ -23,6 +23,7 @@
 | Дизайн | Статические страницы в стиле хаба (лого, шрифты, футер, радио, меню в две строки) |
 | Производительность | Self-hosted WOFF2, lazy video/TradingView, WebP-превью мерча, Hustle-игра грузится по требованию (`OnView` + `React.lazy`) |
 | Аналитика | Без cookie: edge function `hit` → таблица `page_hits`. Клиент `src/lib/analytics.ts` + inline-маяк в статике. `?notrack` и DNT уважаются |
+| ИИ-поддержка и анализ | `HubAIWidget` (Support Chat + Neural Search + Recent Searches в `Layout.tsx`), `HubQueryAnalyticsPanel` (`agents.html#ai-analytics`, алерты аномалий, UX-отчёт), Edge Function `ai-support` (`--no-verify-jwt`, `GEMINI_API_KEY`), таблица `ai_query_analytics` |
 | OG-картинки | `scripts/gen-og.mjs` → `public/og/<id>.png` (28 шт., ~2 МБ), `release.png`, `is-out.png` |
 | Монетизация | Платные слоты RP ($100/$200/$300), Ko-fi + Wall of Legends, x402 `agent-premium` ($0.02 USDC) |
 | Агентная поверхность | llms.txt, MCP, agent-api, `docs/MCP-LISTINGS.md` |
@@ -81,6 +82,17 @@
 - [ ] T15 · P3 · Проверить a11y (контраст неоновых цветов, focus-стили) и добавить `prefers-reduced-motion`.
 
 ## 3. Журнал сессий (дописывай сверху, новая запись первой)
+
+### 2026-11-12 / 2026-11-13 UTC: Gemini AI Integration (виджет поддержки, нейропоиск, аналитика и деплой Supabase)
+- **Фронтенд (`main`, коммит `eb20482`)**:
+  - `src/lib/aiSupport.ts` + `src/components/HubAIWidget.tsx` подключены в `src/components/Layout.tsx` после `SiteFooter` (левый нижний угол, не перекрывает `Toasts` справа и не ломает порядок DOM в `tests/layout.test.mjs`): чат поддержки и нейропоиск по живым JSON-фидам хаба (`news`, `catalog`, `rp-servers`, `rp-factions`, `rp-jobs`, `rp-mods`), плюс компактный сессионный виджет **Recent Searches** (`sessionStorage`, до 8 уникальных запросов, повтор в 1 клик). Интерфейс на American English с автоответом на языке пользователя (RU/ES/EN и др.).
+  - `src/components/HubQueryAnalyticsPanel.tsx` встроен в `src/pages/Agents.tsx` (секция `#ai-analytics`): live-классификация запросов, детектор аномалий (статус-баннер и всплывающие alert-уведомления при всплеске негатива ≥40% или резком росте темы ≥35%) и кнопка **Generate UX Report**.
+- **Сервер в Supabase (`lpglkglhjdqnktybksth`)**:
+  - Применена миграция `supabase/16_ai_support_analytics.sql`: таблица `public.ai_query_analytics` с индексами, RLS включён, прямые права `anon`/`authenticated` отозваны.
+  - Прописан секрет `GEMINI_API_KEY` в Supabase Secrets, функция `supabase/functions/ai-support/index.ts` зарегистрирована в `supabase/config.toml` (`verify_jwt = false`) и задеплоена (`ai-support`).
+  - Цепочки моделей Gemini настроены на актуальные рабочие модели (`gemini-3.5-flash-lite` / `gemini-3.1-flash-lite` для быстрого поиска/чата/классификации и `gemini-4-hydrogen` для глубокого UX-отчёта) с фолбэком по статусам `404/429/5xx` и `await` записи аналитики в БД. Проверка: `search`/`analytics`/`insights` отдали `200`, тестовая строка удалена.
+- **Инструкция для следующих агентов**: для обновления Edge Function используй `npx supabase functions deploy ai-support --no-verify-jwt --project-ref lpglkglhjdqnktybksth`. Секрет `GEMINI_API_KEY` хранится только в Supabase Secrets (и в CI/AI Studio не коммитится).
+- **Тесты**: `tests/aiSupport.test.mjs` (3 теста), `npm run typecheck`, `npm run test:unit` (421/421), `npm run build`, `npm run verify:dist` — PASS. Откат: `git revert eb20482`.
 ### 2026-11-11: Claude Sonnet 5.5 (главная: плашка стрима вместо Gift Set)
 - По просьбе владельца плашка Gift Set убрана: `GiftSetBanner.tsx` и `public/media/pozor.webm` (1,6 МБ, нигде больше не использовался). `LazyVideo.tsx` остался без пользователей, не трогал.
 - Новая плашка `src/components/home/StreamBanner.tsx` стоит в `HeroSection` между описанием и счётчиком, во всю ширину контейнера (до 1280 px): слева трейлер стрима (YouTube `qL266kKP5E4` через `YouTubePlayer`, до клика с YouTube ничего не грузится), справа кнопка на https://www.twitch.tv/vicecityhub со значком `public/media/twitch-logo.jpeg`. Значок: присланная картинка 1920x1080 (логотип в ней растянут по горизонтали) сжата в квадрат 128x128 (4 КБ) и лежит в репозитории, чтобы не зависеть от подписанной ссылки Supabase (`logos/tvitch.jpeg`, истекает в ноябре 2027).
@@ -240,6 +252,22 @@ select date_trunc('day', created_at) d, count(distinct visitor) from page_hits
 where device <> 'bot' group by 1 order by 1 desc limit 14;
 ```
 Если у таблицы другое имя колонки времени, посмотри схему: `list_tables`.
+
+### Полезные запросы к `ai_query_analytics` (Supabase SQL)
+
+```sql
+-- Топ болевых точек и кластеров тем за 7 дней
+select topic_cluster, hub_section, pain_point, count(*) requests
+from ai_query_analytics
+where created_at > now() - interval '7 days'
+group by 1, 2, 3 order by requests desc limit 20;
+
+-- Негативные/срочные обращения для разбора UX
+select created_at, hub_section, sentiment, urgency, query, pain_point
+from ai_query_analytics
+where sentiment = 'frustrated' or urgency = 'high'
+order by created_at desc limit 30;
+```
 
 ## 5. Приватность и границы
 - Аналитика не хранит IP и User-Agent, только хэш с ежедневной солью. Не добавляй cookie, localStorage-идентификаторы или сторонние трекеры.
