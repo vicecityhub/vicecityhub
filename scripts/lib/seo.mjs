@@ -142,10 +142,10 @@ details{padding:12px 0;border-bottom:1px solid rgba(255,255,255,.08)}summary{cur
 // Leonida FM mirrors src/lib/AudioManager.ts + the Layout radio: same bucket, same localStorage/sessionStorage keys,
 // same autoplay-on-first-gesture rule, same mute-per-session behaviour. No backticks, no dollar-brace, no backslashes in here.
 const JS = `(function(){
-var SB='https://lpglkglhjdqnktybksth.supabase.co',AK='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxwZ2xrZ2xoamRxbmt0eWJrc3RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwMTYzMjUsImV4cCI6MjA5MTU5MjMyNX0.fMZo0fjEfPSf20w-rRQh25zPj7xPVOpU6lO2lon3EEk',FB=[SB+'/storage/v1/object/public/muz/1.ogg',SB+'/storage/v1/object/public/muz/2.ogg'];
+var SB='https://lpglkglhjdqnktybksth.supabase.co',AK='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxwZ2xrZ2xoamRxbmt0eWJrc3RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwMTYzMjUsImV4cCI6MjA5MTU5MjMyNX0.fMZo0fjEfPSf20w-rRQh25zPj7xPVOpU6lO2lon3EEk',FB=[];
 var $=function(s){return document.querySelector(s)};
 function ls(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}}
-function ss(k,v){try{if(v===undefined)return sessionStorage.getItem(k);sessionStorage.setItem(k,v)}catch(e){return null}}
+function ss(k,v){try{if(v===undefined)return sessionStorage.getItem(k);sessionStorage.setItem(k,v)}catch(e){return null}}try{var cp=JSON.parse(ls('radioTracks')||'[]');if(Array.isArray(cp))FB=cp.filter(function(x){return typeof x==='string'&&x.indexOf(SB+'/storage/v1/object/public/muz/')===0})}catch(e){}
 var M='<svg viewBox="0 0 24 24"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>',X='<svg viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>';
 var V2='<svg viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>',VX='<svg viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="22" x2="16" y1="9" y2="15"/><line x1="16" x2="22" y1="9" y2="15"/></svg>';
 var bg=$('#burger'),mn=$('#menu');
@@ -158,7 +158,7 @@ function pick(){if(tr.length<2)return 0;var i=ix;while(i===ix)i=Math.floor(Math.
 function load(i,t){ix=i;au.src=tr[i];ls('radioTrackIndex',String(i));if(t>0)au.addEventListener('loadedmetadata',function f(){au.removeEventListener('loadedmetadata',f);if(t<au.duration)try{au.currentTime=t}catch(e){}})}
 function play(){var p=au.play();if(p&&p.catch)p.catch(function(){})}
 function save(){if(au&&!au.paused){ls('radioTime',String(au.currentTime));ls('radioTrackIndex',String(ix))}}
-function boot(){
+function boot(){if(!tr.length)return;
 au=new Audio();au.preload='none';var v=parseFloat(ls('radioVolume')||'0.25');au.volume=isFinite(v)?Math.min(1,Math.max(0,v)):0.25;
 au.addEventListener('ended',function(){load(pick(),0);play()});au.addEventListener('play',sync);au.addEventListener('pause',sync);
 var s=parseInt(ls('radioTrackIndex')||'-1',10),t=parseFloat(ls('radioTime')||'0');
@@ -169,7 +169,7 @@ document.addEventListener('visibilitychange',function(){if(document.visibilitySt
 function first(e){if(done||!au||!want||!au.paused)return;if(e&&e.target&&e.target.closest&&e.target.closest('#radio'))return;var p=au.play();done=true;if(p&&p.catch)p.catch(function(){done=false})}
 ['click','keydown','touchstart','touchend'].forEach(function(n){document.addEventListener(n,first,{capture:true,passive:true})});
 if(rb){rb.innerHTML=VX;rb.addEventListener('click',function(){if(!au)return;if(au.paused){want=true;ss('radioPlaying','true');play()}else{want=false;ss('radioPlaying','false');au.pause()}sync()})}
-fetch(SB+'/storage/v1/object/list/muz',{method:'POST',headers:{apikey:AK,Authorization:'Bearer '+AK,'Content-Type':'application/json'},body:JSON.stringify({prefix:'',limit:100,offset:0})}).then(function(r){return r.ok?r.json():[]}).then(function(fs){var u=(fs||[]).filter(function(f){return f&&f.name&&/[.](ogg|mp3|wav|flac)$/i.test(f.name)}).map(function(f){return SB+'/storage/v1/object/public/muz/'+encodeURIComponent(f.name)});if(u.length)tr=u}).catch(function(){}).then(boot);
+fetch(SB+'/storage/v1/object/list/muz',{method:'POST',headers:{apikey:AK,Authorization:'Bearer '+AK,'Content-Type':'application/json'},body:JSON.stringify({prefix:'',limit:100,offset:0})}).then(function(r){return r.ok?r.json():[]}).then(function(fs){var u=(fs||[]).filter(function(f){return f&&f.name&&/[.](ogg|mp3|wav|flac)$/i.test(f.name)}).map(function(f){return SB+'/storage/v1/object/public/muz/'+encodeURIComponent(f.name)});if(u.length){tr=u;ls('radioTracks',JSON.stringify(u))}}).catch(function(){}).then(boot);
 document.querySelectorAll('[data-copy]').forEach(function(b){b.addEventListener('click',function(){try{navigator.clipboard.writeText(b.dataset.copy);var o=b.textContent;b.textContent='Copied!';setTimeout(function(){b.textContent=o},1800)}catch(e){}})});
 document.querySelectorAll('.addr').forEach(function(c){c.addEventListener('click',function(){var s=c.querySelector('.st');try{navigator.clipboard.writeText(c.dataset.addr);s.textContent='Copied';s.classList.add('ok');setTimeout(function(){s.textContent='Copy';s.classList.remove('ok')},2000)}catch(e){}})});
 document.querySelectorAll('.addr').forEach(function(c){c.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();c.click()}})});
