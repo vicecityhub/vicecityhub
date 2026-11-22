@@ -3,6 +3,7 @@
  * Vice City Hub v12 — verifies the BUILT site (dist/) is actually agent-ready.
  * Exit code 1 on any failure. Run after `npm run build`:  node scripts/verify-dist.mjs
  */
+import { createHash } from 'node:crypto';
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
@@ -44,6 +45,48 @@ check('llms.txt: donation section states the AI purpose', /Support the project \
 check('agent.json: donations block', (() => { try { const a = JSON.parse(read('.well-known/agent.json')); return /AI/.test(a.donations?.purpose || '') && /\/v1\/donations$/.test(a.donations?.create || '') && a.donations?.voluntary === true; } catch { return false; } })());
 check('index.html: DonateAction in JSON-LD + meta', read('index.html').includes('"@type":"DonateAction"') && read('index.html').includes('name="agent-donations"'));
 check('data/donate.json present', existsSync(join(DIST, 'data/donate.json')) && /AI/.test(read('data/donate.json')));
+
+// 3c. the persistent shell: ONE script on every page keeps Leonida FM and the in-place page swapping alive across sections.
+// If a page misses it (or carries an outdated reference) the music restarts, and on a phone needs another touch, whenever
+// a visitor lands on or leaves that page: a regression of the whole point of the shell.
+{
+  const htmlFiles = (dir = '') => readdirSync(join(DIST, dir), { withFileTypes: true }).flatMap((e) => {
+    const rel = join(dir, e.name);
+    if (e.isDirectory()) return e.name === 'assets' ? [] : htmlFiles(rel);
+    return e.name.endsWith('.html') ? [rel] : [];
+  });
+  const shellFile = join(DIST, 'vch-shell.js');
+  const bytes = existsSync(shellFile) ? readFileSync(shellFile) : Buffer.alloc(0);
+  const code = bytes.toString('utf8');
+  check('vch-shell.js: built', bytes.length > 5000, `${bytes.length} bytes`);
+  check('vch-shell.js: a classic script (no import/export)', bytes.length > 0 && !/^\s*(import|export)\s/m.test(code));
+  check('vch-shell.js: carries the radio and the soft navigation', code.includes('vchShell') && code.includes('object/list/muz') && code.includes('radioTrackIndex') && code.includes('vch_softnav'));
+  const hash = createHash('sha1').update(bytes).digest('hex').slice(0, 10);
+  const missing = [], outdated = [], late = [], ownRadio = [], snapshots = [];
+  let checked = 0;
+  for (const f of htmlFiles()) {
+    if (f === 'reset-password.html') continue; // nothing to keep alive there: it is always a plain page load
+    const h = read(f);
+    // A leftover static page from before the shell (its news item left the data, so nothing regenerates it): its radio
+    // button has no data-vch-radio. It still works, visitors just get a normal page load when they leave it, so it is
+    // reported but does not block the deploy. A page of the CURRENT template always has the marker and must be complete.
+    if (/id="radio"/.test(h) && !h.includes('data-vch-radio')) { snapshots.push(f); continue; }
+    checked++;
+    const refs = [...h.matchAll(/vch-shell\.js(?:\?v=([0-9a-f]+))?/g)];
+    if (refs.length !== 1) missing.push(`${f}${refs.length ? ` (x${refs.length})` : ''}`);
+    else if (refs[0][1] !== hash) outdated.push(f);
+    const used = h.indexOf('window.vchShell'); // an inline script of a static page: the shell must be loaded before it
+    if (used >= 0 && refs.length && refs[0].index > used) late.push(f);
+    if (/radioTrackIndex|\/muz\/1\.ogg/.test(h)) ownRadio.push(f);
+  }
+  const some = (list) => `${list.length}: ${list.slice(0, 4).join(', ')}`;
+  check(`vch-shell.js: loaded exactly once by each of ${checked} pages`, missing.length === 0, missing.length ? some(missing) : '');
+  check(`vch-shell.js: every page references the current build (?v=${hash})`, outdated.length === 0, outdated.length ? some(outdated) : '');
+  check('vch-shell.js: static pages load it before the script that uses it', late.length === 0, late.length ? some(late) : '');
+  check('no page carries its own copy of the radio', ownRadio.length === 0, ownRadio.length ? some(ownRadio) : '');
+  check('ai-widget.js: leaves nothing behind when the page is swapped', read('ai-widget.js').includes('vchShell.onLeave'));
+  if (snapshots.length) console.log(`WARN  ${snapshots.length} stale static page(s) from before the shell, delete them from public/ when their data is gone  → ${snapshots.slice(0, 4).join(', ')}${snapshots.length > 4 ? ', …' : ''}`);
+}
 
 // 4. sitemap & robots sanity
 const sm = read('sitemap.xml');

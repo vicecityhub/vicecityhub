@@ -115,6 +115,11 @@
     '.vch-ai-err{font-size:12px;color:#fda4af;background:rgba(136,19,55,.35);border:1px solid rgba(244,63,94,.4);border-radius:6px;padding:7px 9px}'
   ].join('');
   document.head.appendChild(style);
+  // The page is swapped without a reload (public/vch-shell.js): drop this <style> when the page is left so it never stacks up
+  // across static pages or leaks into a React page, and the next static page runs this script again for its own copy.
+  if (window.vchShell && window.vchShell.onLeave) {
+    window.vchShell.onLeave(function () { if (style.parentNode) style.parentNode.removeChild(style); });
+  }
 
   var rootEl = el('div');
   rootEl.id = 'vch-static-ai-root';

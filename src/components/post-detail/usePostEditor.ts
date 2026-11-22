@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { supa } from '../../lib/SupabaseClient';
+import { navigateTo } from '../../lib/shellBridge';
 import { buildStorageUploadPath } from '../../lib/fileUpload';
 import { buildPostUpdate, planMediaEdit } from '../../lib/postDetail';
 import type { FullPost } from './usePostData';
@@ -85,7 +86,7 @@ export function usePostEditor({ post, session, reload }: Args) {
     const { error: deleteError } = await supa.from('feed_posts').delete().eq('id', post.id);
     setDeleting(false);
     if (!deleteError) {
-      window.location.href = './community.html';
+      navigateTo('./community.html');
     }
   };
 

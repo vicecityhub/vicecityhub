@@ -2,11 +2,13 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import path from 'path'
 import agentSurface from './vite-plugins/agent-surface'
+import vchShell from './vite-plugins/vch-shell'
 
 export default defineConfig({
   base: '/vicecityhub/',
   // v12: agentSurface injects discovery links, JSON-LD and <noscript> data into every HTML entry
-  plugins: [react(), agentSurface()],
+  // vchShell adds the persistent shell (Leonida FM + no-reload navigation) to every page except reset-password
+  plugins: [react(), agentSurface(), vchShell()],
   resolve: {
     alias: { "@": path.resolve(__dirname, "./src") },
   },

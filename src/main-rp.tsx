@@ -1,10 +1,7 @@
-import React from 'react'
-import ReactDOM from 'react-dom/client'
 import RPHubApp from './pages/RPHub'
+import { mountPage } from './lib/mountPage'
 import './index.css'
 
-ReactDOM.createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>
-    <RPHubApp />
-  </React.StrictMode>
-)
+mountPage(import.meta.url, () => (
+  <RPHubApp />
+));

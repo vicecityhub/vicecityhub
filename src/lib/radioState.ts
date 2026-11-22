@@ -1,4 +1,5 @@
-// Pure radio ("Leonida FM") state rules. The audio element itself lives in AudioManager.ts.
+// Pure radio ("Leonida FM") state rules. The radio itself (the audio element, the playlist) lives in the persistent
+// shell: src/shell/radio.ts.
 
 /** Saved playback position from localStorage; anything unparsable, negative or infinite becomes 0. */
 export function parseSavedRadioTime(raw: string | null): number {
@@ -12,9 +13,4 @@ export function parseSavedRadioTime(raw: string | null): number {
  */
 export function shouldAutoplayOnMount(savedPlaying: string | null): boolean {
   return savedPlaying === null || savedPlaying === 'true';
-}
-
-/** Should a tab that becomes visible again resume? Only an explicit 'false' (user muted) keeps it paused. */
-export function shouldResumeOnVisible(savedPlaying: string | null): boolean {
-  return savedPlaying !== 'false';
 }

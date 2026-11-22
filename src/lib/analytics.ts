@@ -12,7 +12,8 @@ export function trackPageView(): void {
     // text/plain keeps this a "simple" request: no CORS preflight, and it can never block rendering
     fetch(ENDPOINT, {
       method: 'POST',
-      body: JSON.stringify({ p: location.pathname, r: document.referrer, s }),
+      // after a soft navigation document.referrer is stale (it is the page the document was first loaded from)
+      body: JSON.stringify({ p: location.pathname, r: window.vchShell ? window.vchShell.referrer : document.referrer, s }),
       headers: { 'Content-Type': 'text/plain' },
       keepalive: true,
     }).catch(() => {});

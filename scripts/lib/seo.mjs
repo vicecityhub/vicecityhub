@@ -9,6 +9,7 @@
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { shellTag } from './shell-ref.mjs';
 
 export const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 export const cfg = JSON.parse(readFileSync(join(ROOT, 'site.config.json'), 'utf8'));
@@ -139,43 +140,30 @@ details{padding:12px 0;border-bottom:1px solid rgba(255,255,255,.08)}summary{cur
 @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important;scroll-behavior:auto!important}}`;
 
 // ----------------------------------------------------------------------------------------------------------------- JS
-// Leonida FM mirrors src/lib/AudioManager.ts + the Layout radio: same bucket, same localStorage/sessionStorage keys,
-// same autoplay-on-first-gesture rule, same mute-per-session behaviour. No backticks, no dollar-brace, no backslashes in here.
+// The persistent shell (public/vch-shell.js, loaded just before this script) owns Leonida FM and the no-reload navigation,
+// so this script only wires THIS page: menus, the radio button, copy buttons, the countdown and the anonymous hit counter.
+// It runs again for every static page the visitor opens without a reload, so everything bound outside the page's own
+// elements is bound once (window.__vchDd) or released when the page is left (sh.onLeave).
+// No backticks, no dollar-brace, no backslashes in here.
 const JS = `(function(){
-var SB='https://lpglkglhjdqnktybksth.supabase.co',AK='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxwZ2xrZ2xoamRxbmt0eWJrc3RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwMTYzMjUsImV4cCI6MjA5MTU5MjMyNX0.fMZo0fjEfPSf20w-rRQh25zPj7xPVOpU6lO2lon3EEk',FB=[];
+var sh=window.vchShell;
 var $=function(s){return document.querySelector(s)};
 function ls(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}}
-function ss(k,v){try{if(v===undefined)return sessionStorage.getItem(k);sessionStorage.setItem(k,v)}catch(e){return null}}try{var cp=JSON.parse(ls('radioTracks')||'[]');if(Array.isArray(cp))FB=cp.filter(function(x){return typeof x==='string'&&x.indexOf(SB+'/storage/v1/object/public/muz/')===0})}catch(e){}
 var M='<svg viewBox="0 0 24 24"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>',X='<svg viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>';
 var V2='<svg viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>',VX='<svg viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="22" x2="16" y1="9" y2="15"/><line x1="16" x2="22" y1="9" y2="15"/></svg>';
 var bg=$('#burger'),mn=$('#menu');
 document.querySelectorAll('.ddb').forEach(function(b){b.addEventListener('click',function(){var d=b.parentNode;if(d.classList.contains('one')||(mn&&mn.classList.contains('open')))return;var o=d.classList.toggle('open');b.setAttribute('aria-expanded',o?'true':'false');document.querySelectorAll('.dd.open').forEach(function(x){if(x!==d)x.classList.remove('open')})})});
-document.addEventListener('click',function(e){if(!e.target.closest('.dd'))document.querySelectorAll('.dd.open').forEach(function(x){x.classList.remove('open')})});
+if(!window.__vchDd){window.__vchDd=1;document.addEventListener('click',function(e){if(!e.target.closest('.dd'))document.querySelectorAll('.dd.open').forEach(function(x){x.classList.remove('open')})})}
 if(bg&&mn)bg.addEventListener('click',function(){var o=mn.classList.toggle('open');bg.setAttribute('aria-expanded',o?'true':'false');bg.innerHTML=o?X:M});
-var rb=$('#radio'),au=null,tr=FB,ix=-1,want=ss('radioPlaying')!=='false',done=false;
-function sync(){var on=!!(au&&!au.paused);if(rb){rb.classList.toggle('on',on);rb.innerHTML=on?V2:VX}}
-function pick(){if(tr.length<2)return 0;var i=ix;while(i===ix)i=Math.floor(Math.random()*tr.length);return i}
-function load(i,t){ix=i;au.src=tr[i];ls('radioTrackIndex',String(i));if(t>0)au.addEventListener('loadedmetadata',function f(){au.removeEventListener('loadedmetadata',f);if(t<au.duration)try{au.currentTime=t}catch(e){}})}
-function play(){var p=au.play();if(p&&p.catch)p.catch(function(){})}
-function save(){if(au&&!au.paused){ls('radioTime',String(au.currentTime));ls('radioTrackIndex',String(ix))}}
-function boot(){if(!tr.length)return;
-au=new Audio();au.preload='none';var v=parseFloat(ls('radioVolume')||'0.25');au.volume=isFinite(v)?Math.min(1,Math.max(0,v)):0.25;
-au.addEventListener('ended',function(){load(pick(),0);play()});au.addEventListener('play',sync);au.addEventListener('pause',sync);
-var s=parseInt(ls('radioTrackIndex')||'-1',10),t=parseFloat(ls('radioTime')||'0');
-load(s>=0&&s<tr.length?s:pick(),isFinite(t)&&t>0?t:0);
-if(want)play();sync();setInterval(save,1000);addEventListener('pagehide',save);
-document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible'&&ss('radioPlaying')!=='false'&&au.paused)play()});
-}
-function first(e){if(done||!au||!want||!au.paused)return;if(e&&e.target&&e.target.closest&&e.target.closest('#radio'))return;var p=au.play();done=true;if(p&&p.catch)p.catch(function(){done=false})}
-['click','keydown','touchstart','touchend'].forEach(function(n){document.addEventListener(n,first,{capture:true,passive:true})});
-if(rb){rb.innerHTML=VX;rb.addEventListener('click',function(){if(!au)return;if(au.paused){want=true;ss('radioPlaying','true');play()}else{want=false;ss('radioPlaying','false');au.pause()}sync()})}
-fetch(SB+'/storage/v1/object/list/muz',{method:'POST',headers:{apikey:AK,Authorization:'Bearer '+AK,'Content-Type':'application/json'},body:JSON.stringify({prefix:'',limit:100,offset:0})}).then(function(r){return r.ok?r.json():[]}).then(function(fs){var u=(fs||[]).filter(function(f){return f&&f.name&&/[.](ogg|mp3|wav|flac)$/i.test(f.name)}).map(function(f){return SB+'/storage/v1/object/public/muz/'+encodeURIComponent(f.name)});if(u.length){tr=u;ls('radioTracks',JSON.stringify(u))}}).catch(function(){}).then(boot);
+var rb=$('#radio');
+function sync(on){if(rb){rb.classList.toggle('on',!!on);rb.innerHTML=on?V2:VX}}
+if(rb){sync(sh?sh.radio.isPlaying():false);if(sh){sh.onLeave(sh.radio.subscribe(sync));rb.addEventListener('click',function(e){e.stopPropagation();sh.radio.toggle()})}}
 document.querySelectorAll('[data-copy]').forEach(function(b){b.addEventListener('click',function(){try{navigator.clipboard.writeText(b.dataset.copy);var o=b.textContent;b.textContent='Copied!';setTimeout(function(){b.textContent=o},1800)}catch(e){}})});
 document.querySelectorAll('.addr').forEach(function(c){c.addEventListener('click',function(){var s=c.querySelector('.st');try{navigator.clipboard.writeText(c.dataset.addr);s.textContent='Copied';s.classList.add('ok');setTimeout(function(){s.textContent='Copy';s.classList.remove('ok')},2000)}catch(e){}})});
 document.querySelectorAll('.addr').forEach(function(c){c.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();c.click()}})});
-var c=document.getElementById('count');if(c){var t=new Date(+c.dataset.y,+c.dataset.m-1,+c.dataset.d).getTime();(function tick(){var d=t-Date.now();if(d<=0){c.innerHTML='<p class="lead">It is out. Touch grass later.</p>';return}
+var c=document.getElementById('count');if(c){var t=new Date(+c.dataset.y,+c.dataset.m-1,+c.dataset.d).getTime();(function tick(){if(!c.isConnected)return;var d=t-Date.now();if(d<=0){c.innerHTML='<p class="lead">It is out. Touch grass later.</p>';return}
 var s=Math.floor(d/1000);c.querySelector('[data-k=d]').textContent=Math.floor(s/86400);c.querySelector('[data-k=h]').textContent=String(Math.floor(s%86400/3600)).padStart(2,'0');c.querySelector('[data-k=m]').textContent=String(Math.floor(s%3600/60)).padStart(2,'0');c.querySelector('[data-k=s]').textContent=String(s%60).padStart(2,'0');setTimeout(tick,1000)})()}
-try{if(navigator.doNotTrack!=='1'&&ls('vch_ignore')!=='1'){if(/[?&]notrack/.test(location.search)){ls('vch_ignore','1')}else{var q=new URLSearchParams(location.search);fetch(SB+'/functions/v1/hit',{method:'POST',body:JSON.stringify({p:location.pathname,r:document.referrer,s:q.get('utm_source')||q.get('ref')||''}),headers:{'Content-Type':'text/plain'},keepalive:true}).catch(function(){})}}}catch(e){}
+try{if(navigator.doNotTrack!=='1'&&ls('vch_ignore')!=='1'){if(/[?&]notrack/.test(location.search)){ls('vch_ignore','1')}else{var q=new URLSearchParams(location.search);fetch(SB+'/functions/v1/hit',{method:'POST',body:JSON.stringify({p:location.pathname,r:sh?sh.referrer:document.referrer,s:q.get('utm_source')||q.get('ref')||''}),headers:{'Content-Type':'text/plain'},keepalive:true}).catch(function(){})}}}catch(e){}
 })();`;
 
 // Contact, donation and crypto blocks live in the footer (same as the hub). These two stay as no-ops so call sites keep working.
@@ -219,7 +207,7 @@ const header = (path) => {
   const tabs = NAVDATA.bottom.map((b) => `<a href="${SITE}/${b.href}"${b.group === gon ? ' class="on" aria-current="page"' : ''}>${b.label}</a>`).join('');
   return `<header class="top"><div class="bar"><a class="brand" href="${SITE}/index.html">Vice City Hub</a>
 <nav id="menu" class="menu" aria-label="Main">${menu}</nav>
-<div class="ctl"><button id="radio" class="radio" type="button" aria-label="Toggle Leonida FM" title="Toggle Leonida FM"></button>
+<div class="ctl"><button id="radio" class="radio" type="button" data-vch-radio aria-label="Toggle Leonida FM" title="Toggle Leonida FM"></button>
 <button id="burger" class="burger" type="button" aria-label="Menu" aria-controls="menu" aria-expanded="false"><svg viewBox="0 0 24 24"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg></button></div></div>
 <div class="gradient-line"></div></header>
 <nav class="tabs" aria-label="Quick navigation">${tabs}</nav>`;
@@ -273,6 +261,7 @@ ${header(path)}
 ${body}
 </main>
 ${footer()}
+${shellTag()}
 <script>${JS}</script>
 <script src="/vicecityhub/ai-widget.js" defer></script>
 </body></html>

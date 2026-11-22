@@ -64,6 +64,7 @@ export default function RpHeader({ isPlaying, onToggle }: Props) {
 
         <button
           onClick={onToggle}
+          data-vch-radio
           title={isPlaying ? 'Pause Leonida FM' : 'Play Leonida FM'}
           className={`w-10 h-10 rounded-full flex items-center justify-center border transition-all ${
             isPlaying

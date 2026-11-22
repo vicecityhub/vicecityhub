@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { parseSavedRadioTime, shouldAutoplayOnMount, shouldResumeOnVisible } from '../src/lib/radioState.ts';
+import { parseSavedRadioTime, shouldAutoplayOnMount } from '../src/lib/radioState.ts';
 
 test('parseSavedRadioTime accepts non-negative finite numbers', () => {
   assert.equal(parseSavedRadioTime('12.5'), 12.5);
@@ -21,11 +21,4 @@ test('shouldAutoplayOnMount: first visit and an explicit true play; mute (or any
   assert.equal(shouldAutoplayOnMount('true'), true);
   assert.equal(shouldAutoplayOnMount('false'), false);
   assert.equal(shouldAutoplayOnMount('weird'), false);
-});
-
-test('shouldResumeOnVisible: only an explicit false keeps the radio paused', () => {
-  assert.equal(shouldResumeOnVisible(null), true);
-  assert.equal(shouldResumeOnVisible('true'), true);
-  assert.equal(shouldResumeOnVisible('weird'), true);
-  assert.equal(shouldResumeOnVisible('false'), false);
 });

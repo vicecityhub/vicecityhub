@@ -10,6 +10,7 @@ import { YouTubeBanner } from '../components/community/YouTubeBanner';
 import { useFeed } from '../components/community/useFeed';
 import { useLegacyForum } from '../components/community/useLegacyForum';
 import { usePostComposer } from '../components/community/usePostComposer';
+import { navigateTo } from '../lib/shellBridge';
 import { useSubhubs } from '../components/community/useSubhubs';
 
 interface CommunityProps {
@@ -41,7 +42,7 @@ export default function Community({ onOpenModal, session }: CommunityProps) {
   const forum = useLegacyForum({ session, isLoggedIn, requireAuth });
 
   const handleOpenPost = (id: number) => {
-    window.location.href = `./post.html?id=${id}`;
+    navigateTo(`./post.html?id=${id}`);
   };
 
   return (

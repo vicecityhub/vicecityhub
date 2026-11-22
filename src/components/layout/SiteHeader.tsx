@@ -60,6 +60,7 @@ export function SiteHeader(props: SiteHeaderProps) {
         {/* Music Button */}
         <button
           onClick={onToggleRadio}
+          data-vch-radio
           className={`w-10 h-10 rounded-full flex items-center justify-center border transition-all ${isPlaying ? 'text-neonPink border-neonPink shadow-[0_0_15px_rgba(255,0,255,0.4)] animate-pulse' : 'text-neonCyan border-neonCyan'
             }`}
           title="Toggle Leonida FM"

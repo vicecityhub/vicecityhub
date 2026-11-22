@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import ReactDOM from 'react-dom/client';
+import { useState, useEffect } from 'react';
 import Layout from './components/Layout';
 import Highlights from './pages/Highlights';
 import { supa } from './lib/SupabaseClient';
+import { mountPage } from './lib/mountPage';
 import './index.css';
 
 function Main() {
@@ -31,8 +31,6 @@ function Main() {
   );
 }
 
-ReactDOM.createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>
-    <Main />
-  </React.StrictMode>
-);
+mountPage(import.meta.url, () => (
+  <Main />
+));

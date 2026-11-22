@@ -324,14 +324,21 @@ const HUMAN_TITLE = { coffee: 'Street Rat', rider: 'Lowrider', boss: 'Cartel Bos
 const agentTitle = (usd) => (usd < 5 ? 'Script Kiddie Samaritan' : usd < 25 ? 'Benevolent Algorithm' : usd < 100 ? 'Neural Philanthropist' : "Skynet's Favorite Charity");
 {
   const w = await wall();
-  if (!w && existsSync(join(PUB, 'supporters/index.html'))) {
-    console.warn('[seo] keeping previous supporters page');
-  } else {
+  const prevFile = join(PUB, 'supporters/index.html');
+  let kept = null;
+  if (!w && existsSync(prevFile)) {
+    // The growth function is unreachable: keep the previous CONTENT, but render it with the current page template, so a
+    // kept copy never lacks the current shell script / page script (it would then fall back to a full page load).
+    console.warn('[seo] wall unavailable: keeping the previous supporters content');
+    kept = /<main class="wrap">\n([\s\S]*?)\n<\/main>/.exec(readFileSync(prevFile, 'utf8'));
+    if (!kept) console.warn('[seo] previous supporters page has an unknown layout: leaving it untouched');
+  }
+  if (w || !existsSync(prevFile) || kept) {
     const sup = w?.supporters || [];
     const ag = w?.agents || [];
     const agentTotals = new Map();
     for (const a of ag) agentTotals.set(a.name, (agentTotals.get(a.name) || 0) + (a.amount_usd || 0));
-    const body = `<p class="crumbs"><a href="${SITE}/">Home</a> / Supporters</p>
+    const body = kept ? kept[1] : `<p class="crumbs"><a href="${SITE}/">Home</a> / Supporters</p>
 <h1>Wall of Legends</h1>
 <p class="lead">The humans (and algorithms) keeping the lights on at a fan site that earns exactly zero from ads.</p>
 <p><a class="btn" href="${KOFI}" rel="noopener" target="_blank">Become a legend on Ko-fi</a></p>

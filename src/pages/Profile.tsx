@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supa } from '../lib/SupabaseClient';
+import { refreshPage } from '../lib/shellBridge';
 import { buildStorageUploadPath } from '../lib/fileUpload';
 import VerificationBadge, { VerificationLevel } from '../components/VerificationBadge';
 import { Gamepad2, Shield, Upload, X, Link2 } from 'lucide-react';
@@ -106,7 +107,7 @@ export default function Profile({ onOpenModal, session }: ProfileProps) {
   }
 
   if (!profile && viewingOwnEmptyProfile) {
-    return <CreateProfilePrompt session={session} onCreated={() => window.location.reload()} />;
+    return <CreateProfilePrompt session={session} onCreated={refreshPage} />;
   }
 
   if (!profile) {
@@ -262,7 +263,7 @@ export default function Profile({ onOpenModal, session }: ProfileProps) {
       )}
 
       {uploadOpen && (
-        <MediaUploadModal userId={session.user.id} onClose={() => setUploadOpen(false)} onUploaded={() => window.location.reload()} />
+        <MediaUploadModal userId={session.user.id} onClose={() => setUploadOpen(false)} onUploaded={refreshPage} />
       )}
     </div>
   );

@@ -1,22 +1,28 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { getOrCreateAudio, getTrackIndex } from '../../lib/AudioManager';
-import { startRadio, toggleRadio } from '../../lib/radio';
+import React, { useCallback, useEffect, useState } from 'react';
 
-/** Leonida FM: persistent background radio shared across page navigations (rules in lib/radio.ts). */
+/** The radio of the persistent shell, or undefined where there is none (server rendering, tests, a page without the shell). */
+const shellRadio = () => (typeof window !== 'undefined' && window.vchShell ? window.vchShell.radio : undefined);
+
+/**
+ * Leonida FM button state. The radio itself (the <audio> element, the playlist, what happens when a track ends) lives in
+ * the persistent shell (src/shell/radio.ts) and survives page changes; this hook only mirrors its state into React.
+ */
 export function useRadio() {
-  const [isPlaying, setIsPlaying] = useState(false);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+  // The first render already shows the real state: after a soft navigation the music is playing and the button must not flash "muted".
+  const [isPlaying, setIsPlaying] = useState(() => { const radio = shellRadio(); return !!radio && radio.isPlaying(); });
 
   useEffect(() => {
-    const audio = getOrCreateAudio();
-    audioRef.current = audio;
-    return startRadio(audio, setIsPlaying, getTrackIndex);
+    const radio = shellRadio();
+    if (!radio) return undefined;
+    setIsPlaying(radio.isPlaying());
+    return radio.subscribe(setIsPlaying);
   }, []);
 
-  const toggle = (e: React.MouseEvent) => {
+  const toggleRadio = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
-    toggleRadio(audioRef.current, isPlaying, setIsPlaying);
-  };
+    const radio = shellRadio();
+    if (radio) radio.toggle();
+  }, []);
 
-  return { isPlaying, toggleRadio: toggle };
+  return { isPlaying, toggleRadio };
 }
