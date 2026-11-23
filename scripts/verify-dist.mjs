@@ -67,10 +67,11 @@ check('data/donate.json present', existsSync(join(DIST, 'data/donate.json')) && 
   for (const f of htmlFiles()) {
     if (f === 'reset-password.html') continue; // nothing to keep alive there: it is always a plain page load
     const h = read(f);
-    // A leftover static page from before the shell (its news item left the data, so nothing regenerates it): its radio
-    // button has no data-vch-radio. It still works, visitors just get a normal page load when they leave it, so it is
-    // reported but does not block the deploy. A page of the CURRENT template always has the marker and must be complete.
-    if (/id="radio"/.test(h) && !h.includes('data-vch-radio')) { snapshots.push(f); continue; }
+    // A leftover news page from before the shell whose story is in neither the live feed nor scripts/data/news-archive.json,
+    // so nothing rebuilds it: its radio button has no data-vch-radio. It still works, visitors just get a normal page load
+    // (and the music restarts) when they enter or leave it, so it is reported but does not block the deploy. Every other
+    // page (all of them are rebuilt on each build) must be of the CURRENT template, with the marker, and complete.
+    if (/^n[\\/]\d+-[^\\/]+[\\/]index\.html$/.test(f) && /id="radio"/.test(h) && !h.includes('data-vch-radio')) { snapshots.push(f); continue; }
     checked++;
     const refs = [...h.matchAll(/vch-shell\.js(?:\?v=([0-9a-f]+))?/g)];
     if (refs.length !== 1) missing.push(`${f}${refs.length ? ` (x${refs.length})` : ''}`);
@@ -85,7 +86,7 @@ check('data/donate.json present', existsSync(join(DIST, 'data/donate.json')) && 
   check('vch-shell.js: static pages load it before the script that uses it', late.length === 0, late.length ? some(late) : '');
   check('no page carries its own copy of the radio', ownRadio.length === 0, ownRadio.length ? some(ownRadio) : '');
   check('ai-widget.js: leaves nothing behind when the page is swapped', read('ai-widget.js').includes('vchShell.onLeave'));
-  if (snapshots.length) console.log(`WARN  ${snapshots.length} stale static page(s) from before the shell, delete them from public/ when their data is gone  → ${snapshots.slice(0, 4).join(', ')}${snapshots.length > 4 ? ', …' : ''}`);
+  if (snapshots.length) console.log(`WARN  ${snapshots.length} stale news page(s) from before the shell: add their stories with "node scripts/gen-seo-pages.mjs --archive" (then commit scripts/data/news-archive.json) or delete them from public/n/  → ${snapshots.slice(0, 4).join(', ')}${snapshots.length > 4 ? ', …' : ''}`);
 }
 
 // 4. sitemap & robots sanity

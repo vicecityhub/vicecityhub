@@ -154,17 +154,19 @@ async function ready(page) {
 /** Click (or tap) the first VISIBLE link to `p`; open the mobile menu first when none is visible. */
 async function go(page, p, { tap = false } = {}) {
   const find = () => page.$$eval('a[href]', (as, want) => as
-    .map((a, i) => ({ i, ok: new URL(a.href).pathname === want, vis: !!(a.offsetWidth || a.offsetHeight) && getComputedStyle(a).visibility !== 'hidden' }))
+    .map((a, i) => ({ i, ok: new URL(a.href).pathname === want, vis: !!(a.offsetWidth || a.offsetHeight) && getComputedStyle(a).visibility !== 'hidden', inNav: !!a.closest('#menu, nav, header, footer') }))
     .filter((x) => x.ok), p);
   // On a phone the menu lives behind the burger: open it like a visitor would (it closes again with every page swap).
+  // A link in the page itself (a news card, say) is tapped as it is: an open menu would cover it.
   const burger = page.locator('[aria-label="Toggle menu"], #burger').first();
   const burgerShown = (await burger.count()) && (await burger.isVisible());
-  if (tap && burgerShown && (await burger.getAttribute('aria-expanded')) !== 'true') { await burger.tap(); await sleep(250); }
+  const inPage = (await find()).some((x) => x.vis && !x.inNav);
+  if (tap && burgerShown && !inPage && (await burger.getAttribute('aria-expanded')) !== 'true') { await burger.tap(); await sleep(250); }
   let found = await find();
   if (!found.some((x) => x.vis) && burgerShown) {
     await (tap ? burger.tap() : burger.click()); await sleep(250); found = await find();
   }
-  const target = found.find((x) => x.vis) || found[0];
+  const target = found.find((x) => x.vis && !x.inNav) || found.find((x) => x.vis) || found[0];
   if (!target) throw new Error('no link to ' + p + ' on ' + page.url());
   const link = page.locator('a[href]').nth(target.i);
   if (target.vis) { if (tap) await link.tap({ timeout: 4000 }); else await link.click({ timeout: 4000 }); }
@@ -173,11 +175,16 @@ async function go(page, p, { tap = false } = {}) {
   await sleep(350); // static pages finish their scripts a moment after the swap
 }
 
+// A page of one news story, taken from the build: the kind of page that used to be a frozen copy with its OWN radio (a story
+// that left the live feed). The tour must pass through it, entering from the news archive and leaving to another section.
+const STORY = fs.readdirSync(path.join(DIST, 'n')).filter((d) => /^\d+-/.test(d)).sort().pop();
+
 const SECTIONS = [
   ['/vicecityhub/document.html', 'React'], ['/vicecityhub/community.html', 'React'], ['/vicecityhub/market.html', 'React'],
   ['/vicecityhub/realestate.html', 'React'], ['/vicecityhub/rp.html', 'React'], ['/vicecityhub/agents.html', 'React'],
   ['/vicecityhub/highlights.html', 'React'], ['/vicecityhub/index.html', 'React'], ['/vicecityhub/news.html', 'React'],
-  ['/vicecityhub/n/', 'static'], ['/vicecityhub/gta-6-release-date/', 'static'], ['/vicecityhub/vehicles/', 'static'],
+  ['/vicecityhub/n/', 'static'], ...(STORY ? [[`/vicecityhub/n/${STORY}/`, 'static']] : []),
+  ['/vicecityhub/gta-6-release-date/', 'static'], ['/vicecityhub/vehicles/', 'static'],
   ['/vicecityhub/supporters/', 'static'], ['/vicecityhub/alley/', 'static'], ['/vicecityhub/is-gta-6-out-yet/', 'static'],
   ['/vicecityhub/news.html', 'React'],
 ];

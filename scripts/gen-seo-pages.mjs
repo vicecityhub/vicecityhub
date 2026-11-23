@@ -16,12 +16,13 @@
  * Runs after gen-agent-surface.mjs (needs public/data/news.json). Never fails the build.
  * Usage: node scripts/gen-seo-pages.mjs
  */
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { NAVDATA,
   ROOT, SITE, GROWTH, KOFI, RELEASE, cfg, esc, one, trunc, slugify, newsPath, newsUrl, longDate, day, stars,
   shell, nlBlock, kofiBlock, shareBar, org, crumbs,
 } from './lib/seo.mjs';
+import { ARCHIVE_FILE, mergeNews, readArchive, writeArchive } from './lib/news-archive.mjs';
 
 const PUB = join(ROOT, 'public');
 const ISO = new Date().toISOString();
@@ -36,10 +37,17 @@ function out(rel, content) {
 const readJson = (rel) => { try { return JSON.parse(readFileSync(join(PUB, rel), 'utf8')); } catch { return null; } };
 
 // ---------------------------------------------------------------- data
-const news = (readJson('data/news.json')?.items || [])
-  .filter((n) => n && n.id && n.title)
-  .sort((a, b) => new Date(b.published_at) - new Date(a.published_at) || b.id - a.id);
-if (!news.length) console.warn('[seo] no news in public/data/news.json - news pages skipped');
+// The live feed (public/data/news.json) carries only the latest stories. The archive keeps the older ones that still have a
+// page, so those pages are rebuilt from the CURRENT template on every build instead of freezing with the one they were made
+// with (an old inline radio with its own <audio> and no shell restarted the music on every visit). See scripts/lib/news-archive.mjs.
+// `node scripts/gen-seo-pages.mjs --archive` copies the stories of the live feed into the archive (then commit the file).
+const live = mergeNews(readJson('data/news.json')?.items, []);
+if (process.argv.includes('--archive')) {
+  const r = writeArchive(ROOT, live);
+  console.log(`[seo] archive: ${r.total} stories (${r.added} added) in ${ARCHIVE_FILE}`);
+}
+const news = mergeNews(live, readArchive(ROOT));
+if (!news.length) console.warn('[seo] no news in public/data/news.json or in the archive - news pages skipped');
 
 function loadVehicles() {
   try {
@@ -115,6 +123,17 @@ ${related.length ? `<h2>More from the Wire</h2><ul class="list">${related.map(ne
   stats.news++;
 }
 news.forEach(newsPage);
+
+// A page left by an older build whose story is in neither the live feed nor the archive cannot be rebuilt: it keeps the
+// template it was made with (reported here and by `npm run verify:dist`; it still works, but leaving it is a normal page load).
+{
+  const dir = join(PUB, 'n');
+  const wanted = new Set(news.map((n) => newsPath(n).replace(/^n\//, '').replace(/\/$/, '')));
+  const orphans = existsSync(dir)
+    ? readdirSync(dir, { withFileTypes: true }).filter((e) => e.isDirectory() && /^\d+-/.test(e.name) && !wanted.has(e.name)).map((e) => e.name)
+    : [];
+  if (orphans.length) console.warn(`[seo] ${orphans.length} news page(s) have no story data and are not rebuilt (add the story: node scripts/gen-seo-pages.mjs --archive): ${orphans.slice(0, 3).join(', ')}${orphans.length > 3 ? ', ...' : ''}`);
+}
 
 if (news.length) {
   const ld = [{
@@ -483,5 +502,7 @@ add(`${SITE}/is-gta-6-out-yet/`, day(ISO), 'daily', '0.9');
   for (const n of news) add(newsUrl(n), day(n.published_at), 'never', '0.6');
   for (const v of vehicles) add(vUrl(v), day(ISO), 'monthly', '0.5');
   out('sitemap.xml', `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.map((u) => `  <url>\n    <loc>${xml(u.loc)}</loc>\n    <lastmod>${u.lastmod}</lastmod>\n    <changefreq>${u.freq}</changefreq>\n    <priority>${u.prio}</priority>\n  </url>`).join('\n')}\n</urlset>\n`);
-  console.log(`[seo] ${stats.news} news pages · ${stats.vehicles} vehicle pages · release page · supporters · RSS · ${urls.length} sitemap URLs`);
+  const liveIds = new Set(live.map((n) => String(n.id)));
+  const fromArchive = news.filter((n) => !liveIds.has(String(n.id))).length;
+  console.log(`[seo] ${stats.news} news pages (${stats.news - fromArchive} live, ${fromArchive} from the archive) · ${stats.vehicles} vehicle pages · release page · supporters · RSS · ${urls.length} sitemap URLs`);
 }
