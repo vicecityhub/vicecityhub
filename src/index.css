@@ -302,56 +302,6 @@
     0% { background-position: 0% 50%; }
     100% { background-position: -200% 50%; }
   }
-
-  /* Countdown Timer Components */
-  .countdown {
-    display: inline-flex;
-    gap: 0;
-    background: rgba(255, 0, 255, 0.04);
-    border: 2px solid rgba(255, 0, 255, 0.35);
-    border-radius: 8px;
-    overflow: hidden;
-    box-shadow: 0 0 25px rgba(255, 0, 255, 0.25), inset 0 0 15px rgba(255, 0, 255, 0.1);
-    backdrop-filter: blur(10px);
-  }
-  .cd-unit {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 0.85rem 1.5rem;
-    position: relative;
-    min-width: 90px;
-  }
-  .cd-unit:not(:last-child)::after {
-    content: ':';
-    position: absolute;
-    right: -4px;
-    top: 45%;
-    transform: translateY(-50%);
-    font-family: 'Orbitron', sans-serif;
-    font-size: 2.2rem;
-    color: var(--neon-pink);
-    text-shadow: 0 0 15px var(--neon-pink);
-    opacity: 0.7;
-  }
-  .cd-num {
-    font-family: 'Orbitron', sans-serif;
-    font-size: clamp(2rem, 4.5vw, 3rem);
-    font-weight: 900;
-    color: var(--neon-pink);
-    line-height: 1;
-    text-shadow: 0 0 10px rgba(255, 0, 255, 0.8), 0 0 25px rgba(255, 0, 255, 0.5);
-  }
-  .cd-lbl {
-    font-family: 'Rajdhani', sans-serif;
-    font-size: 0.7rem;
-    font-weight: 700;
-    letter-spacing: 0.2em;
-    color: var(--neon-cyan);
-    margin-top: 0.5rem;
-    text-transform: uppercase;
-    text-shadow: 0 0 10px rgba(0, 255, 255, 0.6);
-  }
 }
 
 /* Selection Color */
@@ -405,26 +355,6 @@
   scrollbar-color: var(--neon-pink) rgba(18, 18, 26, 0.5);
 }
 
-/* Mobile Countdown Responsiveness */
-@media (max-width: 640px) {
-  .cd-unit {
-    min-width: 65px;
-    padding: 0.75rem 0.5rem;
-  }
-  .cd-unit:not(:last-child)::after {
-    font-size: 1.6rem;
-    right: -2px;
-    top: 40%;
-  }
-  .cd-num {
-    font-size: 1.8rem;
-  }
-  .cd-lbl {
-    font-size: 0.55rem;
-    margin-top: 0.25rem;
-    letter-spacing: 0.1em;
-  }
-}
 /* ============================================================
    v11 RP HUB — APPEND THIS TO THE END OF src/index.css
    Не заменяет существующие стили, только добавляет новые

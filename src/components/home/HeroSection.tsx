@@ -1,22 +1,12 @@
 import React from 'react';
-import { useCountdown } from './useCountdown';
-import { StreamBanner } from './StreamBanner';
-
-const UNITS = [
-  { key: 'days', label: 'Days' },
-  { key: 'hours', label: 'Hours' },
-  { key: 'minutes', label: 'Mins' },
-  { key: 'seconds', label: 'Secs' },
-] as const;
+import { WalkthroughBanner } from './WalkthroughBanner';
 
 interface HeroSectionProps {
   onOpenModal: (id: string, tab?: 'login' | 'register') => void;
 }
 
-/** Hero banner: headline, stream trailer banner, release countdown and the two call-to-action buttons. */
+/** Hero banner: headline, the full-walkthrough banner and the two call-to-action buttons. */
 export function HeroSection({ onOpenModal }: HeroSectionProps) {
-  const timeLeft = useCountdown();
-
   return (
     <header className="flex flex-col items-center justify-center text-center px-6 pt-1 pb-10 lg:pt-2 lg:pb-12 relative overflow-hidden bg-radial-hero">
       <div className="absolute inset-0 z-0 pointer-events-none bg-[radial-gradient(ellipse_80%_50%_at_50%_85%,rgba(255,0,255,0.12)_0%,transparent_60%)]" />
@@ -40,22 +30,12 @@ export function HeroSection({ onOpenModal }: HeroSectionProps) {
 
       </div>
 
-      {/* STREAM TRAILER: full-width banner, sits right above the countdown */}
-      <StreamBanner />
+      {/* FULL WALKTHROUGH: full-width banner, sits right above the call-to-action buttons */}
+      <WalkthroughBanner />
 
       <div className="relative z-10 flex flex-col items-center max-w-4xl">
-        {/* COUNTDOWN TIMER */}
-        <div className="countdown mt-6 lg:mt-7" id="countdown">
-          {UNITS.map(u => (
-            <div key={u.key} className="cd-unit">
-              <div className="cd-num">{timeLeft[u.key]}</div>
-              <div className="cd-lbl">{u.label}</div>
-            </div>
-          ))}
-        </div>
-
         {/* CALL TO ACTIONS */}
-        <div className="flex flex-wrap gap-4 justify-center mt-5 lg:mt-6">
+        <div className="flex flex-wrap gap-4 justify-center mt-6 lg:mt-7">
           <button onClick={() => onOpenModal('sitemap')} className="btn-neon font-orbitron text-xs">
             Explore Hub
           </button>

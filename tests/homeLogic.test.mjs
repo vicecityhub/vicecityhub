@@ -1,11 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  COUNTDOWN_INITIAL,
-  RELEASE_DATE_MS,
   CARD_SCROLL_STEP,
   EMPTY_MEDIA_FORM,
-  computeTimeLeft,
   mediaTabLabel,
   cardsForTab,
   mediaFormFromCard,
@@ -15,31 +12,6 @@ import {
   groupMapComments,
   commentAuthorName,
 } from '../src/lib/homeLogic.ts';
-
-test('release date is 19 Nov 2026 00:00 UTC and the initial countdown is zeroed', () => {
-  assert.equal(RELEASE_DATE_MS, Date.UTC(2026, 10, 19));
-  assert.deepEqual(COUNTDOWN_INITIAL, { days: '000', hours: '00', minutes: '00', seconds: '00' });
-});
-
-test('computeTimeLeft splits the distance into zero-padded parts', () => {
-  const target = Date.UTC(2026, 10, 19);
-  // 23 days 4 h 5 min 6 s before the target
-  const now = target - ((23 * 24 + 4) * 3600 + 5 * 60 + 6) * 1000;
-  assert.deepEqual(computeTimeLeft(target, now), { days: '023', hours: '04', minutes: '05', seconds: '06' });
-});
-
-test('computeTimeLeft: exactly at the target is zero, after it is null', () => {
-  const target = 1_000_000;
-  assert.deepEqual(computeTimeLeft(target, target), { days: '000', hours: '00', minutes: '00', seconds: '00' });
-  assert.equal(computeTimeLeft(target, target + 1), null);
-});
-
-test('computeTimeLeft keeps days at three digits and drops sub-second remainders', () => {
-  const target = 500 * 86400 * 1000 + 999;
-  const t = computeTimeLeft(target, 0);
-  assert.equal(t.days, '500');
-  assert.equal(t.seconds, '00');
-});
 
 test('mediaTabLabel', () => {
   assert.equal(mediaTabLabel('trailer'), 'Trailers');

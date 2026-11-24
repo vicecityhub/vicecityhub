@@ -9,7 +9,7 @@ interface HomeProps {
   session: any;
 }
 
-/** Home page: hero (stream trailer banner + countdown), community media, in-depth features and the map. */
+/** Home page: hero (full-walkthrough banner), community media, in-depth features and the map. */
 export default function Home({ onOpenModal, session }: HomeProps) {
   return (
     <div className="w-full">

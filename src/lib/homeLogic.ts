@@ -1,31 +1,5 @@
 // Pure logic of the home page (no React, no Supabase). Extracted from pages/Home.tsx; behaviour is unchanged.
 
-// ---------- release countdown
-
-export interface TimeLeft { days: string; hours: string; minutes: string; seconds: string }
-
-export const COUNTDOWN_INITIAL: TimeLeft = { days: '000', hours: '00', minutes: '00', seconds: '00' };
-
-/** GTA VI release moment the countdown runs to. */
-export const RELEASE_DATE_MS = new Date('2026-11-19T00:00:00Z').getTime();
-
-const SECOND = 1000;
-const MINUTE = SECOND * 60;
-const HOUR = MINUTE * 60;
-const DAY = HOUR * 24;
-
-/** Time left until `targetMs`, zero-padded for display; null once the target has passed. */
-export function computeTimeLeft(targetMs: number, nowMs: number): TimeLeft | null {
-  const distance = targetMs - nowMs;
-  if (distance < 0) return null;
-  return {
-    days: String(Math.floor(distance / DAY)).padStart(3, '0'),
-    hours: String(Math.floor((distance % DAY) / HOUR)).padStart(2, '0'),
-    minutes: String(Math.floor((distance % HOUR) / MINUTE)).padStart(2, '0'),
-    seconds: String(Math.floor((distance % MINUTE) / SECOND)).padStart(2, '0'),
-  };
-}
-
 // ---------- community media cards
 
 export type MediaType = 'trailer' | 'podcast' | 'streamer' | 'reel';
