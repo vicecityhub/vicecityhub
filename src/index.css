@@ -302,6 +302,25 @@
     0% { background-position: 0% 50%; }
     100% { background-position: -200% 50%; }
   }
+
+  /*
+   * Poster of the walkthrough banner on the home page (WalkthroughBanner): an iridescent film of neon colors that flows over the
+   * picture, and a light streak that sweeps across it now and then. Both are decorative layers; their animations are defined in
+   * tailwind.config.js (animate-vch-holo, animate-vch-sheen) and are switched off by motion-reduce:animate-none.
+   * The film is two color cycles wide: moving it by half its width loops without a seam. Without animation it stays a static tint,
+   * and the streak waits off the poster, so nothing odd is drawn.
+   */
+  .vch-holo {
+    background-image: linear-gradient(100deg,
+      #ff00ff 0%, #00ffff 12.5%, #ffe135 25%, #ff6b35 37.5%, #ff00ff 50%,
+      #00ffff 62.5%, #ffe135 75%, #ff6b35 87.5%, #ff00ff 100%);
+  }
+
+  .vch-sheen {
+    background-image: linear-gradient(100deg,
+      transparent 0%, rgba(255, 0, 255, 0.26) 30%, rgba(255, 255, 255, 0.5) 50%, rgba(0, 255, 255, 0.26) 70%, transparent 100%);
+    transform: translateX(-150%) skewX(-18deg);
+  }
 }
 
 /* Selection Color */

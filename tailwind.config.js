@@ -39,6 +39,23 @@ module.exports = {
 				md: 'calc(0.5rem - 2px)',
 				sm: 'calc(0.5rem - 4px)',
 			},
+			// Iridescent poster of the walkthrough banner on the home page (WalkthroughBanner, classes .vch-holo / .vch-sheen in index.css).
+			// The color film is two cycles wide, so a shift of half its width loops without a seam; the sheen is a light streak that
+			// sweeps across the picture and then rests off it. Both only move `transform` (no repaint) and stop under reduced motion.
+			keyframes: {
+				'vch-holo': {
+					from: { transform: 'translateX(0)' },
+					to: { transform: 'translateX(-50%)' },
+				},
+				'vch-sheen': {
+					'0%': { transform: 'translateX(-150%) skewX(-18deg)' },
+					'45%, 100%': { transform: 'translateX(450%) skewX(-18deg)' },
+				},
+			},
+			animation: {
+				'vch-holo': 'vch-holo 9s linear infinite',
+				'vch-sheen': 'vch-sheen 5.5s cubic-bezier(0.4, 0, 0.2, 1) infinite',
+			},
 		},
 	},
 	plugins: [require('tailwindcss-animate')],
