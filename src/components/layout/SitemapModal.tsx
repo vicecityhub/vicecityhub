@@ -8,7 +8,7 @@ const SITEMAP_LINKS: SitemapLink[] = [
   { href: './news.html', icon: '📡', label: 'The Wire News' },
   { href: './market.html', icon: '💰', label: 'Web3 Market' },
   { href: './realestate.html', icon: '🏢', label: 'Dynasty 8 ROI' },
-  { href: './document.html', icon: '📁', label: 'Leonida Database' },
+  { href: './document.html', icon: '🚗', label: 'Vehicles' },
   { href: './agents.html', icon: '🤖', label: 'Agent Gateway' },
   { href: './community.html', icon: '🏘️', label: 'Community' },
 ];

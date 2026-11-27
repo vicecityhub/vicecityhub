@@ -184,7 +184,7 @@ const SECTIONS = [
   ['/vicecityhub/realestate.html', 'React'], ['/vicecityhub/rp.html', 'React'], ['/vicecityhub/agents.html', 'React'],
   ['/vicecityhub/highlights.html', 'React'], ['/vicecityhub/index.html', 'React'], ['/vicecityhub/news.html', 'React'],
   ['/vicecityhub/n/', 'static'], ...(STORY ? [[`/vicecityhub/n/${STORY}/`, 'static']] : []),
-  ['/vicecityhub/gta-6-release-date/', 'static'], ['/vicecityhub/vehicles/', 'static'],
+  ['/vicecityhub/gta-6-release-date/', 'static'],
   ['/vicecityhub/supporters/', 'static'], ['/vicecityhub/alley/', 'static'], ['/vicecityhub/is-gta-6-out-yet/', 'static'],
   ['/vicecityhub/news.html', 'React'],
 ];
@@ -337,7 +337,7 @@ async function scenarioScroll(browser) {
   const page = await ctx.newPage();
   const seen = bucket();
   watch(page, seen);
-  await page.goto(BASE + 'vehicles/');
+  await page.goto(BASE + 'n/'); // a long static page: the news archive
   await ready(page);
   await page.evaluate(() => window.scrollTo({ top: 900, behavior: 'instant' }));
   await sleep(200);

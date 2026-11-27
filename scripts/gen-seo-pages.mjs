@@ -7,9 +7,9 @@
  *
  *   public/n/<id>-<slug>/index.html   one page per news item (NewsArticle JSON-LD, share bar, newsletter, Ko-fi)
  *   public/n/index.html               news archive (CollectionPage + ItemList)
- *   public/vehicles/...               index + one page per GTA VI vehicle from src/pages/Document.tsx (FAQPage JSON-LD)
  *   public/gta-6-release-date/        countdown + facts + FAQPage (facts live in site.config.json -> release)
  *   public/supporters/                Wall of Legends (Ko-fi supporters) + Agent Hall of Fame (from the growth edge function)
+ *   public/404.html                   branded 404 (GitHub Pages serves it for every missing address; old /vehicles/... addresses are sent on)
  *   public/feed.xml                   RSS 2.0
  *   public/sitemap.xml                full sitemap (replaces the one gen-agent-surface.mjs writes)
  *
@@ -19,7 +19,7 @@
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { NAVDATA,
-  ROOT, SITE, GROWTH, KOFI, RELEASE, cfg, esc, one, trunc, slugify, newsPath, newsUrl, longDate, day, stars,
+  ROOT, SITE, GROWTH, KOFI, RELEASE, cfg, esc, one, trunc, newsPath, newsUrl, longDate, day, stars,
   shell, nlBlock, kofiBlock, shareBar, org, crumbs,
 } from './lib/seo.mjs';
 import { ARCHIVE_FILE, mergeNews, readArchive, writeArchive } from './lib/news-archive.mjs';
@@ -27,7 +27,7 @@ import { ARCHIVE_FILE, mergeNews, readArchive, writeArchive } from './lib/news-a
 const PUB = join(ROOT, 'public');
 const ISO = new Date().toISOString();
 const xml = (s) => String(s).replace(/[<>&'"]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', "'": '&apos;', '"': '&quot;' }[c]));
-const stats = { news: 0, vehicles: 0 };
+const stats = { news: 0 };
 
 function out(rel, content) {
   const p = join(PUB, rel);
@@ -48,29 +48,6 @@ if (process.argv.includes('--archive')) {
 }
 const news = mergeNews(live, readArchive(ROOT));
 if (!news.length) console.warn('[seo] no news in public/data/news.json or in the archive - news pages skipped');
-
-function loadVehicles() {
-  try {
-    const src = readFileSync(join(ROOT, 'src/pages/Document.tsx'), 'utf8');
-    const marker = 'const VEHICLES: IVehicle[] =';
-    const a = src.indexOf(marker);
-    if (a < 0) throw new Error('VEHICLES marker not found');
-    const start = src.indexOf('[', a + marker.length);
-    const end = src.indexOf('\n];', start);
-    const list = new Function('return ' + src.slice(start, end + 2))();
-    const seen = new Set();
-    return list.map((v) => {
-      let s = slugify(v.name) || v.id;
-      if (seen.has(s)) s = `${s}-${v.id}`;
-      seen.add(s);
-      return { ...v, slug: s };
-    });
-  } catch (e) {
-    console.warn('[seo] vehicles skipped:', e.message);
-    return [];
-  }
-}
-const vehicles = loadVehicles();
 
 // ---------------------------------------------------------------- news pages
 const CAT_LABEL = { Official: 'Official', Leaks: 'Leaks', Rumors: 'Rumors', Community: 'Community' };
@@ -148,91 +125,6 @@ if (news.length) {
 <ul class="list">${news.map(newsCard).join('')}</ul>
 <div style="margin-top:22px">${nlBlock('news-archive')}${kofiBlock()}</div>`;
   out('n/index.html', shell({ title: 'GTA 6 News Archive: Leaks, Rumors & Official Updates | Vice City Hub', description: 'Every GTA 6 story from Vice City Hub: official Rockstar updates, leaks, rumors and community news, rated by heat and linked to the source.', path: 'n/', ld, body }));
-}
-
-// ---------------------------------------------------------------- vehicles
-const QUIP = {
-  Supercar: 'Priced for people who still think a mortgage is optional.',
-  Sports: 'Fast enough to impress the neighbors, cheap enough to explain to your accountant.',
-  Muscle: 'Subtlety stayed in the garage. So did the fuel economy.',
-  Sedan: 'For criminals who value a working trunk and plausible deniability.',
-  SUV: 'Heavy, tinted and ready to double-park in a fire lane.',
-  Motorcycle: 'Two wheels, zero airbags, maximum confidence.',
-  Boat: 'Leonida has water, and your bad decisions need somewhere to go.',
-  Utility: 'The unsung hero of every heist and every awkward airport pickup.',
-  'Off-Road': 'For when the road ends and the bad ideas begin.',
-};
-const STATUS = {
-  NEW: 'new to the series',
-  RETURNING: 'a returning vehicle from earlier GTA games',
-  CONFIRMED: 'confirmed for GTA VI',
-};
-const vPath = (v) => `vehicles/${v.slug}/`;
-const vUrl = (v) => `${SITE}/${vPath(v)}`;
-const vCard = (v) => `<li class="card"><a href="${vUrl(v)}" style="color:#fff;font-weight:800">${esc(v.name)}</a>
-<div class="meta" style="margin:.3em 0 .2em"><span class="tag">${esc(v.cls)}</span><span>${esc(STATUS[v.status] ? v.status : v.status)}</span></div>
-<p class="mut small" style="margin:0">Real-life inspiration: ${esc(v.realLife)}</p></li>`;
-
-function vehiclePage(v) {
-  const url = vUrl(v);
-  const sameClass = vehicles.filter((x) => x.id !== v.id && x.cls === v.cls)
-    .sort((a, b) => (b.maker === v.maker) - (a.maker === v.maker)).slice(0, 4);
-  const faq = [
-    [`What is the ${v.name} based on in real life?`, `The ${v.name} is a ${v.cls.toLowerCase()} ${v.body.toLowerCase()} inspired by the ${v.realLife}.`],
-    [`Is the ${v.name} new in GTA 6?`, `It is ${STATUS[v.status] || 'listed in our database'}. ${v.status === 'NEW' ? 'It did not appear in earlier GTA games.' : v.status === 'RETURNING' ? 'It has appeared in earlier GTA games.' : ''}`.trim()],
-    [`How many seats does the ${v.name} have?`, `${v.seats} ${v.seats === 1 ? 'seat' : 'seats'} (${v.body}).`],
-  ];
-  const ld = [
-    { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faq.map(([q, a]) => ({ '@type': 'Question', name: q, acceptedAnswer: { '@type': 'Answer', text: a } })) },
-    crumbs([['Home', SITE + '/'], ['GTA 6 Vehicles', SITE + '/vehicles/'], [v.name, url]]),
-  ];
-  const body = `<p class="crumbs"><a href="${SITE}/">Home</a> / <a href="${SITE}/vehicles/">Vehicles</a> / ${esc(v.name)}</p>
-<span class="tag">${esc(v.cls)}</span>
-<h1>${esc(v.name)} in GTA 6</h1>
-<p class="lead">${esc(v.desc)}</p>
-<p class="mut"><em>${esc(QUIP[v.cls] || '')}</em></p>
-<div class="card"><table class="spec"><tbody>
-<tr><td>Maker</td><td>${esc(v.maker)}</td></tr>
-<tr><td>Class</td><td>${esc(v.cls)}</td></tr>
-<tr><td>Body</td><td>${esc(v.body)}</td></tr>
-<tr><td>Seats</td><td>${esc(v.seats)}</td></tr>
-${v.year ? `<tr><td>Model year</td><td>${esc(v.year)}</td></tr>` : ''}
-<tr><td>Real-life inspiration</td><td>${esc(v.realLife)}</td></tr>
-<tr><td>Status</td><td>${esc(v.status)}</td></tr>
-</tbody></table></div>
-<h2>FAQ</h2>
-${faq.map(([q, a]) => `<details open><summary>${esc(q)}</summary><p>${esc(a)}</p></details>`).join('')}
-<p class="mut small">Compiled by the Vice City Hub community from trailers and official art. This is a fan database, not an official Rockstar vehicle list. More on the <a href="${esc(v.wiki)}" rel="noopener" target="_blank">GTA Wiki</a>.</p>
-${shareBar(url, `${v.name} in GTA 6: ${v.realLife} energy`)}
-<p><a class="btn" href="${SITE}/document.html">Open the interactive Leonida Database</a> <a class="btn alt" href="${SITE}/vehicles/">All vehicles</a></p>
-${sameClass.length ? `<h2>More ${esc(v.cls)}</h2><ul class="list">${sameClass.map(vCard).join('')}</ul>` : ''}
-<div style="margin-top:22px">${nlBlock('vehicle-' + v.slug)}</div>`;
-  out(`${vPath(v)}index.html`, shell({
-    title: `${v.name} in GTA 6: Real-Life Car, Class & Status | Vice City Hub`,
-    description: trunc(`${v.name} (${v.maker}, ${v.cls}): inspired by the ${v.realLife}. ${v.desc}`, 190),
-    path: vPath(v), ld, body,
-  }));
-  stats.vehicles++;
-}
-
-if (vehicles.length) {
-  vehicles.forEach(vehiclePage);
-  const classes = [...new Set(vehicles.map((v) => v.cls))];
-  const ld = [{
-    '@context': 'https://schema.org', '@type': 'CollectionPage', name: 'GTA 6 Vehicles', url: `${SITE}/vehicles/`,
-    mainEntity: { '@type': 'ItemList', itemListElement: vehicles.map((v, i) => ({ '@type': 'ListItem', position: i + 1, url: vUrl(v), name: v.name })) },
-  }, crumbs([['Home', SITE + '/'], ['GTA 6 Vehicles', SITE + '/vehicles/']])];
-  const body = `<p class="crumbs"><a href="${SITE}/">Home</a> / Vehicles</p>
-<h1>GTA 6 Vehicles: Every Confirmed Car, Bike and Boat</h1>
-<p class="lead">${vehicles.length} vehicles spotted in GTA VI trailers and official art, with their real-life inspiration. Our fan-built database, sorted by class.</p>
-<p><a class="btn" href="${SITE}/document.html">Filter in the interactive database</a></p>
-${classes.map((c) => `<h2>${esc(c)}</h2><ul class="grid list" style="display:grid">${vehicles.filter((v) => v.cls === c).map(vCard).join('')}</ul>`).join('')}
-<div style="margin-top:22px">${nlBlock('vehicles-index')}</div>`;
-  out('vehicles/index.html', shell({
-    title: 'GTA 6 Vehicles: Full List of Confirmed Cars, Bikes & Boats | Vice City Hub',
-    description: `Every vehicle confirmed so far for GTA 6 (${vehicles.length} and counting), with class, maker, seats and the real-life car behind it.`,
-    path: 'vehicles/', ld, body,
-  }));
 }
 
 // ---------------------------------------------------------------- "Is GTA 6 out yet?" page (one-word answer, high-intent query)
@@ -386,8 +278,7 @@ ${ag.length ? `<ul class="list">${ag.map((a) => `<li class="card"><b style="colo
     archive: 'Every story we have published, one page each.',
     date: 'Countdown, platforms and the FAQ.',
     isout: 'The one-word answer.',
-    document: 'Leonida Database: map, characters, lore.',
-    vehicles: 'Every car, bike and boat we know about.',
+    document: 'Every car, bike and boat in one searchable database.',
     realestate: 'Properties in Dynasty 8.',
     community: 'Forum, streams, podcasts and listings by the community.',
     rp: 'GTA RP servers, jobs, factions and mods.',
@@ -408,6 +299,22 @@ ${sections}`;
     description: 'Every page on Vice City Hub, grouped: news, world, play, market and agents.',
     path: 'map/', body,
     ld: [crumbs([['Home', SITE + '/'], ['All pages', SITE + '/map/']])],
+  }));
+}
+
+// ---------------------------------------------------------------- 404 (GitHub Pages serves this file for every address that does not exist)
+// The one-page-per-vehicle pages (/vehicles/<slug>/) were folded into the Vehicles page (document.html). Their old addresses
+// end up here and are sent to that page (to the vehicle's own card when the slug is known). Everything else sees a plain 404.
+{
+  const hop = `<script>(function(){var s=location.pathname.split('/'),k=s.indexOf('vehicles');if(k<0)return;location.replace('${SITE}/document.html'+(s[k+1]?'#'+encodeURIComponent(s[k+1]):''))})()</script>`;
+  const body = `<p class="crumbs"><a href="${SITE}/">Home</a> / 404</p>
+<h1>404: Wrong Address, Chief</h1>
+<p class="lead">Whatever lived here got repossessed, relocated or never existed. Leonida has plenty of addresses. This is not one of them.</p>
+<p><a class="btn" href="${SITE}/">Back to the Hub</a> <a class="btn alt" href="${SITE}/map/">All pages</a></p>`;
+  out('404.html', shell({
+    title: '404: Page Not Found | Vice City Hub',
+    description: 'This address does not exist on Vice City Hub. Head back to the home page or browse every page of the Hub.',
+    path: '404.html', body, noindex: true, extraHead: hop,
   }));
 }
 
@@ -494,15 +401,13 @@ ${items}
   add(`${SITE}/gta-6-release-date/`, day(ISO), 'daily', '0.9');
 add(`${SITE}/is-gta-6-out-yet/`, day(ISO), 'daily', '0.9');
   add(`${SITE}/n/`, day(news[0]?.published_at || ISO), 'daily', '0.8');
-  add(`${SITE}/vehicles/`, day(ISO), 'weekly', '0.7');
   add(`${SITE}/supporters/`, day(ISO), 'daily', '0.4');
   add(`${SITE}/map/`, day(ISO), 'weekly', '0.4');
   add(`${SITE}/llms.txt`, day(ISO), 'daily', '0.5');
   add(`${SITE}/data/index.json`, day(ISO), 'daily', '0.3');
   for (const n of news) add(newsUrl(n), day(n.published_at), 'never', '0.6');
-  for (const v of vehicles) add(vUrl(v), day(ISO), 'monthly', '0.5');
   out('sitemap.xml', `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.map((u) => `  <url>\n    <loc>${xml(u.loc)}</loc>\n    <lastmod>${u.lastmod}</lastmod>\n    <changefreq>${u.freq}</changefreq>\n    <priority>${u.prio}</priority>\n  </url>`).join('\n')}\n</urlset>\n`);
   const liveIds = new Set(live.map((n) => String(n.id)));
   const fromArchive = news.filter((n) => !liveIds.has(String(n.id))).length;
-  console.log(`[seo] ${stats.news} news pages (${stats.news - fromArchive} live, ${fromArchive} from the archive) · ${stats.vehicles} vehicle pages · release page · supporters · RSS · ${urls.length} sitemap URLs`);
+  console.log(`[seo] ${stats.news} news pages (${stats.news - fromArchive} live, ${fromArchive} from the archive) · release page · supporters · RSS · ${urls.length} sitemap URLs`);
 }

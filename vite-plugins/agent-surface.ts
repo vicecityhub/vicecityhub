@@ -138,7 +138,6 @@ export default function agentSurface(): Plugin {
       li(`${API}/mcp`, 'MCP server', 'streamable-http, JSON-RPC 2.0'),
       li(`${SITE}/data/index.json`, 'Static JSON feeds'),
       li(`${SITE}/n/`, 'GTA 6 news archive', 'static, indexable page per story'),
-      li(`${SITE}/vehicles/`, 'GTA 6 vehicles', 'every confirmed car, bike and boat'),
       li(`${SITE}/gta-6-release-date/`, 'GTA 6 release date', 'countdown, platforms, FAQ'),
       li(`${SITE}/supporters/`, 'Wall of Legends', 'supporters and agent hall of fame'),
       li(`${SITE}/feed.xml`, 'RSS feed'),

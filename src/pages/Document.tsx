@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 
 type VClass = 'All'|'Supercar'|'Sports'|'Muscle'|'Sedan'|'SUV'|'Motorcycle'|'Boat'|'Utility'|'Off-Road';
 interface IVehicle {
@@ -54,6 +54,43 @@ const VEHICLES: IVehicle[] = [
   { id:'granger', name:'Declasse Granger', maker:'Declasse', cls:'Off-Road', body:'4-door SUV', seats:6, realLife:'Chevrolet Suburban', status:'RETURNING', desc:'Law enforcement favorite confirmed for civilian use in GTA VI. Six seats and enough American iron to end any police chase.', wiki:'https://gta.fandom.com/wiki/Granger' },
 ];
 
+/** One-liner per class (the retired per-vehicle pages carried these; they live in the card now). */
+const QUIP: Record<string, string> = {
+  Supercar: 'Priced for people who still think a mortgage is optional.',
+  Sports: 'Fast enough to impress the neighbors, cheap enough to explain to your accountant.',
+  Muscle: 'Subtlety stayed in the garage. So did the fuel economy.',
+  Sedan: 'For criminals who value a working trunk and plausible deniability.',
+  SUV: 'Heavy, tinted and ready to double-park in a fire lane.',
+  Motorcycle: 'Two wheels, zero airbags, maximum confidence.',
+  Boat: 'Leonida has water, and your bad decisions need somewhere to go.',
+  Utility: 'The unsung hero of every heist and every awkward airport pickup.',
+  'Off-Road': 'For when the road ends and the bad ideas begin.',
+};
+
+/**
+ * A vehicle's own address is document.html#<slug>. The one-page-per-vehicle pages (/vehicles/<slug>/) were folded into this
+ * page: 404.html sends their old addresses here with the same slug. Same recipe as slugify() in scripts/lib/seo.mjs.
+ */
+const slugOf = (t: string) =>
+  t.normalize('NFKD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 70).replace(/-+$/, '');
+const SLUGS: Record<string, string> = (() => {
+  const seen = new Set<string>();
+  const out: Record<string, string> = {};
+  for (const v of VEHICLES) {
+    let s = slugOf(v.name) || v.id;
+    if (seen.has(s)) s = `${s}-${v.id}`;
+    seen.add(s);
+    out[v.id] = s;
+  }
+  return out;
+})();
+const fromHash = (): IVehicle | null => {
+  try {
+    const s = decodeURIComponent(window.location.hash.slice(1));
+    return VEHICLES.find(v => SLUGS[v.id] === s) || null;
+  } catch { return null; }
+};
+
 const CLASS_CFG: Record<string, { color: string; icon: string }> = {
   All:        { color: '#fff',     icon: '\u25c8' },
   Supercar:   { color: '#FF2D78', icon: '\u2605' },
@@ -98,8 +135,13 @@ function VehicleCard({ v, onClick }: { v: IVehicle; onClick: () => void }) {
 
 function VehicleModal({ v, onClose }: { v: IVehicle; onClose: () => void }) {
   const cfg = CLASS_CFG[v.cls];
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [onClose]);
   return (
-    <div className="fixed inset-0 z-[600] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm" onClick={onClose}>
+    <div className="fixed inset-0 z-[600] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm" onClick={onClose} role="dialog" aria-modal="true" aria-label={v.name}>
       <div className="glass-card-static rounded-xl max-w-lg w-full p-6 slide-in border" style={{ borderColor: `${cfg.color}50` }} onClick={e => e.stopPropagation()}>
         <div className="flex items-start justify-between mb-4">
           <div>
@@ -124,7 +166,8 @@ function VehicleModal({ v, onClose }: { v: IVehicle; onClose: () => void }) {
             </div>
           ))}
         </div>
-        <p className="text-sm text-white/65 leading-relaxed mb-5">{v.desc}</p>
+        <p className="text-sm text-white/65 leading-relaxed mb-2">{v.desc}</p>
+        {QUIP[v.cls] && <p className="text-xs italic text-neonPink/70 mb-5">{QUIP[v.cls]}</p>}
         <div className="flex gap-3">
           <a href={v.wiki} target="_blank" rel="noreferrer" className="btn-neon flex-1 justify-center text-[10px]">VIEW ON GTA WIKI</a>
           <button onClick={onClose} className="btn-neon btn-neon-sm px-4">CLOSE</button>
@@ -139,7 +182,18 @@ export default function Document() {
   const [cls, setCls] = useState<VClass>('All');
   const [maker, setMaker] = useState('All Makers');
   const [status, setStatus] = useState('All');
-  const [selected, setSelected] = useState<IVehicle | null>(null);
+  const [selected, setSelected] = useState<IVehicle | null>(() => fromHash());
+
+  // The open card is part of the address (#slug) so a vehicle can be shared; replaceState keeps the browser history clean.
+  const pick = (v: IVehicle | null) => {
+    setSelected(v);
+    try { window.history.replaceState(window.history.state, '', v ? `#${SLUGS[v.id]}` : window.location.pathname + window.location.search); } catch { /* storage-less embeds */ }
+  };
+  useEffect(() => {
+    const onHash = () => setSelected(fromHash());
+    window.addEventListener('hashchange', onHash);
+    return () => window.removeEventListener('hashchange', onHash);
+  }, []);
 
   const filtered = useMemo(() => VEHICLES.filter(v => {
     const q = search.toLowerCase();
@@ -157,7 +211,7 @@ export default function Document() {
 
   return (
     <div className="min-h-screen" style={{ background: 'linear-gradient(180deg, #05050a 0%, #0a0a18 100%)' }}>
-      {selected && <VehicleModal v={selected} onClose={() => setSelected(null)} />}
+      {selected && <VehicleModal v={selected} onClose={() => pick(null)} />}
 
       {/* HERO */}
       <div className="relative overflow-hidden border-b border-white/[0.07]" style={{ background: 'linear-gradient(135deg, rgba(255,45,120,0.08) 0%, rgba(180,79,255,0.06) 100%)' }}>
@@ -250,7 +304,7 @@ export default function Document() {
 
         {filtered.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-            {filtered.map(v => <VehicleCard key={v.id} v={v} onClick={() => setSelected(v)} />)}
+            {filtered.map(v => <VehicleCard key={v.id} v={v} onClick={() => pick(v)} />)}
           </div>
         ) : (
           <div className="text-center py-16">

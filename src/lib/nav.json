@@ -15,8 +15,7 @@
       "key": "world",
       "label": "World",
       "items": [
-        { "href": "document.html", "label": "Leonida Database", "key": "document" },
-        { "href": "vehicles/", "label": "Vehicles", "key": "vehicles" },
+        { "href": "document.html", "label": "Vehicles", "key": "document" },
         { "href": "realestate.html", "label": "Dynasty 8", "key": "realestate" }
       ]
     },

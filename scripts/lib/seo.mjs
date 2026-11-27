@@ -2,7 +2,7 @@
  * Vice City Hub v13 - shared SEO helpers (ASCII-only on purpose: no encoding surprises on Windows shells).
  * Used by scripts/gen-agent-surface.mjs and scripts/gen-seo-pages.mjs.
  *
- * shell() renders every static page (news archive, vehicles, release date, Wall of Legends) with the SAME look as the
+ * shell() renders every static page (news archive, release date, Wall of Legends, 404) with the SAME look as the
  * React hub: Orbitron/Rajdhani, glass cards, neon buttons, gradient dividers, two-row menu, the Leonida FM radio, and
  * the hub footer with contacts, donations and crypto addresses. Keep it in sync with src/components/Layout.tsx.
  */
@@ -183,7 +183,7 @@ export const shareBar = (url, text) => {
 // ----------------------------------------------------------------------------------------------------- nav + footer
 // Menu data lives in src/lib/nav.json (shared with src/components/NavGroups.tsx).
 const activeKey = (p) =>
-  p === 'n' || p.startsWith('n/') ? 'archive' : p.startsWith('vehicles') ? 'vehicles' : p.startsWith('gta-6-release') ? 'date' : p.startsWith('supporters') ? 'wall' : p.startsWith('is-gta-6') ? 'isout' : p.startsWith('alley') ? 'alley' : '';
+  p === 'n' || p.startsWith('n/') ? 'archive' : p.startsWith('gta-6-release') ? 'date' : p.startsWith('supporters') ? 'wall' : p.startsWith('is-gta-6') ? 'isout' : p.startsWith('alley') ? 'alley' : '';
 
 const FONTS = 'https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;800;900&amp;family=Rajdhani:wght@500;600;700&amp;display=swap';
 
